@@ -1,3 +1,3 @@
-module mpp-viewer-server
+module server
 
 go 1.26

@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"mpp-viewer-server/internal/env"
+	"server/internal/env"
 )
 
 type Config struct {

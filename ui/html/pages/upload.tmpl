@@ -1,0 +1,23 @@
+{{define "title"}}MPP Viewer — открыть план MS Project без установки{{end}}
+
+{{define "main"}}
+<main class="landing">
+  <h1>Открыть файл MS&nbsp;Project</h1>
+  <p class="lead">
+    Перетащите <code>.mpp</code> сюда — увидите диаграмму Ганта сразу.
+    Ничего устанавливать и регистрироваться не нужно.
+  </p>
+
+  <form class="drop" id="drop" method="post" action="/api/v1/upload" enctype="multipart/form-data">
+    <input type="file" id="file" name="file" accept=".mpp,.xml" hidden>
+    <p class="drop__hint">Перетащите файл или <label for="file" class="link">выберите на диске</label></p>
+    <p class="drop__note">Файл удаляется сразу после разбора.</p>
+  </form>
+
+  <p class="demo">
+    Пока загрузка не подключена — посмотрите на готовых примерах:
+    <a href="/viewer">реальный .mpp</a> ·
+    <a href="/viewer?demo=cyrillic">план с кириллицей</a>
+  </p>
+</main>
+{{end}}

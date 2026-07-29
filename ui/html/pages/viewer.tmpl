@@ -1,0 +1,57 @@
+{{define "title"}}План — MPP Viewer{{end}}
+
+{{define "head"}}<link rel="stylesheet" href="/static/vendor/dhtmlxgantt.css">{{end}}
+
+{{define "main"}}
+<header class="bar" data-file-name="{{.FileName}}">
+  <div class="bar__title">
+    <strong>MPP Viewer</strong>
+    <span id="project-name" class="muted">загрузка…</span>
+  </div>
+
+  <div class="bar__group">
+    <input type="search" id="search" class="search" placeholder="поиск по задачам" autocomplete="off">
+  </div>
+
+  <div class="bar__group">
+    <span class="label">Масштаб</span>
+    <button class="btn btn--scale is-active" data-scale="day">День</button>
+    <button class="btn btn--scale" data-scale="week">Неделя</button>
+    <button class="btn btn--scale" data-scale="month">Месяц</button>
+    <button class="btn btn--scale" data-scale="quarter">Квартал</button>
+  </div>
+
+  <div class="bar__group">
+    <button class="btn" id="collapse-all">Свернуть всё</button>
+    <button class="btn" id="expand-all">Развернуть всё</button>
+  </div>
+
+  <div class="bar__group">
+    <label class="check"><input type="checkbox" id="toggle-critical" checked> критический путь</label>
+    <label class="check"><input type="checkbox" id="toggle-grid" checked> сетка</label>
+  </div>
+</header>
+
+<main class="workspace">
+  <div id="gantt-here"></div>
+
+  <aside id="details" class="details is-hidden">
+    <button class="details__close" id="details-close" aria-label="Закрыть">&times;</button>
+    <div id="details-body"></div>
+  </aside>
+</main>
+
+<footer class="statusbar">
+  <span id="stats">—</span>
+  <span class="legend">
+    <i class="sw sw--crit"></i> критическая задача
+    <i class="sw sw--off"></i> нерабочий день
+  </span>
+</footer>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/vendor/dhtmlxgantt.js"></script>
+<script src="/static/js/mapper.js"></script>
+<script src="/static/js/viewer.js"></script>
+{{end}}

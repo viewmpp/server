@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"mpp-viewer-server/internal/config"
-	"mpp-viewer-server/internal/server"
-	"mpp-viewer-server/internal/viewer"
 	"os"
+	"server/internal/config"
+	"server/internal/server"
+	"server/internal/viewer"
+	"sync"
 )
 
 func main() {
@@ -17,14 +18,16 @@ func main() {
 }
 
 func run() error {
-
 	cfg := config.Load()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	viewerHandler := viewer.NewHandler(logger)
+	viewerHandler, err := viewer.NewHandler(logger)
+	if err != nil {
+		return err
+	}
 
-	srv := server.New(cfg, logger, viewerHandler)
+	var wg *sync.WaitGroup
 
-	return srv.Serve()
+	return server.New(cfg, logger, viewerHandle, wg).Serve()
 }
