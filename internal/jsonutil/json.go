@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+type Envelope map[string]any
+
 func WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 	j, err := json.Marshal(data)
 	if err != nil {
