@@ -23,12 +23,13 @@ func NewServer(cfg config.Config, logger *slog.Logger) *Server {
 func (s *Server) Serve() error {
 
 	srv := http.Server{
-		Addr:         fmt.Sprintf(":%d", s.cfg.Port),
-		Handler:      s.routes(),
-		ErrorLog:     slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
-		WriteTimeout: 30 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		IdleTimeout:  time.Minute,
+		Addr:              fmt.Sprintf(":%d", s.cfg.Port),
+		Handler:           s.routes(),
+		ErrorLog:          slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
+		WriteTimeout:      2 * time.Minute,
+		ReadTimeout:       5 * time.Minute,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       time.Minute,
 	}
 
 	s.logger.Info("starting server", "port", s.cfg.Port, "env", s.cfg.Env)

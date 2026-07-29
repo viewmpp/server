@@ -21,6 +21,6 @@ func (s *Server) healthcheck(w http.ResponseWriter, r *http.Request) {
 
 	err := jsonutil.WriteJSON(w, http.StatusOK, hc, nil)
 	if err != nil {
-		panic("something went wrong")
+		jsonutil.ServerErrorResponse(w, r, err, s.logger)
 	}
 }
