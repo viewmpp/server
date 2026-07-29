@@ -1,9 +1,9 @@
 package server
 
 import (
-	"mpp-viewer-server/internal/jsonutil"
-	"mpp-viewer-server/internal/vcs"
 	"net/http"
+	"server/internal/jsonutil"
+	"server/internal/vcs"
 )
 
 type healthcheck struct {
