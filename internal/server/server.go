@@ -4,19 +4,22 @@ import (
 	"fmt"
 	"log/slog"
 	"mpp-viewer-server/internal/config"
+	"mpp-viewer-server/internal/viewer"
 	"net/http"
 	"time"
 )
 
 type Server struct {
-	cfg    config.Config
-	logger *slog.Logger
+	cfg           config.Config
+	logger        *slog.Logger
+	viewerHandler *viewer.Handler
 }
 
-func NewServer(cfg config.Config, logger *slog.Logger) *Server {
+func New(cfg config.Config, logger *slog.Logger, viewerHandler *viewer.Handler) *Server {
 	return &Server{
-		cfg:    cfg,
-		logger: logger,
+		cfg:           cfg,
+		logger:        logger,
+		viewerHandler: viewerHandler,
 	}
 }
 

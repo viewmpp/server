@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"mpp-viewer-server/internal/config"
 	"mpp-viewer-server/internal/server"
+	"mpp-viewer-server/internal/viewer"
 	"os"
 )
 
@@ -21,7 +22,9 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	srv := server.NewServer(cfg, logger)
+	viewerHandler := viewer.NewHandler(logger)
+
+	srv := server.New(cfg, logger, viewerHandler)
 
 	return srv.Serve()
 }
