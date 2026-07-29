@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"server/internal/jsonutil"
 	"time"
 )
 
-func (s *Server) recoverPanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				w.Header().Set("Connection", "close")
-				jsonutil.ServerErrorResponse(w, r, fmt.Errorf("%v", err), s.logger)
-			}
-		}()
+type CustomWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
 
-		next.ServeHTTP(w, r)
-	})
+func (cw *CustomWriter) WriteHeader(code int) {
+	cw.statusCode = code
+	cw.ResponseWriter.WriteHeader(code)
 }
 
 func (s *Server) logRequest(next http.Handler) http.Handler {
@@ -48,5 +46,18 @@ func (s *Server) logRequest(next http.Handler) http.Handler {
 			s.logger.Info("request handled", args...)
 
 		}
+	})
+}
+
+func (s *Server) recoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				w.Header().Set("Connection", "close")
+				jsonutil.ServerErrorResponse(w, r, fmt.Errorf("%v", err), s.logger)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
 	})
 }

@@ -29,5 +29,5 @@ func run() error {
 
 	var wg *sync.WaitGroup
 
-	return server.New(cfg, logger, viewerHandle, wg).Serve()
+	return server.New(cfg, logger, viewerHandler, wg).Serve()
 }
