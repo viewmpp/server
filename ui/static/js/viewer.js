@@ -88,8 +88,6 @@
       });
   }
 
-  // В реальных .mpp project.name почти всегда пуст — на корпусе 4 из 4. Имя
-  // файла знает Go и отдаёт его страницей; в контракте его нет и быть не должно.
   function describe(contract) {
     var fileName = document.querySelector('.bar').dataset.fileName || '';
     ui.projectName.textContent = (contract.project && contract.project.name) || fileName || 'без названия';
