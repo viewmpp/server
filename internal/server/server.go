@@ -22,7 +22,12 @@ type Server struct {
 	wg            *sync.WaitGroup
 }
 
-func New(cfg config.Config, logger *slog.Logger, viewerHandler *viewer.Handler, wg *sync.WaitGroup) *Server {
+func New(
+	cfg config.Config,
+	logger *slog.Logger,
+	viewerHandler *viewer.Handler,
+	wg *sync.WaitGroup,
+) *Server {
 	return &Server{
 		cfg:           cfg,
 		logger:        logger,
