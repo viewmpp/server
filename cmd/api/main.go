@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"server/internal/config"
+	"server/internal/htmlutil"
 	"server/internal/server"
 	"server/internal/viewer"
 	"sync"
@@ -22,10 +23,12 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	viewerHandler, err := viewer.NewHandler(logger)
+	templates, err := htmlutil.NewTemplates()
 	if err != nil {
 		return err
 	}
+
+	viewerHandler := viewer.NewHandler(logger, templates)
 
 	var wg sync.WaitGroup
 
