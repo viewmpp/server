@@ -42,9 +42,6 @@ body { display: flex; flex-direction: column; }
 .drop__note { margin: 0; color: var(--muted); font-size: 13px; }
 .link { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
-.demo { margin-top: 22px; color: var(--muted); font-size: 13px; }
-.demo a { color: var(--accent); }
-
 .bar {
   display: flex;
   flex-wrap: wrap;
