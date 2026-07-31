@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"strings"
 	"time"
 )
 
@@ -54,7 +56,11 @@ func (s *Server) recoverPanic(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
-				jsonutil.ServerErrorResponse(w, r, fmt.Errorf("%v", err), s.logger)
+				if strings.HasPrefix(r.URL.Path, "/api/") {
+					jsonutil.ServerErrorResponse(w, r, fmt.Errorf("%v", err), s.logger)
+					return
+				}
+				htmlutil.ServerErrorResponse(w, r, fmt.Errorf("%v", err), s.logger)
 			}
 		}()
 
