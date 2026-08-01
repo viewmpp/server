@@ -15,8 +15,8 @@ func NewHandler(logger *slog.Logger, templates *htmlutil.Templates) *Handler {
 	return &Handler{logger: logger, templates: templates}
 }
 
-func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
-	page := htmlutil.Page{FileName: "upload.tmpl"}
+func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
+	page := htmlutil.Page{}
 	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.Upload, page)
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -24,7 +24,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request) {
-	page := htmlutil.Page{FileName: "viewer.tmpl"}
+	page := htmlutil.Page{}
 	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.Viewer, page)
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

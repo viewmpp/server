@@ -90,7 +90,7 @@
 
   function describe(contract) {
     var fileName = document.querySelector('.bar').dataset.fileName || '';
-    ui.projectName.textContent = (contract.project && contract.project.name) || fileName || 'без названия';
+    ui.projectName.textContent = fileName || (contract.project && contract.project.name) || 'без названия';
 
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
     ui.stats.textContent =

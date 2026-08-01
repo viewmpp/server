@@ -10,7 +10,7 @@ func (s *Server) routes() http.Handler {
 
 	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
 
-	mux.HandleFunc("GET /{$}", s.viewerHandler.Upload)
+	mux.HandleFunc("GET /{$}", s.viewerHandler.Landing)
 	mux.HandleFunc("GET /viewer", s.viewerHandler.View)
 
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
