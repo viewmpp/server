@@ -1,4 +1,4 @@
-package fixture
+package fixtures
 
 import _ "embed"
 
@@ -17,6 +17,9 @@ var (
 
 	//go:embed cyrillic.json
 	cyrillic []byte
+
+	//go:embed mspdi.json
+	mspdi []byte
 )
 
 type Fixture struct {

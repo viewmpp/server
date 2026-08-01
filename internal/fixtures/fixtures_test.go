@@ -1,4 +1,4 @@
-package fixture
+package fixtures
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ func TestFixturesMatchParser(t *testing.T) {
 		"mpp12.json":         mpp12,
 		"mpp14baseline.json": mpp14Baseline,
 		"cyrillic.json":      cyrillic,
+		"mspdi.json":         mspdi,
 	}
 
 	for name, embedded := range cases {
