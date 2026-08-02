@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/user"
 	"strings"
 	"time"
 )
@@ -37,7 +38,8 @@ func (s *Server) logRequest(next http.Handler) http.Handler {
 			slog.String("method", r.Method),
 			slog.String("uri", r.RequestURI),
 			slog.Int("status_code", status),
-			slog.Duration("duration", time.Since(starts))}
+			slog.Duration("duration", time.Since(starts)),
+		}
 
 		switch {
 		case status >= 500:
@@ -65,5 +67,20 @@ func (s *Server) recoverPanic(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Authorization")
+
+		header := r.Header.Get("Authorization")
+
+		if header == "" {
+			next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
+			return
+		}
+
+		jsonutil.InvalidAuthenticationTokenResponse(w)
 	})
 }
