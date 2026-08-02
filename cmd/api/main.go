@@ -3,12 +3,16 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"server/internal/config"
 	"server/internal/htmlutil"
+	"server/internal/parser"
 	"server/internal/server"
+	"server/internal/upload"
 	"server/internal/viewer"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -30,7 +34,14 @@ func run() error {
 
 	viewerHandler := viewer.NewHandler(logger, templates)
 
+	client := &parser.Client{
+		URL:  cfg.URL,
+		HTTP: &http.Client{Timeout: 30 * time.Second},
+	}
+
+	uploadHandler := upload.NewHandler(logger, client, nil)
+
 	var wg sync.WaitGroup
 
-	return server.New(cfg, logger, viewerHandler, &wg).Serve()
+	return server.New(cfg, logger, viewerHandler, uploadHandler, &wg).Serve()
 }
