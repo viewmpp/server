@@ -24,6 +24,11 @@ func BadRequestResponse(w http.ResponseWriter, err any) {
 	errorResponse(w, http.StatusBadRequest, err)
 }
 
+func LengthRequiredResponse(w http.ResponseWriter) {
+	message := "request must declare its size"
+	errorResponse(w, http.StatusLengthRequired, message)
+}
+
 func ContentTooLargeError(w http.ResponseWriter) {
 	message := "content too large"
 	errorResponse(w, http.StatusRequestEntityTooLarge, message)

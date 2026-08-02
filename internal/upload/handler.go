@@ -36,6 +36,11 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	limit := u.MaxUploadBytes()
 
+	if r.ContentLength < 0 {
+		jsonutil.LengthRequiredResponse(w)
+		return
+	}
+
 	if r.ContentLength > limit {
 		jsonutil.ContentTooLargeError(w)
 		return
@@ -43,7 +48,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, limit)
 
-	contract, err := h.client.Parse(r.Context(), r.Body)
+	contract, err := h.client.Parse(r.Context(), r.Body, r.ContentLength)
 	if err != nil {
 		pe, exists := errors.AsType[*parser.ParseError](err)
 		if exists && pe.Status < 500 {

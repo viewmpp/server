@@ -24,10 +24,10 @@ type Client struct {
 	HTTP *http.Client
 }
 
-func (c *Client) Parse(ctx context.Context, body io.Reader) ([]byte, error) {
+func (c *Client) Parse(ctx context.Context, body io.Reader, size int64) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	res, err := c.request(ctx, body)
+	res, err := c.request(ctx, body, size)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +49,13 @@ func (c *Client) Parse(ctx context.Context, body io.Reader) ([]byte, error) {
 	return data, nil
 }
 
-func (c *Client) request(ctx context.Context, body io.Reader) (*http.Response, error) {
+func (c *Client) request(ctx context.Context, body io.Reader, size int64) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.URL, body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.ContentLength = size
 	req.Header.Set("Content-Type", "application/octet-stream")
 	res, err := c.HTTP.Do(req)
 	if err != nil {
