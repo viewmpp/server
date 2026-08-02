@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -78,12 +79,17 @@ func (s *Server) Serve() error {
 		shutdownError <- nil
 	}()
 
-	err := srv.ListenAndServe()
-	if !errors.Is(err, http.ErrServerClosed) {
+	ln, err := net.Listen("tcp", srv.Addr)
+	if err != nil {
 		return err
 	}
 
-	s.logger.Info("starting server", "port", s.cfg.Port, "env", s.cfg.Env)
+	s.logger.Info("starting server", "addr", ln.Addr(), "env", s.cfg.Env)
+
+	err = srv.Serve(ln)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
 
 	return <-shutdownError
 }
