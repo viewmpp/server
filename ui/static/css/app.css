@@ -21,6 +21,9 @@ html, body {
 
 body { display: flex; flex-direction: column; }
 
+.is-hidden { display: none !important; }
+
+.app { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
 .landing { max-width: 720px; margin: 0 auto; padding: 64px 24px; }
 .landing h1 { font-size: 26px; margin: 0 0 12px; }
@@ -38,8 +41,11 @@ body { display: flex; flex-direction: column; }
   border-radius: 12px;
 }
 .drop.is-over { border-color: var(--accent); background: #f2f7ff; }
+.drop.is-busy { opacity: .55; pointer-events: none; }
+.drop.is-busy .drop__hint::after { content: " — разбираем…"; color: var(--muted); }
 .drop__hint { margin: 0; font-size: 16px; }
 .drop__note { margin: 0; color: var(--muted); font-size: 13px; }
+.drop__error { margin: 14px 0 0; color: var(--critical); font-size: 13px; }
 .link { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
 .bar {

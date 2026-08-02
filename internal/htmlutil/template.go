@@ -7,25 +7,16 @@ import (
 )
 
 type Templates struct {
-	Upload *template.Template
-	Viewer *template.Template
+	App *template.Template
 }
 
 func NewTemplates() (*Templates, error) {
-	upload, err := parsePage("upload.tmpl")
+	app, err := parsePage("app.tmpl")
 	if err != nil {
 		return nil, err
 	}
 
-	viewer, err := parsePage("viewer.tmpl")
-	if err != nil {
-		return nil, err
-	}
-
-	return &Templates{
-		Upload: upload,
-		Viewer: viewer,
-	}, nil
+	return &Templates{App: app}, nil
 }
 
 func parsePage(name string) (*template.Template, error) {
