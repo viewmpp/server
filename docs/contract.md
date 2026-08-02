@@ -504,9 +504,9 @@ What has not been verified
 
 ### Corpus homogeneity is the main limitation
 
-The corpus: 15 real `.mpp` files (mpp8/9/12/14), most of them from one library's
-test set; a synthetic Cyrillic MSPDI written by MPXJ itself; and one MSPDI saved
-by MS Project 2016.
+The corpus: 17 real `.mpp` files (mpp8/9/12/14 plus two large ones saved by
+MS Project), most of the small ones from one library's test set; a synthetic
+Cyrillic MSPDI written by MPXJ itself; and one MSPDI saved by MS Project 2016.
 
 While the corpus consisted only of `.mpp`, any conclusion drawn on it read as a
 conclusion about the format — when it was in fact a conclusion **about this
@@ -517,6 +517,22 @@ The discriminator turned out not to be the format but the **producer of the
 file**: MS Project writes computed fields into both `.mpp` and MSPDI; MPXJ,
 when writing MSPDI, does not. The only fixture where summary tasks arrive
 undated is the synthetic one.
+
+This was then confirmed on **one and the same plan**. The synthetic 1650-task
+MSPDI was opened in MS Project and re-saved as `.mpp`; the result is in the
+corpus as `large.mpp` (current format) and `large2007.mpp`. Re-saving enriched
+it — see `SameProjectAcrossFormatsTest`:
+
+| | synthetic MSPDI | same plan re-saved as `.mpp` |
+|---|---|---|
+| tasks | 1650 | 1651 (MS Project adds the project summary row) |
+| summary tasks without dates | 150 | **0** |
+| tasks flagged critical | 0 | **1100** |
+| `project.name` | filled | `null` |
+| relations | 1350 | 1350, identical set |
+
+Nothing about the format changed the data. What changed is that MS Project
+computed the schedule and wrote the results down.
 
 **Therefore each claim below states which files it was measured on.** When a
 file of new provenance appears, re-check exactly those whose note does not cover
@@ -553,8 +569,16 @@ it.
   hierarchy and dates were checked only for internal consistency (a parent
   precedes its child, no dangling references). Project 2016 and 2021 files are
   absent from the corpus — it covers mpp8, mpp9, mpp12, mpp14.
-- **A 1000+ task file has not been run through the contract** — the corpus has
-  no such `.mpp`, only a synthetic MSPDI with 1650 tasks.
+- **A 1000+ task file goes through the contract.** *Measured on: `large.mpp`,
+  1651 tasks, 2.62 MB.* Parsed in 928 ms (533 ms for the mpp2007 variant, 742 ms
+  for the same plan as MSPDI). Units are `DAYS` throughout, nesting depth 2, all
+  dates in full form. `large.json` is a fixture, so the size case is covered on
+  every run.
+- **Size on disk, same plan, three encodings:** MSPDI 3.97 MB, `.mpp` 2.62 MB,
+  mpp2007 2.45 MB — roughly 2.5 KB and 1.6 KB per task respectively. MSPDI is
+  about 1.5x the `.mpp`, not an order of magnitude. This is what upload limits
+  should be reasoned from: 10 MB is roughly 6000 tasks as `.mpp` and 4000 as
+  MSPDI.
 
 ---
 

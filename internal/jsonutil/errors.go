@@ -14,3 +14,17 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logg
 	message := "the server encountered a problem and could not process your request"
 	errorResponse(w, http.StatusInternalServerError, message)
 }
+
+func InvalidAuthenticationTokenResponse(w http.ResponseWriter) {
+	message := "invalid authentication token"
+	errorResponse(w, http.StatusUnauthorized, message)
+}
+
+func BadRequestResponse(w http.ResponseWriter, err any) {
+	errorResponse(w, http.StatusBadRequest, err)
+}
+
+func ContentTooLargeError(w http.ResponseWriter) {
+	message := "content too large"
+	errorResponse(w, http.StatusRequestEntityTooLarge, message)
+}
