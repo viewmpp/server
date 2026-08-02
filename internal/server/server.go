@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"server/internal/config"
+	"server/internal/upload"
 	"server/internal/viewer"
 	"sync"
 	"syscall"
@@ -19,6 +20,7 @@ type Server struct {
 	cfg           config.Config
 	logger        *slog.Logger
 	viewerHandler *viewer.Handler
+	uploadHandler *upload.Handler
 	wg            *sync.WaitGroup
 }
 
@@ -26,12 +28,14 @@ func New(
 	cfg config.Config,
 	logger *slog.Logger,
 	viewerHandler *viewer.Handler,
+	uploadHandler *upload.Handler,
 	wg *sync.WaitGroup,
 ) *Server {
 	return &Server{
 		cfg:           cfg,
 		logger:        logger,
 		viewerHandler: viewerHandler,
+		uploadHandler: uploadHandler,
 		wg:            wg,
 	}
 }
@@ -46,8 +50,6 @@ func (s *Server) Serve() error {
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       time.Minute,
 	}
-
-	s.logger.Info("starting server", "port", s.cfg.Port, "env", s.cfg.Env)
 
 	shutdownError := make(chan error)
 
@@ -80,6 +82,8 @@ func (s *Server) Serve() error {
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
+
+	s.logger.Info("starting server", "port", s.cfg.Port, "env", s.cfg.Env)
 
 	return <-shutdownError
 }
