@@ -7,7 +7,8 @@ import (
 )
 
 type Page struct {
-	FileName string
+	MaxUpload int64
+	Version   string
 }
 
 func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Page) error {
