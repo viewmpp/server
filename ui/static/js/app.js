@@ -1,9 +1,14 @@
 (function () {
   'use strict';
 
-  var gantt = window.gantt;
+  var gantt = null;
 
   var ui = {
+    landing: document.getElementById('landing'),
+    app: document.getElementById('app'),
+    drop: document.getElementById('drop'),
+    file: document.getElementById('file'),
+    error: document.getElementById('error'),
     projectName: document.getElementById('project-name'),
     stats: document.getElementById('stats'),
     chart: document.getElementById('gantt-here'),
@@ -14,6 +19,7 @@
 
   var model = null;
   var showCritical = true;
+  var started = false;
 
   var UNITS = {
     MINUTES: 'мин', HOURS: 'ч', DAYS: 'дн', WEEKS: 'нед',
@@ -27,70 +33,152 @@
     FINISH_START: 'ОН', START_START: 'НН', FINISH_FINISH: 'ОО', START_FINISH: 'НО'
   };
 
-  gantt.config.readonly = true;
-  gantt.config.smart_rendering = true;
-  gantt.config.open_tree_initially = true;
-  gantt.config.row_height = 30;
-  gantt.config.bar_height = 18;
-
-  gantt.config.columns = [
-    { name: 'wbs', label: 'СДР', width: 78, resize: true,
-      template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
-    { name: 'text', label: 'Задача', tree: true, width: 280, resize: true },
-    { name: 'start', label: 'Начало', align: 'center', width: 96, resize: true,
-      template: function (t) { return shortDate(t.start_date); } },
-    { name: 'duration', label: 'Длит.', align: 'center', width: 70,
-      template: function (t) { return duration(t.$contract.duration); } }
-  ];
-
-  gantt.templates.task_class = function (start, end, task) {
-    var classes = [];
-    if (task.$contract.is_summary) { classes.push('is-summary'); }
-    if (showCritical && task.$contract.is_critical) { classes.push('is-critical'); }
-    return classes.join(' ');
-  };
-
-  gantt.templates.timeline_cell_class = function (task, date) {
-    return isNonWorking(date) ? 'is-nonworking' : '';
-  };
-
-  gantt.templates.grid_row_class = function (start, end, task) {
-    return task.$contract.is_summary ? 'is-summary-row' : '';
-  };
-
-  gantt.init(ui.chart);
-
-  gantt.attachEvent('onTaskClick', function (id) {
-    showDetails(gantt.getTask(id).$contract);
-    return true;
+  ui.drop.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    ui.drop.classList.add('is-over');
   });
 
-  load();
+  ui.drop.addEventListener('dragleave', function () {
+    ui.drop.classList.remove('is-over');
+  });
 
-  function load() {
-    var query = new URLSearchParams(location.search).get('demo');
-    var url = '/api/v1/schedule' + (query ? '?demo=' + encodeURIComponent(query) : '');
+  ui.drop.addEventListener('drop', function (e) {
+    e.preventDefault();
+    ui.drop.classList.remove('is-over');
+    send(e.dataTransfer.files[0]);
+  });
 
-    fetch(url)
+  ui.file.addEventListener('change', function () {
+    send(ui.file.files[0]);
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    ui.file.value = '';
+    ui.details.classList.add('is-hidden');
+    ui.app.classList.add('is-hidden');
+    ui.landing.classList.remove('is-hidden');
+  });
+
+  function send(file) {
+    if (!file) { return; }
+
+    var limit = Number(ui.drop.dataset.maxUpload);
+    if (limit && file.size > limit) {
+      fail('файл больше ' + Math.round(limit / 1048576) + ' МБ');
+      return;
+    }
+
+    ui.error.classList.add('is-hidden');
+    ui.drop.classList.add('is-busy');
+
+    fetch('/api/v1/upload?name=' + encodeURIComponent(file.name), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: file
+    })
       .then(function (response) {
-        if (!response.ok) { throw new Error('сервер ответил ' + response.status); }
-        return response.json();
+        return response.json().then(function (payload) {
+          if (!response.ok) { throw new Error(payload || 'сервер ответил ' + response.status); }
+          return payload;
+        });
       })
       .then(function (contract) {
-        model = window.MppMapper.toModel(contract);
-        gantt.clearAll();
-        gantt.parse({ data: model.data, links: model.links });
-        setScale('day');
-        describe(contract);
+        return loadGantt().then(function () { show(contract, file.name); });
       })
       .catch(function (err) {
-        ui.projectName.textContent = 'не удалось загрузить план: ' + err.message;
+        fail(err.message);
+      })
+      .then(function () {
+        ui.drop.classList.remove('is-busy');
       });
   }
 
-  function describe(contract) {
-    var fileName = document.querySelector('.bar').dataset.fileName || '';
-    ui.projectName.textContent = fileName || (contract.project && contract.project.name) || 'без названия';
+  function fail(message) {
+    ui.error.textContent = message;
+    ui.error.classList.remove('is-hidden');
+  }
+
+  function loadGantt() {
+    if (gantt) { return Promise.resolve(); }
+
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '/static/vendor/dhtmlxgantt.css';
+    document.head.appendChild(css);
+
+    return new Promise(function (resolve, reject) {
+      var js = document.createElement('script');
+      js.src = '/static/vendor/dhtmlxgantt.js';
+      js.onload = function () {
+        gantt = window.gantt;
+        resolve();
+      };
+      js.onerror = function () {
+        reject(new Error('не удалось загрузить библиотеку графика'));
+      };
+      document.head.appendChild(js);
+    });
+  }
+
+  function show(contract, fileName) {
+    ui.landing.classList.add('is-hidden');
+    ui.app.classList.remove('is-hidden');
+
+    if (!started) {
+      start();
+      started = true;
+    }
+
+    model = window.MppMapper.toModel(contract);
+    gantt.clearAll();
+    gantt.parse({ data: model.data, links: model.links });
+    setScale('day');
+    describe(contract, fileName);
+  }
+
+  function start() {
+    gantt.config.readonly = true;
+    gantt.config.smart_rendering = true;
+    gantt.config.open_tree_initially = true;
+    gantt.config.row_height = 30;
+    gantt.config.bar_height = 18;
+
+    gantt.config.columns = [
+      { name: 'wbs', label: 'СДР', width: 78, resize: true,
+        template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
+      { name: 'text', label: 'Задача', tree: true, width: 280, resize: true },
+      { name: 'start', label: 'Начало', align: 'center', width: 96, resize: true,
+        template: function (t) { return shortDate(t.start_date); } },
+      { name: 'duration', label: 'Длит.', align: 'center', width: 70,
+        template: function (t) { return duration(t.$contract.duration); } }
+    ];
+
+    gantt.templates.task_class = function (start, end, task) {
+      var classes = [];
+      if (task.$contract.is_summary) { classes.push('is-summary'); }
+      if (showCritical && task.$contract.is_critical) { classes.push('is-critical'); }
+      return classes.join(' ');
+    };
+
+    gantt.templates.timeline_cell_class = function (task, date) {
+      return isNonWorking(date) ? 'is-nonworking' : '';
+    };
+
+    gantt.templates.grid_row_class = function (start, end, task) {
+      return task.$contract.is_summary ? 'is-summary-row' : '';
+    };
+
+    gantt.init(ui.chart);
+
+    gantt.attachEvent('onTaskClick', function (id) {
+      showDetails(gantt.getTask(id).$contract);
+      return true;
+    });
+  }
+
+  function describe(contract, fileName) {
+    ui.projectName.textContent =
+      fileName || (contract.project && contract.project.name) || 'без названия';
 
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
     ui.stats.textContent =
@@ -226,9 +314,7 @@
       return;
     }
     gantt.batchUpdate(function () {
-      gantt.eachTask(function (task) {
-        task.$open = true;
-      });
+      gantt.eachTask(function (task) { task.$open = true; });
     });
     var first = null;
     gantt.eachTask(function (task) {
@@ -239,18 +325,12 @@
 
   function duration(value) {
     if (!value) { return ''; }
-    var units = UNITS[value.units] || value.units;
-    return trimNumber(value.value) + ' ' + units;
+    return String(value.value) + ' ' + (UNITS[value.units] || value.units);
   }
 
   function lag(value) {
     if (!value || !value.value) { return ''; }
-    var sign = value.value > 0 ? '+' : '';
-    return ' ' + sign + duration(value);
-  }
-
-  function trimNumber(value) {
-    return Number.isInteger(value) ? String(value) : String(value);
+    return ' ' + (value.value > 0 ? '+' : '') + duration(value);
   }
 
   function shortDate(date) {
