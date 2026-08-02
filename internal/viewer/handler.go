@@ -3,7 +3,10 @@ package viewer
 import (
 	"log/slog"
 	"net/http"
+	"net/url"
 	"server/internal/htmlutil"
+	"server/internal/user"
+	"server/internal/vcs"
 )
 
 type Handler struct {
@@ -16,16 +19,12 @@ func NewHandler(logger *slog.Logger, templates *htmlutil.Templates) *Handler {
 }
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
-	page := htmlutil.Page{}
-	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.Upload, page)
-	if err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+	page := htmlutil.Page{
+		MaxUpload: user.GetUserContext(r).MaxUploadBytes(),
+		Version:   url.QueryEscape(vcs.Version()),
 	}
-}
 
-func (h *Handler) View(w http.ResponseWriter, r *http.Request) {
-	page := htmlutil.Page{}
-	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.Viewer, page)
+	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.App, page)
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 	}
