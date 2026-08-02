@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
-	"server/internal/jsonutil"
 	"server/ui"
 )
 
@@ -15,7 +14,7 @@ func errorResponse(w http.ResponseWriter, r *http.Request, status int, logger *s
 	buf := new(bytes.Buffer)
 	err := errorPage.Execute(buf, nil)
 	if err != nil {
-		jsonutil.ServerErrorResponse(w, r, err, logger)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
