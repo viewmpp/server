@@ -8,7 +8,7 @@ import (
 	"server/ui"
 )
 
-var errorPage = template.Must(template.ParseFS(ui.Files, "html/error.tmpl"))
+var errorPage = template.Must(template.ParseFS(ui.Files, "templates/error.tmpl"))
 
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, logger *slog.Logger) {
 	buf := new(bytes.Buffer)

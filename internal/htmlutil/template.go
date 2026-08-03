@@ -20,5 +20,5 @@ func NewTemplates() (*Templates, error) {
 }
 
 func parsePage(name string) (*template.Template, error) {
-	return template.ParseFS(ui.Files, "html/base.tmpl", fmt.Sprintf("html/pages/%s", name))
+	return template.ParseFS(ui.Files, "templates/base.tmpl", fmt.Sprintf("templates/pages/%s", name))
 }
