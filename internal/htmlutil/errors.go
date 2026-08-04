@@ -10,7 +10,7 @@ import (
 
 var errorPage = template.Must(template.ParseFS(ui.Files, "templates/error.tmpl"))
 
-func errorResponse(w http.ResponseWriter, r *http.Request, status int, logger *slog.Logger) {
+func errorResponse(w http.ResponseWriter, status int) {
 	buf := new(bytes.Buffer)
 	err := errorPage.Execute(buf, nil)
 	if err != nil {
@@ -24,5 +24,5 @@ func errorResponse(w http.ResponseWriter, r *http.Request, status int, logger *s
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logger *slog.Logger) {
 	logger.Error("page render failed", "err", err, "method", r.Method, "uri", r.URL.RequestURI())
-	errorResponse(w, r, http.StatusInternalServerError, logger)
+	errorResponse(w, http.StatusInternalServerError)
 }

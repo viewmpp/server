@@ -17,6 +17,7 @@ func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Pa
 		return err
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
