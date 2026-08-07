@@ -1,17 +1,32 @@
-{{define "title"}}MPP Viewer — открыть план MS Project без установки{{end}}
+{{define "title"}}MPP Viewer — open an MS Project plan without installing anything{{end}}
 
 {{define "main"}}
+<header class="topbar">
+  {{if .UserEmail}}
+    <span class="topbar__user">{{.UserEmail}}{{if not .Verified}} · <a href="/verify">email not confirmed</a>{{end}}</span>
+    <form action="/logout" method="POST">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <button class="link-button" type="submit">Sign out</button>
+    </form>
+  {{else}}
+    <a href="/login">Sign in</a>
+    <a href="/signup">Sign up</a>
+  {{end}}
+</header>
+
 <main class="landing" id="landing">
-  <h1>Открыть файл MS&nbsp;Project</h1>
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <h1>Open an MS&nbsp;Project file</h1>
   <p class="lead">
-    Перетащите <code>.mpp</code> или <code>.xml</code> сюда — увидите диаграмму Ганта сразу.
-    Ничего устанавливать и регистрироваться не нужно.
+    Drop an <code>.mpp</code> or <code>.xml</code> file here and see the Gantt chart straight away.
+    Nothing to install, no signup needed.
   </p>
 
   <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
     <input type="file" id="file" accept=".mpp,.xml" hidden>
-    <p class="drop__hint">Перетащите файл или <label for="file" class="link">выберите на диске</label></p>
-    <p class="drop__note">Файл удаляется сразу после разбора.</p>
+    <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__note">The file is deleted right after parsing.</p>
   </div>
 
   <p class="drop__error is-hidden" id="error"></p>
@@ -25,29 +40,29 @@
     </div>
 
     <div class="bar__group">
-      <input type="search" id="search" class="search" placeholder="поиск по задачам" autocomplete="off">
+      <input type="search" id="search" class="search" placeholder="search tasks" autocomplete="off">
     </div>
 
     <div class="bar__group">
-      <span class="label">Масштаб</span>
-      <button class="btn btn--scale is-active" data-scale="day">День</button>
-      <button class="btn btn--scale" data-scale="week">Неделя</button>
-      <button class="btn btn--scale" data-scale="month">Месяц</button>
-      <button class="btn btn--scale" data-scale="quarter">Квартал</button>
+      <span class="label">Scale</span>
+      <button class="btn btn--scale is-active" data-scale="day">Day</button>
+      <button class="btn btn--scale" data-scale="week">Week</button>
+      <button class="btn btn--scale" data-scale="month">Month</button>
+      <button class="btn btn--scale" data-scale="quarter">Quarter</button>
     </div>
 
     <div class="bar__group">
-      <button class="btn" id="collapse-all">Свернуть всё</button>
-      <button class="btn" id="expand-all">Развернуть всё</button>
+      <button class="btn" id="collapse-all">Collapse all</button>
+      <button class="btn" id="expand-all">Expand all</button>
     </div>
 
     <div class="bar__group">
-      <label class="check"><input type="checkbox" id="toggle-critical" checked> критический путь</label>
-      <label class="check"><input type="checkbox" id="toggle-grid" checked> сетка</label>
+      <label class="check"><input type="checkbox" id="toggle-critical" checked> critical path</label>
+      <label class="check"><input type="checkbox" id="toggle-grid" checked> grid</label>
     </div>
 
     <div class="bar__group">
-      <button class="btn" id="reset">Другой файл</button>
+      <button class="btn" id="reset">Another file</button>
     </div>
   </header>
 
@@ -55,7 +70,7 @@
     <div id="gantt-here"></div>
 
     <aside id="details" class="details is-hidden">
-      <button class="details__close" id="details-close" aria-label="Закрыть">&times;</button>
+      <button class="details__close" id="details-close" aria-label="Close">&times;</button>
       <div id="details-body"></div>
     </aside>
   </div>
@@ -63,8 +78,8 @@
   <footer class="statusbar">
     <span id="stats">—</span>
     <span class="legend">
-      <i class="sw sw--crit"></i> критическая задача
-      <i class="sw sw--off"></i> нерабочий день
+      <i class="sw sw--crit"></i> critical task
+      <i class="sw sw--off"></i> non-working day
     </span>
   </footer>
 </div>

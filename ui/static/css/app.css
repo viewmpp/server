@@ -42,7 +42,7 @@ body { display: flex; flex-direction: column; }
 }
 .drop.is-over { border-color: var(--accent); background: #f2f7ff; }
 .drop.is-busy { opacity: .55; pointer-events: none; }
-.drop.is-busy .drop__hint::after { content: " — разбираем…"; color: var(--muted); }
+.drop.is-busy .drop__hint::after { content: " — parsing…"; color: var(--muted); }
 .drop__hint { margin: 0; font-size: 16px; }
 .drop__note { margin: 0; color: var(--muted); font-size: 13px; }
 .drop__error { margin: 14px 0 0; color: var(--critical); font-size: 13px; }
@@ -133,3 +133,64 @@ body { display: flex; flex-direction: column; }
 
 #gantt-here.no-grid .gantt_task_cell,
 #gantt-here.no-grid .gantt_task_row { border-right-color: transparent; }
+
+.auth { max-width: 380px; margin: 0 auto; padding: 56px 24px; }
+.auth h1 { font-size: 22px; margin: 0 0 20px; }
+
+.flash {
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  background: #eef5ff;
+  border: 1px solid #cfe0fb;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.field { margin-bottom: 16px; }
+.field label { display: block; margin-bottom: 5px; font-size: 13px; color: var(--muted); }
+.field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+.field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field__error { display: block; margin-bottom: 5px; color: var(--critical); font-size: 12px; }
+.field__hint { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+
+.btn--primary {
+  width: 100%;
+  padding: 9px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-size: 14px;
+}
+.btn--primary:hover { background: #2a63d4; border-color: #2a63d4; }
+
+.resend { margin-top: 14px; }
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 10px 18px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.topbar a { color: var(--accent); }
+.topbar__user { color: var(--muted); margin-right: auto; }
+.topbar form { margin: 0; }

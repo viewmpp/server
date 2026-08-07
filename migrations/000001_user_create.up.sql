@@ -2,7 +2,7 @@ CREATE EXTENSION CITEXT;
 
 CREATE TABLE users
 (
-    id            BIGSERIAL PRIMARY KEY UNIQUE NOT NULL,
+    id            BIGSERIAL PRIMARY KEY        NOT NULL,
     email         CITEXT UNIQUE                NOT NULL,
     password_hash BYTEA                        NOT NULL,
     verified      BOOLEAN                      NOT NULL DEFAULT FALSE,

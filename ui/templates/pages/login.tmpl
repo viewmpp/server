@@ -1,0 +1,31 @@
+{{define "title"}}Sign in — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="auth">
+  <h1>Sign in</h1>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <form action="/login" method="POST" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    {{with index .Form.FieldErrors "email"}}
+      <p class="field__error">{{.}}</p>
+    {{end}}
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{.Form.Email}}" autocomplete="email" required>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="current-password" required>
+    </div>
+
+    <button class="btn btn--primary" type="submit">Sign in</button>
+  </form>
+
+  <p class="field__hint">No account yet? <a href="/signup">Create one</a></p>
+</main>
+{{end}}

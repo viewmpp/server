@@ -1,0 +1,37 @@
+{{define "title"}}Confirm your email — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="auth">
+  <h1>Confirm your email</h1>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  {{with .Form.Email}}
+    <p class="lead">We sent a code to <strong>{{.}}</strong>. Enter it below.</p>
+  {{else}}
+    <p class="lead">Enter the code from the email.</p>
+  {{end}}
+
+  <form action="/verify" method="POST" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    <div class="field">
+      <label for="code">Code from the email</label>
+      {{with index .Form.FieldErrors "code"}}<span class="field__error">{{.}}</span>{{end}}
+      <input id="code" name="code" autocomplete="one-time-code" autocapitalize="characters"
+             spellcheck="false" autofocus required>
+    </div>
+
+    <button class="btn btn--primary" type="submit">Confirm</button>
+  </form>
+
+  <p class="field__hint">The code is valid for 30 minutes.</p>
+
+  <form action="/verify/resend" method="POST" class="resend">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <button class="link-button" type="submit">No email? Send the code again</button>
+  </form>
+
+  <p class="field__hint"><a href="/">Later</a> — you can confirm at any time</p>
+</main>
+{{end}}

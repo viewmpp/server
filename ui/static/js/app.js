@@ -22,15 +22,41 @@
   var started = false;
 
   var UNITS = {
-    MINUTES: 'мин', HOURS: 'ч', DAYS: 'дн', WEEKS: 'нед',
-    MONTHS: 'мес', YEARS: 'лет', PERCENT: '%',
-    ELAPSED_MINUTES: 'мин (кал.)', ELAPSED_HOURS: 'ч (кал.)', ELAPSED_DAYS: 'дн (кал.)',
-    ELAPSED_WEEKS: 'нед (кал.)', ELAPSED_MONTHS: 'мес (кал.)', ELAPSED_YEARS: 'лет (кал.)',
-    ELAPSED_PERCENT: '% (кал.)'
+    MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
+    MONTHS: 'mo', YEARS: 'y', PERCENT: '%',
+    ELAPSED_MINUTES: 'min (elapsed)', ELAPSED_HOURS: 'h (elapsed)', ELAPSED_DAYS: 'd (elapsed)',
+    ELAPSED_WEEKS: 'w (elapsed)', ELAPSED_MONTHS: 'mo (elapsed)', ELAPSED_YEARS: 'y (elapsed)',
+    ELAPSED_PERCENT: '% (elapsed)'
   };
 
   var LINK_LABEL = {
-    FINISH_START: 'ОН', START_START: 'НН', FINISH_FINISH: 'ОО', START_FINISH: 'НО'
+    FINISH_START: 'FS', START_START: 'SS', FINISH_FINISH: 'FF', START_FINISH: 'SF'
+  };
+
+  var TEXT = {
+    tooLarge:     function (mb) { return 'File is larger than ' + mb + ' MB'; },
+    ganttFailed:  'Could not load the chart library',
+    serverSaid:   function (status) { return 'server replied ' + status; },
+    noName:       'untitled',
+    tasks:        'tasks',
+    links:        'links',
+    onCritical:   'on the critical path',
+    calendar:     'calendar',
+    defaultCal:   'default',
+    name:         'Name',
+    wbs:          'WBS',
+    start:        'Start',
+    finish:       'Finish',
+    duration:     'Duration',
+    complete:     'Complete',
+    critical:     'Critical',
+    milestone:    'Milestone',
+    baseline:     'Baseline',
+    resources:    'Resources',
+    predecessors: 'Predecessors',
+    successors:   'Successors',
+    notes:        'Notes',
+    yes:          'yes'
   };
 
   ui.drop.addEventListener('dragover', function (e) {
@@ -64,7 +90,7 @@
 
     var limit = Number(ui.drop.dataset.maxUpload);
     if (limit && file.size > limit) {
-      fail('файл больше ' + Math.round(limit / 1048576) + ' МБ');
+      fail(TEXT.tooLarge(Math.round(limit / 1048576)));
       return;
     }
 
@@ -78,7 +104,7 @@
     })
       .then(function (response) {
         return response.json().then(function (payload) {
-          if (!response.ok) { throw new Error(payload || 'сервер ответил ' + response.status); }
+          if (!response.ok) { throw new Error(payload || TEXT.serverSaid(response.status)); }
           return payload;
         });
       })
@@ -114,7 +140,7 @@
         resolve();
       };
       js.onerror = function () {
-        reject(new Error('не удалось загрузить библиотеку графика'));
+        reject(new Error(TEXT.ganttFailed));
       };
       document.head.appendChild(js);
     });
@@ -144,12 +170,12 @@
     gantt.config.bar_height = 18;
 
     gantt.config.columns = [
-      { name: 'wbs', label: 'СДР', width: 78, resize: true,
+      { name: 'wbs', label: 'WBS', width: 78, resize: true,
         template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
-      { name: 'text', label: 'Задача', tree: true, width: 280, resize: true },
-      { name: 'start', label: 'Начало', align: 'center', width: 96, resize: true,
+      { name: 'text', label: 'Task', tree: true, width: 280, resize: true },
+      { name: 'start', label: 'Start', align: 'center', width: 96, resize: true,
         template: function (t) { return shortDate(t.start_date); } },
-      { name: 'duration', label: 'Длит.', align: 'center', width: 70,
+      { name: 'duration', label: 'Dur.', align: 'center', width: 70,
         template: function (t) { return duration(t.$contract.duration); } }
     ];
 
@@ -178,14 +204,14 @@
 
   function describe(contract, fileName) {
     ui.projectName.textContent =
-      fileName || (contract.project && contract.project.name) || 'без названия';
+      fileName || (contract.project && contract.project.name) || TEXT.noName;
 
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
     ui.stats.textContent =
-      contract.tasks.length + ' задач · ' +
-      contract.relations.length + ' связей · ' +
-      critical + ' на критическом пути · ' +
-      'календарь: ' + (model.calendar.name || 'по умолчанию');
+      contract.tasks.length + ' ' + TEXT.tasks + ' · ' +
+      contract.relations.length + ' ' + TEXT.links + ' · ' +
+      critical + ' ' + TEXT.onCritical + ' · ' +
+      TEXT.calendar + ': ' + (model.calendar.name || TEXT.defaultCal);
   }
 
   function isNonWorking(date) {
@@ -200,39 +226,39 @@
 
   function showDetails(task) {
     var rows = [
-      ['Название', escapeHtml(task.name)],
-      ['СДР', escapeHtml(task.wbs || task.outline_number || '—')],
-      ['Начало', shortDateTime(task.start)],
-      ['Окончание', shortDateTime(task.finish)],
-      ['Длительность', duration(task.duration)],
-      ['Выполнено', Math.round(task.percent_complete) + '%']
+      [TEXT.name, escapeHtml(task.name)],
+      [TEXT.wbs, escapeHtml(task.wbs || task.outline_number || '—')],
+      [TEXT.start, shortDateTime(task.start)],
+      [TEXT.finish, shortDateTime(task.finish)],
+      [TEXT.duration, duration(task.duration)],
+      [TEXT.complete, Math.round(task.percent_complete) + '%']
     ];
 
-    if (task.is_critical) { rows.push(['Критическая', 'да']); }
-    if (task.is_milestone) { rows.push(['Веха', 'да']); }
+    if (task.is_critical) { rows.push([TEXT.critical, TEXT.yes]); }
+    if (task.is_milestone) { rows.push([TEXT.milestone, TEXT.yes]); }
     if (task.baseline) {
-      rows.push(['Baseline', shortDateTime(task.baseline.start) + ' — ' + shortDateTime(task.baseline.finish)]);
+      rows.push([TEXT.baseline, shortDateTime(task.baseline.start) + ' — ' + shortDateTime(task.baseline.finish)]);
     }
 
     var people = (task.assignments || []).map(function (a) {
       var name = model.index.resourceName[a.resource_id] || ('#' + a.resource_id);
       return escapeHtml(name) + (a.units != null ? ' [' + a.units + '%]' : '');
     });
-    if (people.length) { rows.push(['Ресурсы', people.join(', ')]); }
+    if (people.length) { rows.push([TEXT.resources, people.join(', ')]); }
 
     var predecessors = (model.index.predecessors[task.id] || []).map(function (r) {
       return escapeHtml(model.index.taskName[r.predecessor_id] || ('#' + r.predecessor_id)) +
         ' (' + (LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
     });
-    if (predecessors.length) { rows.push(['Предшественники', predecessors.join('<br>')]); }
+    if (predecessors.length) { rows.push([TEXT.predecessors, predecessors.join('<br>')]); }
 
     var successors = (model.index.successors[task.id] || []).map(function (r) {
       return escapeHtml(model.index.taskName[r.successor_id] || ('#' + r.successor_id)) +
         ' (' + (LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
     });
-    if (successors.length) { rows.push(['Последователи', successors.join('<br>')]); }
+    if (successors.length) { rows.push([TEXT.successors, successors.join('<br>')]); }
 
-    if (task.notes) { rows.push(['Заметки', escapeHtml(task.notes)]); }
+    if (task.notes) { rows.push([TEXT.notes, escapeHtml(task.notes)]); }
 
     ui.detailsBody.innerHTML = '<h2>' + escapeHtml(task.name) + '</h2><dl>' +
       rows.map(function (row) {
@@ -255,7 +281,7 @@
     } else if (scale === 'week') {
       gantt.config.scales = [
         { unit: 'month', step: 1, format: '%F %Y' },
-        { unit: 'week', step: 1, format: 'н. %W' }
+        { unit: 'week', step: 1, format: 'wk %W' }
       ];
     } else if (scale === 'month') {
       gantt.config.scales = [
@@ -273,7 +299,7 @@
   }
 
   function quarterLabel(date) {
-    return 'кв. ' + (Math.floor(date.getMonth() / 3) + 1);
+    return 'Q' + (Math.floor(date.getMonth() / 3) + 1);
   }
 
   document.querySelectorAll('[data-scale]').forEach(function (btn) {

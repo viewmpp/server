@@ -5,23 +5,40 @@ import (
 	"net/http"
 	"net/url"
 	"server/internal/htmlutil"
+	"server/internal/session"
 	"server/internal/user"
 	"server/internal/vcs"
 )
 
 type Handler struct {
-	logger    *slog.Logger
 	templates *htmlutil.Templates
+	logger    *slog.Logger
 }
 
-func NewHandler(logger *slog.Logger, templates *htmlutil.Templates) *Handler {
-	return &Handler{logger: logger, templates: templates}
+func NewHandler(
+	templates *htmlutil.Templates,
+	logger *slog.Logger,
+) *Handler {
+	return &Handler{
+		templates: templates,
+		logger:    logger,
+	}
 }
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
+	sess := session.FromContext(r)
+	u := user.GetUserContext(r)
+
 	page := htmlutil.Page{
-		MaxUpload: user.GetUserContext(r).MaxUploadBytes(),
+		MaxUpload: u.MaxUploadBytes(),
 		Version:   url.QueryEscape(vcs.Version()),
+		Flash:     sess.Pop("flash"),
+		CSRFToken: sess.CSRF(),
+	}
+
+	if !u.IsAnonymous() {
+		page.UserEmail = u.Email
+		page.Verified = u.Verified
 	}
 
 	err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.App, page)
