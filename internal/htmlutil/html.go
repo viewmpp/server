@@ -9,6 +9,11 @@ import (
 type Page struct {
 	MaxUpload int64
 	Version   string
+	CSRFToken string
+	Flash     string
+	Form      any
+	UserEmail string
+	Verified  bool
 }
 
 func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Page) error {
@@ -17,8 +22,8 @@ func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Pa
 		return err
 	}
 
-	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
 
