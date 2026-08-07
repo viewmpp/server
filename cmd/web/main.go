@@ -10,6 +10,7 @@ import (
 	"server/internal/mailer"
 	"server/internal/parser"
 	"server/internal/postgres"
+	"server/internal/project"
 	"server/internal/ratelimit"
 	"server/internal/server"
 	"server/internal/session"
@@ -40,14 +41,6 @@ func run() error {
 		return err
 	}
 
-	viewerHandler := viewer.NewHandler(templates, logger)
-
-	client := &parser.Client{
-		URL:  cfg.URL,
-		HTTP: &http.Client{Timeout: 30 * time.Second},
-	}
-	uploadHandler := upload.NewHandler(client, nil, logger)
-
 	db, err := postgres.Open(cfg.DB)
 	if err != nil {
 		return err
@@ -57,11 +50,19 @@ func run() error {
 	limiter := ratelimit.New(5, time.Minute)
 	defer limiter.Close()
 
+	projectStore := project.NewStore(db)
 	userStore := user.NewStore(db)
 	sessions := session.NewStore(db, cfg.Env != "dev", logger)
 	tokens := token.NewStore(db)
 	mail := mailer.New(cfg.APIKey, cfg.Sender, templates, logger)
 
+	client := &parser.Client{
+		URL:  cfg.URL,
+		HTTP: &http.Client{Timeout: 30 * time.Second},
+	}
+
+	viewerHandler := viewer.NewHandler(templates, logger)
+	uploadHandler := upload.NewHandler(client, projectStore, logger)
 	userHandler := user.NewHandler(userStore, sessions, limiter, tokens, mail, templates, &wg, logger)
 
 	return server.New(cfg, viewerHandler, uploadHandler, userHandler, userStore, sessions, &wg, logger).Serve()

@@ -20,7 +20,7 @@ type Handler struct {
 }
 
 type uploadStore interface {
-	Save(ctx context.Context, id int64, fileName string, contract []byte) (string, error)
+	Save(ctx context.Context, userID int64, fileName string, contract []byte) (string, error)
 }
 
 func NewHandler(
