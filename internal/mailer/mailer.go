@@ -2,40 +2,40 @@ package mailer
 
 import (
 	"bytes"
-	"embed"
-	"fmt"
 	"html/template"
 	"log/slog"
+	"server/internal/htmlutil"
 
 	"github.com/resend/resend-go/v3"
 )
 
-//go:embed "templates"
-var tmpl embed.FS
-
 type Mailer struct {
-	client *resend.Client
-	sender string
-	logger *slog.Logger
+	client    *resend.Client
+	sender    string
+	templates *htmlutil.Templates
+	logger    *slog.Logger
 }
 
-func New(apiKey string, sender string, logger *slog.Logger) *Mailer {
+func New(
+	apiKey string,
+	sender string,
+	templates *htmlutil.Templates,
+	logger *slog.Logger,
+) *Mailer {
 	return &Mailer{
-		client: resend.NewClient(apiKey),
-		sender: sender,
-		logger: logger,
+		client:    resend.NewClient(apiKey),
+		sender:    sender,
+		templates: templates,
+		logger:    logger,
 	}
 }
 
-func renderTemplate(tmplFile string, data any) (string, error) {
-	ts, err := template.ParseFS(tmpl, fmt.Sprintf("templates/%s", tmplFile))
-	if err != nil {
-		return "", err
-	}
+func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
 
 	var html bytes.Buffer
 
-	if err = ts.ExecuteTemplate(&html, "html", data); err != nil {
+	err := tmpl.ExecuteTemplate(&html, "html", data)
+	if err != nil {
 		return "", err
 	}
 
