@@ -23,6 +23,11 @@ func errorResponse(w http.ResponseWriter, status int) {
 }
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logger *slog.Logger) {
-	logger.Error("page render failed", "err", err, "method", r.Method, "uri", r.URL.RequestURI())
+	logger.Error("page render failed", "err", err, "method", r.Method, "uri", r.URL.Path)
 	errorResponse(w, http.StatusInternalServerError)
+}
+
+func BadRequestPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
+	logger.Warn("request rejected", "method", r.Method, "path", r.URL.Path)
+	errorResponse(w, http.StatusBadRequest)
 }
