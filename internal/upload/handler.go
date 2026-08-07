@@ -14,20 +14,24 @@ import (
 )
 
 type Handler struct {
-	logger *slog.Logger
-	client *parser.Client
 	store  uploadStore
+	client *parser.Client
+	logger *slog.Logger
 }
 
 type uploadStore interface {
 	Save(ctx context.Context, id int64, fileName string, contract []byte) (string, error)
 }
 
-func NewHandler(logger *slog.Logger, client *parser.Client, store uploadStore) *Handler {
+func NewHandler(
+	client *parser.Client,
+	store uploadStore,
+	logger *slog.Logger,
+) *Handler {
 	return &Handler{
-		logger: logger,
-		client: client,
 		store:  store,
+		client: client,
+		logger: logger,
 	}
 }
 
