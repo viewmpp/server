@@ -585,10 +585,10 @@ it.
 Decisions taken
 ----------------
 
-| Question | Decision |
-|---|---|
+| Question                                 | Decision                                                                                                                                                                                                                       |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Rolling up summary task dates (`rollUp`) | **Not in v0.1.** MS Project dates them itself (13 of 13 real files). Needed only for programmatically generated files — and then together with a `dates_derived` flag, so that computed values are not passed off as read ones |
-| Where this document lives | **One canonical copy** here, in the Go repository. The Java repository holds a link, not a duplicate |
-| `work` in assignments | In v1.1, together with the Resource Sheet. As an object with units, per rule 2 |
-| Who declares the DTOs | DTOs are written alongside the MPXJ layer; the controller only returns them. Their shape is dictated by **this document**, not by the library |
-| The uploaded file name | **Not in the contract.** It belongs to Go — see the section above |
+| Where this document lives                | **One canonical copy** here, in the Go repository. The Java repository holds a link, not a duplicate                                                                                                                           |
+| `work` in assignments                    | In v1.1, together with the Resource Sheet. As an object with units, per rule 2                                                                                                                                                 |
+| Who declares the DTOs                    | DTOs are written alongside the MPXJ layer; the controller only returns them. Their shape is dictated by **this document**, not by the library                                                                                  |
+| The uploaded file name                   | **Not in the contract.** It belongs to Go — see the section above                                                                                                                                                              |
