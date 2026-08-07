@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"server/internal/htmlutil"
 	"server/ui"
 )
 
@@ -15,7 +16,22 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
 
-	return s.recoverPanic(s.logRequest(s.authenticate(mux)))
+	mux.HandleFunc("GET /signup", s.userHandler.SignupPage)
+	mux.HandleFunc("POST /signup", s.userHandler.Signup)
+
+	mux.HandleFunc("GET /verify", s.userHandler.VerifyPage)
+	mux.HandleFunc("POST /verify", s.userHandler.Verify)
+	mux.HandleFunc("POST /verify/resend", s.userHandler.ResendCode)
+
+	mux.HandleFunc("GET /login", s.userHandler.LoginPage)
+	mux.HandleFunc("POST /login", s.userHandler.Login)
+	mux.HandleFunc("POST /logout", s.userHandler.Logout)
+
+	withSession := s.sessions.Middleware(s.authenticate(mux), func(w http.ResponseWriter, r *http.Request, err error) {
+		htmlutil.ServerErrorResponse(w, r, err, s.logger)
+	})
+
+	return s.recoverPanic(s.logRequest(withSession))
 }
 
 func (s *Server) static() http.Handler {

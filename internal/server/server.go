@@ -10,7 +10,9 @@ import (
 	"os"
 	"os/signal"
 	"server/internal/config"
+	"server/internal/session"
 	"server/internal/upload"
+	"server/internal/user"
 	"server/internal/viewer"
 	"sync"
 	"syscall"
@@ -19,25 +21,34 @@ import (
 
 type Server struct {
 	cfg           config.Config
-	logger        *slog.Logger
 	viewerHandler *viewer.Handler
 	uploadHandler *upload.Handler
+	userHandler   *user.Handler
+	userStore     *user.Store
+	sessions      *session.Store
 	wg            *sync.WaitGroup
+	logger        *slog.Logger
 }
 
 func New(
 	cfg config.Config,
-	logger *slog.Logger,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
+	userHandler *user.Handler,
+	userStore *user.Store,
+	sessions *session.Store,
 	wg *sync.WaitGroup,
+	logger *slog.Logger,
 ) *Server {
 	return &Server{
 		cfg:           cfg,
-		logger:        logger,
 		viewerHandler: viewerHandler,
 		uploadHandler: uploadHandler,
+		userHandler:   userHandler,
+		userStore:     userStore,
+		sessions:      sessions,
 		wg:            wg,
+		logger:        logger,
 	}
 }
 

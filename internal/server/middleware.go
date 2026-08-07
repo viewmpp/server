@@ -1,11 +1,13 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/session"
 	"server/internal/user"
 	"strings"
 	"time"
@@ -72,15 +74,24 @@ func (s *Server) recoverPanic(next http.Handler) http.Handler {
 
 func (s *Server) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Vary", "Authorization")
+		sess := session.FromContext(r)
 
-		header := r.Header.Get("Authorization")
-
-		if header == "" {
+		if sess.UserID == nil {
 			next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
 			return
 		}
 
-		jsonutil.InvalidAuthenticationTokenResponse(w)
+		u, err := s.userStore.GetByID(r.Context(), *sess.UserID)
+		if err != nil {
+			if errors.Is(err, user.ErrUserNotFound) {
+				sess.UserID = nil
+				next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
+				return
+			}
+			htmlutil.ServerErrorResponse(w, r, err, s.logger)
+			return
+		}
+
+		next.ServeHTTP(w, user.SetUserContext(r, u))
 	})
 }
