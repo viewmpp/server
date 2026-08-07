@@ -7,10 +7,13 @@ import (
 	"os"
 	"server/internal/config"
 	"server/internal/htmlutil"
+	"server/internal/mailer"
 	"server/internal/parser"
 	"server/internal/postgres"
+	"server/internal/ratelimit"
 	"server/internal/server"
 	"server/internal/session"
+	"server/internal/token"
 	"server/internal/upload"
 	"server/internal/user"
 	"server/internal/viewer"
@@ -28,6 +31,8 @@ func main() {
 func run() error {
 	cfg := config.Load()
 
+	var wg sync.WaitGroup
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	templates, err := htmlutil.NewTemplates()
@@ -35,13 +40,13 @@ func run() error {
 		return err
 	}
 
-	viewerHandler := viewer.NewHandler(logger, templates)
+	viewerHandler := viewer.NewHandler(templates, logger)
 
 	client := &parser.Client{
 		URL:  cfg.URL,
 		HTTP: &http.Client{Timeout: 30 * time.Second},
 	}
-	uploadHandler := upload.NewHandler(logger, client, nil)
+	uploadHandler := upload.NewHandler(client, nil, logger)
 
 	db, err := postgres.Open(cfg.DB)
 	if err != nil {
@@ -49,12 +54,15 @@ func run() error {
 	}
 	defer db.Close()
 
-	sessions := session.NewStore(db, cfg.Env != "dev")
+	limiter := ratelimit.New(5, time.Minute)
+	defer limiter.Close()
 
 	userStore := user.NewStore(db)
-	userHandler := user.NewHandler(logger, userStore, sessions, templates)
+	sessions := session.NewStore(db, cfg.Env != "dev", logger)
+	tokens := token.NewStore(db)
+	mail := mailer.New(cfg.APIKey, cfg.Sender, templates, logger)
 
-	var wg sync.WaitGroup
+	userHandler := user.NewHandler(userStore, sessions, limiter, tokens, mail, templates, &wg, logger)
 
-	return server.New(cfg, logger, viewerHandler, uploadHandler, userHandler, sessions, &wg).Serve()
+	return server.New(cfg, viewerHandler, uploadHandler, userHandler, userStore, sessions, &wg, logger).Serve()
 }
