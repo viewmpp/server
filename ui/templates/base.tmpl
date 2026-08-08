@@ -9,6 +9,25 @@
 {{block "head" .}}{{end}}
 </head>
 <body>
+<header class="nav">
+  <a class="nav__brand" href="/">MPP&nbsp;Viewer</a>
+
+  <nav class="nav__links">
+    {{if .UserEmail}}
+      <a href="/projects">Projects</a>
+      <span class="nav__user" title="{{.UserEmail}}">{{.UserEmail}}</span>
+      {{if not .Verified}}<a class="nav__warn" href="/verify">confirm email</a>{{end}}
+      <form action="/logout" method="POST">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button class="linkish" type="submit">Sign out</button>
+      </form>
+    {{else}}
+      <a href="/login">Sign in</a>
+      <a class="btn btn--sm" href="/signup">Sign up</a>
+    {{end}}
+  </nav>
+</header>
+
 {{template "main" .}}
 {{block "scripts" .}}{{end}}
 </body>

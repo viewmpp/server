@@ -59,6 +59,11 @@
     yes:          'yes'
   };
 
+  var openProjectID = ui.app.dataset.projectId;
+  if (openProjectID) {
+    openProject(openProjectID, ui.app.dataset.fileName);
+  }
+
   ui.drop.addEventListener('dragover', function (e) {
     e.preventDefault();
     ui.drop.classList.add('is-over');
@@ -79,6 +84,10 @@
   });
 
   document.getElementById('reset').addEventListener('click', function () {
+    if (openProjectID) {
+      window.location.assign('/');
+      return;
+    }
     ui.file.value = '';
     ui.details.classList.add('is-hidden');
     ui.app.classList.add('is-hidden');
@@ -97,25 +106,48 @@
     ui.error.classList.add('is-hidden');
     ui.drop.classList.add('is-busy');
 
+    var res = null;
+
     fetch('/api/v1/upload?name=' + encodeURIComponent(file.name), {
       method: 'POST',
       headers: { 'Content-Type': 'application/octet-stream' },
       body: file
     })
       .then(function (response) {
+        res = response;
         return response.json().then(function (payload) {
           if (!response.ok) { throw new Error(payload || TEXT.serverSaid(response.status)); }
           return payload;
         });
       })
       .then(function (contract) {
-        return loadGantt().then(function () { show(contract, file.name); });
+        return loadGantt().then(function () {
+          show(contract, file.name);
+          var id = res && res.headers.get('X-Project-Id');
+          if (id) { window.history.replaceState(null, '', '/p/' + id); }
+        });
       })
       .catch(function (err) {
         fail(err.message);
       })
       .then(function () {
         ui.drop.classList.remove('is-busy');
+      });
+  }
+
+  function openProject(id, fileName) {
+    fetch('/api/v1/projects/' + encodeURIComponent(id))
+      .then(function (response) {
+        if (!response.ok) { throw new Error(TEXT.serverSaid(response.status)); }
+        return response.json();
+      })
+      .then(function (contract) {
+        return loadGantt().then(function () { show(contract, fileName); });
+      })
+      .catch(function (err) {
+        ui.app.classList.add('is-hidden');
+        ui.landing.classList.remove('is-hidden');
+        fail(err.message);
       });
   }
 
@@ -166,8 +198,8 @@
     gantt.config.readonly = true;
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
-    gantt.config.row_height = 30;
-    gantt.config.bar_height = 18;
+    gantt.config.row_height = 28;
+    gantt.config.bar_height = 16;
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 78, resize: true,
@@ -294,7 +326,7 @@
         { unit: 'quarter', step: 1, format: quarterLabel }
       ];
     }
-    gantt.config.scale_height = 52;
+    gantt.config.scale_height = 44;
     gantt.render();
   }
 

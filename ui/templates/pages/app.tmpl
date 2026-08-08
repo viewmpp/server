@@ -1,19 +1,6 @@
 {{define "title"}}MPP Viewer — open an MS Project plan without installing anything{{end}}
 
 {{define "main"}}
-<header class="topbar">
-  {{if .UserEmail}}
-    <span class="topbar__user">{{.UserEmail}}{{if not .Verified}} · <a href="/verify">email not confirmed</a>{{end}}</span>
-    <form action="/logout" method="POST">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button class="link-button" type="submit">Sign out</button>
-    </form>
-  {{else}}
-    <a href="/login">Sign in</a>
-    <a href="/signup">Sign up</a>
-  {{end}}
-</header>
-
 <main class="landing" id="landing">
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
@@ -32,7 +19,7 @@
   <p class="drop__error is-hidden" id="error"></p>
 </main>
 
-<div class="app is-hidden" id="app">
+<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-file-name="{{.FileName}}">
   <header class="bar">
     <div class="bar__title">
       <strong>MPP Viewer</strong>
