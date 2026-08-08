@@ -31,3 +31,8 @@ func BadRequestPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger)
 	logger.Warn("request rejected", "method", r.Method, "path", r.URL.Path)
 	errorResponse(w, http.StatusBadRequest)
 }
+
+func NotFoundPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
+	logger.Info("not found", "method", r.Method, "path", r.URL.Path)
+	errorResponse(w, http.StatusNotFound)
+}
