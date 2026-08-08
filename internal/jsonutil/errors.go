@@ -33,3 +33,8 @@ func ContentTooLargeError(w http.ResponseWriter) {
 	message := "content too large"
 	errorResponse(w, http.StatusRequestEntityTooLarge, message)
 }
+
+func NotFoundResponse(w http.ResponseWriter) {
+	message := "not found"
+	errorResponse(w, http.StatusNotFound, message)
+}
