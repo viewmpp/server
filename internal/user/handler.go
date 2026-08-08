@@ -197,11 +197,18 @@ func (h *Handler) sendExistingAccount(user User) {
 func (h *Handler) renderSignup(w http.ResponseWriter, r *http.Request, status int, form any) {
 	sess := session.FromContext(r)
 
+	u := GetUserContext(r)
+
 	page := htmlutil.Page{
 		Version:   url.QueryEscape(vcs.Version()),
 		CSRFToken: sess.CSRF(),
 		Flash:     sess.Pop("flash"),
 		Form:      form,
+	}
+
+	if !u.IsAnonymous() {
+		page.UserEmail = u.Email
+		page.Verified = u.Verified
 	}
 
 	if err := htmlutil.WriteHTML(w, status, h.templates.Signup, page); err != nil {
@@ -300,11 +307,18 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) renderVerify(w http.ResponseWriter, r *http.Request, status int, form VerifyForm) {
 	sess := session.FromContext(r)
 
+	u := GetUserContext(r)
+
 	page := htmlutil.Page{
 		Version:   url.QueryEscape(vcs.Version()),
 		CSRFToken: sess.CSRF(),
 		Flash:     sess.Pop("flash"),
 		Form:      form,
+	}
+
+	if !u.IsAnonymous() {
+		page.UserEmail = u.Email
+		page.Verified = u.Verified
 	}
 
 	if err := htmlutil.WriteHTML(w, status, h.templates.Verify, page); err != nil {
@@ -496,11 +510,18 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) renderLogin(w http.ResponseWriter, r *http.Request, status int, form LoginForm) {
 	sess := session.FromContext(r)
 
+	u := GetUserContext(r)
+
 	page := htmlutil.Page{
 		Version:   url.QueryEscape(vcs.Version()),
 		CSRFToken: sess.CSRF(),
 		Flash:     sess.Pop("flash"),
 		Form:      form,
+	}
+
+	if !u.IsAnonymous() {
+		page.UserEmail = u.Email
+		page.Verified = u.Verified
 	}
 
 	if err := htmlutil.WriteHTML(w, status, h.templates.Login, page); err != nil {
