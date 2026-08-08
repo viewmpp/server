@@ -1,7 +1,7 @@
 {{define "title"}}MPP Viewer — open an MS Project plan without installing anything{{end}}
 
 {{define "main"}}
-<main class="landing" id="landing">
+<main class="landing centered" id="landing">
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
   <h1>Open an MS&nbsp;Project file</h1>
@@ -52,6 +52,8 @@
       <button class="btn" id="reset">Another file</button>
     </div>
   </header>
+
+  <div class="summary is-hidden" id="summary"></div>
 
   <div class="workspace">
     <div id="gantt-here"></div>

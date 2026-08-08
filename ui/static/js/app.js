@@ -14,7 +14,8 @@
     chart: document.getElementById('gantt-here'),
     details: document.getElementById('details'),
     detailsBody: document.getElementById('details-body'),
-    search: document.getElementById('search')
+    search: document.getElementById('search'),
+    summary: document.getElementById('summary')
   };
 
   var model = null;
@@ -56,7 +57,11 @@
     predecessors: 'Predecessors',
     successors:   'Successors',
     notes:        'Notes',
-    yes:          'yes'
+    yes:          'yes',
+    projStart:    'Start',
+    projFinish:   'Finish',
+    projDuration: 'Duration',
+    weeks:        'w'
   };
 
   var openProjectID = ui.app.dataset.projectId;
@@ -238,12 +243,33 @@
     ui.projectName.textContent =
       fileName || (contract.project && contract.project.name) || TEXT.noName;
 
+    summarise(contract);
+
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
     ui.stats.textContent =
       contract.tasks.length + ' ' + TEXT.tasks + ' · ' +
       contract.relations.length + ' ' + TEXT.links + ' · ' +
       critical + ' ' + TEXT.onCritical + ' · ' +
       TEXT.calendar + ': ' + (model.calendar.name || TEXT.defaultCal);
+  }
+
+  function summarise(contract) {
+    var dates = [];
+    contract.tasks.forEach(function (t) {
+      if (t.start) { dates.push(t.start); }
+      if (t.finish) { dates.push(t.finish); }
+    });
+    if (!dates.length) { ui.summary.classList.add('is-hidden'); return; }
+
+    dates.sort();
+    var from = dates[0], to = dates[dates.length - 1];
+    var weeks = Math.max(1, Math.round((new Date(to) - new Date(from)) / 604800000));
+
+    ui.summary.innerHTML =
+      '<span>' + TEXT.projStart + ': <b>' + escapeHtml(shortDateTime(from).slice(0, 10)) + '</b></span>' +
+      '<span>' + TEXT.projFinish + ': <b>' + escapeHtml(shortDateTime(to).slice(0, 10)) + '</b></span>' +
+      '<span>' + TEXT.projDuration + ': <b>' + weeks + TEXT.weeks + '</b></span>';
+    ui.summary.classList.remove('is-hidden');
   }
 
   function isNonWorking(date) {
