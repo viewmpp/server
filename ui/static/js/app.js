@@ -203,16 +203,16 @@
     gantt.config.readonly = true;
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
-    gantt.config.row_height = 28;
-    gantt.config.bar_height = 16;
+    gantt.config.row_height = 36;
+    gantt.config.bar_height = 20;
 
     gantt.config.columns = [
-      { name: 'wbs', label: 'WBS', width: 78, resize: true,
+      { name: 'wbs', label: 'WBS', width: 88, resize: true,
         template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
-      { name: 'text', label: 'Task', tree: true, width: 280, resize: true },
-      { name: 'start', label: 'Start', align: 'center', width: 96, resize: true,
+      { name: 'text', label: 'Task', tree: true, width: 320, resize: true },
+      { name: 'start', label: 'Start', align: 'center', width: 104, resize: true,
         template: function (t) { return shortDate(t.start_date); } },
-      { name: 'duration', label: 'Dur.', align: 'center', width: 70,
+      { name: 'duration', label: 'Dur.', align: 'center', width: 78,
         template: function (t) { return duration(t.$contract.duration); } }
     ];
 
@@ -352,7 +352,7 @@
         { unit: 'quarter', step: 1, format: quarterLabel }
       ];
     }
-    gantt.config.scale_height = 44;
+    gantt.config.scale_height = 52;
     gantt.render();
   }
 

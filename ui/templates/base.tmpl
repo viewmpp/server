@@ -13,21 +13,39 @@
   <a class="side__brand" href="/">MPP&nbsp;Viewer</a>
 
   <nav class="side__nav">
-    <a href="/">Open a file</a>
-    {{if .UserEmail}}<a href="/projects">Projects</a>{{end}}
+    <a href="/">
+      <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M11 2.5H5.5A1.5 1.5 0 0 0 4 4v12a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 16 16V7.5L11 2.5Z"/>
+        <path d="M11 2.5V7a.5.5 0 0 0 .5.5H16"/>
+        <path d="M10 14v-4.5M8 11.5 10 9.5l2 2"/>
+      </svg>
+      Open a file
+    </a>
+    {{if .UserEmail}}
+      <a href="/projects">
+        <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M2.5 5.5A1.5 1.5 0 0 1 4 4h3.2a1 1 0 0 1 .8.4l1 1.35a1 1 0 0 0 .8.4H16a1.5 1.5 0 0 1 1.5 1.5V15a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 15v-9.5Z"/>
+        </svg>
+        Projects
+      </a>
+    {{end}}
   </nav>
 
   <div class="side__foot">
     {{if .UserEmail}}
-      <div class="side__user" title="{{.UserEmail}}">{{.UserEmail}}</div>
-      {{if not .Verified}}<a class="side__warn" href="/verify">confirm email</a>{{end}}
-      <form action="/logout" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button class="linkish" type="submit">Sign out</button>
-      </form>
+      <div class="side__account">
+        <div class="side__user side__mail" title="{{.UserEmail}}">{{.UserEmail}}</div>
+        {{if not .Verified}}<a class="side__warn" href="/verify">Confirm your email</a>{{end}}
+        <form action="/logout" method="POST">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <button class="linkish" type="submit">Sign out</button>
+        </form>
+      </div>
     {{else}}
-      <a href="/login">Sign in</a>
-      <a href="/signup">Sign up</a>
+      <div class="side__cta">
+        <a class="btn btn--primary" href="/signup">Create free account</a>
+        <a class="side__signin" href="/login">Sign in</a>
+      </div>
     {{end}}
   </div>
 </aside>
