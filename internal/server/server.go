@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"server/internal/config"
+	"server/internal/project"
 	"server/internal/session"
 	"server/internal/upload"
 	"server/internal/user"
@@ -20,20 +21,22 @@ import (
 )
 
 type Server struct {
-	cfg           config.Config
-	viewerHandler *viewer.Handler
-	uploadHandler *upload.Handler
-	userHandler   *user.Handler
-	userStore     *user.Store
-	sessions      *session.Store
-	wg            *sync.WaitGroup
-	logger        *slog.Logger
+	cfg            config.Config
+	viewerHandler  *viewer.Handler
+	uploadHandler  *upload.Handler
+	projectHandler *project.Handler
+	userHandler    *user.Handler
+	userStore      *user.Store
+	sessions       *session.Store
+	wg             *sync.WaitGroup
+	logger         *slog.Logger
 }
 
 func New(
 	cfg config.Config,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
+	projectHandler *project.Handler,
 	userHandler *user.Handler,
 	userStore *user.Store,
 	sessions *session.Store,
@@ -41,14 +44,15 @@ func New(
 	logger *slog.Logger,
 ) *Server {
 	return &Server{
-		cfg:           cfg,
-		viewerHandler: viewerHandler,
-		uploadHandler: uploadHandler,
-		userHandler:   userHandler,
-		userStore:     userStore,
-		sessions:      sessions,
-		wg:            wg,
-		logger:        logger,
+		cfg:            cfg,
+		viewerHandler:  viewerHandler,
+		uploadHandler:  uploadHandler,
+		projectHandler: projectHandler,
+		userHandler:    userHandler,
+		userStore:      userStore,
+		sessions:       sessions,
+		wg:             wg,
+		logger:         logger,
 	}
 }
 

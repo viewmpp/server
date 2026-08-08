@@ -14,6 +14,8 @@ type Page struct {
 	Form      any
 	UserEmail string
 	Verified  bool
+	ProjectID string
+	FileName  string
 }
 
 func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Page) error {

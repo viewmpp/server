@@ -1,0 +1,32 @@
+{{define "title"}}Your projects — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="page">
+  <div class="page__head">
+    <h1>Your projects</h1>
+    <a class="btn btn--primary btn--inline" href="/">Open a file</a>
+  </div>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  {{if .Form}}
+    <ul class="cards">
+      {{range .Form}}
+        <li class="card">
+          <a class="card__name" href="/p/{{.PublicID}}">{{.FileName}}</a>
+          <div class="card__meta">
+            <time datetime="{{.CreatedAt.Format "2006-01-02"}}">{{.CreatedAt.Format "2 Jan 2006"}}</time>
+            <span class="tag tag--{{.Access}}">{{.Access}}</span>
+          </div>
+        </li>
+      {{end}}
+    </ul>
+  {{else}}
+    <div class="empty">
+      <p class="empty__title">Nothing saved yet</p>
+      <p class="empty__note">Open an <code>.mpp</code> or <code>.xml</code> file and it will appear here.</p>
+      <a class="btn btn--primary btn--inline" href="/">Open a file</a>
+    </div>
+  {{end}}
+</main>
+{{end}}

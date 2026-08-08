@@ -7,12 +7,13 @@ import (
 )
 
 type Templates struct {
-	App    *template.Template
-	Signup *template.Template
-	Verify *template.Template
-	Login  *template.Template
-	Verf   *template.Template
-	Exists *template.Template
+	App      *template.Template
+	Signup   *template.Template
+	Verify   *template.Template
+	Login    *template.Template
+	Projects *template.Template
+	Verf     *template.Template
+	Exists   *template.Template
 }
 
 func NewTemplates() (*Templates, error) {
@@ -36,6 +37,11 @@ func NewTemplates() (*Templates, error) {
 		return nil, err
 	}
 
+	projects, err := parsePage("projects.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	verf, err := parseMail("email_verification.tmpl")
 	if err != nil {
 		return nil, err
@@ -47,12 +53,13 @@ func NewTemplates() (*Templates, error) {
 	}
 
 	return &Templates{
-		App:    app,
-		Signup: signup,
-		Verify: verify,
-		Login:  login,
-		Verf:   verf,
-		Exists: exists,
+		App:      app,
+		Signup:   signup,
+		Verify:   verify,
+		Login:    login,
+		Projects: projects,
+		Verf:     verf,
+		Exists:   exists,
 	}, nil
 }
 
