@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"log/slog"
+	"server/internal/config"
 	"server/internal/htmlutil"
 
 	"github.com/resend/resend-go/v3"
@@ -17,20 +18,19 @@ type Mailer struct {
 }
 
 func New(
-	apiKey string,
-	sender string,
+	config config.Resend,
 	templates *htmlutil.Templates,
 	logger *slog.Logger,
 ) *Mailer {
 	return &Mailer{
-		client:    resend.NewClient(apiKey),
-		sender:    sender,
+		client:    resend.NewClient(config.APIKey),
+		sender:    config.Sender,
 		templates: templates,
 		logger:    logger,
 	}
 }
 
-func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
+func (c *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
 
 	var html bytes.Buffer
 
@@ -42,12 +42,12 @@ func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, erro
 	return html.String(), nil
 }
 
-func (m *Mailer) send(subject, html, recipient string) error {
+func (c *Mailer) send(subject, html, recipient string) error {
 
-	client := m.client
+	client := c.client
 
 	params := &resend.SendEmailRequest{
-		From:    m.sender,
+		From:    c.sender,
 		To:      []string{recipient},
 		Subject: subject,
 		Html:    html,
@@ -55,9 +55,9 @@ func (m *Mailer) send(subject, html, recipient string) error {
 
 	response, err := client.Emails.Send(params)
 	if err != nil {
-		m.logger.Error("failed to send email", "err", err)
+		c.logger.Error("failed to send email", "err", err)
 		return err
 	}
-	m.logger.Info("email sent", "id", response.Id)
+	c.logger.Info("email sent", "id", response.Id)
 	return nil
 }
