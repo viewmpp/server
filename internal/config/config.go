@@ -10,7 +10,7 @@ type Config struct {
 	Env  string
 	Parser
 	DB
-	Resend
+	Mailer
 }
 
 type Parser struct {
@@ -22,6 +22,12 @@ type DB struct {
 	MaxOpenConns int
 	MaxIdleConns int
 	MaxIdleTime  string
+}
+
+type Mailer struct {
+	Resend
+	VerificationTTL string
+	VerificationRC  string
 }
 
 type Resend struct {
@@ -43,6 +49,9 @@ func Load() Config {
 	flag.StringVar(&cfg.MaxIdleTime, "max-idle-time", env.GetString("DB_MAX_IDLE_TIME", "15m"), "postgres max idle time")
 	flag.StringVar(&cfg.APIKey, "resend-api-key", env.GetString("RESEND_API_KEY", ""), "resend api key")
 	flag.StringVar(&cfg.Sender, "resend-sender", env.GetString("RESEND_SENDER", ""), "resend mail sender")
+	flag.StringVar(&cfg.VerificationTTL, "verification-ttl", env.GetString("VERIFICATION_TTL", "30m"), "verification time to live")
+	flag.StringVar(&cfg.VerificationRC, "verification-resend-cooldown", env.GetString("VERIFICATION_RESEND_COOLDOWN", "1m"),
+		"mail verification resend cooldown")
 
 	flag.Parse()
 
