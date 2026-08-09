@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"server/internal/config"
 	"server/internal/project"
-	"server/internal/session"
+	"server/internal/store"
 	"server/internal/upload"
 	"server/internal/user"
 	"server/internal/viewer"
@@ -26,8 +26,7 @@ type Server struct {
 	uploadHandler  *upload.Handler
 	projectHandler *project.Handler
 	userHandler    *user.Handler
-	userStore      *user.Store
-	sessions       *session.Store
+	store          *store.Store
 	wg             *sync.WaitGroup
 	logger         *slog.Logger
 }
@@ -38,8 +37,7 @@ func New(
 	uploadHandler *upload.Handler,
 	projectHandler *project.Handler,
 	userHandler *user.Handler,
-	userStore *user.Store,
-	sessions *session.Store,
+	store *store.Store,
 	wg *sync.WaitGroup,
 	logger *slog.Logger,
 ) *Server {
@@ -49,8 +47,7 @@ func New(
 		uploadHandler:  uploadHandler,
 		projectHandler: projectHandler,
 		userHandler:    userHandler,
-		userStore:      userStore,
-		sessions:       sessions,
+		store:          store,
 		wg:             wg,
 		logger:         logger,
 	}

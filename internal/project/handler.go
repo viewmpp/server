@@ -116,7 +116,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		Form:      projects,
 	}
 
-	if err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.Projects, page); err != nil {
+	if err = htmlutil.WriteHTML(w, http.StatusOK, h.templates.Projects, page); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 	}
 }

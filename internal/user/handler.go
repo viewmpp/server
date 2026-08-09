@@ -5,14 +5,13 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"server/internal/background"
 	"server/internal/htmlutil"
 	"server/internal/mailer"
 	"server/internal/ratelimit"
 	"server/internal/session"
 	"server/internal/token"
-	"server/internal/vcs"
+	"server/internal/validator"
 	"sync"
 	"time"
 
@@ -20,39 +19,43 @@ import (
 )
 
 type Handler struct {
-	store     *Store
-	sessions  *session.Store
-	limiter   *ratelimit.Limiter
-	token     *token.Store
-	mailer    *mailer.Mailer
-	templates *htmlutil.Templates
-	wg        *sync.WaitGroup
-	logger    *slog.Logger
+	store           *Store
+	token           *token.Store
+	sessions        *session.Store
+	limiter         *ratelimit.Limiter
+	mailer          *mailer.Mailer
+	verificationTTL time.Duration
+	verificationRC  time.Duration
+	templates       *htmlutil.Templates
+	wg              *sync.WaitGroup
+	logger          *slog.Logger
 }
 
 func NewHandler(
 	store *Store,
+	token *token.Store,
 	sessions *session.Store,
 	limiter *ratelimit.Limiter,
-	token *token.Store,
 	mailer *mailer.Mailer,
+	vttl time.Duration,
+	vrc time.Duration,
 	templates *htmlutil.Templates,
 	wg *sync.WaitGroup,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
-		store:     store,
-		sessions:  sessions,
-		limiter:   limiter,
-		token:     token,
-		mailer:    mailer,
-		templates: templates,
-		wg:        wg,
-		logger:    logger,
+		store:           store,
+		token:           token,
+		sessions:        sessions,
+		limiter:         limiter,
+		mailer:          mailer,
+		verificationTTL: vttl,
+		verificationRC:  vrc,
+		templates:       templates,
+		wg:              wg,
+		logger:          logger,
 	}
 }
-
-const verificationTTL = 30 * time.Minute
 
 var ErrEmailTaken = errors.New("email belongs to a verified account")
 
@@ -63,7 +66,7 @@ type SignupForm struct {
 }
 
 func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
-	h.renderSignup(w, r, http.StatusOK, SignupForm{})
+	render(w, r, http.StatusOK, h.templates.Signup, SignupForm{}, h.logger)
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
@@ -82,13 +85,13 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	form := SignupForm{Email: NormalizeEmail(r.PostFormValue("email"))}
 	pass := r.PostFormValue("password")
 
-	v := NewValidator()
-	v.CheckEmail("email", form.Email)
-	v.CheckPassword("password", pass)
+	v := validator.New()
+	CheckEmail(v, "email", form.Email)
+	CheckPassword(v, "password", pass)
 
 	if !v.Valid() {
-		form.FieldErrors = v.FieldErrors
-		h.renderSignup(w, r, http.StatusUnprocessableEntity, form)
+		form.FieldErrors = v.Errors
+		render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, form, h.logger)
 		return
 	}
 
@@ -106,12 +109,12 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, ErrEmailTaken):
 			form.FieldErrors = map[string]string{"email": MsgEmailTaken}
 			form.EmailTaken = true
-			h.renderSignup(w, r, http.StatusUnprocessableEntity, form)
+			render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, form, h.logger)
 			return
 
 		case errors.Is(err, ErrEditConflict):
 			form.FieldErrors = map[string]string{"email": MsgSignupRetry}
-			h.renderSignup(w, r, http.StatusConflict, form)
+			render(w, r, http.StatusConflict, h.templates.Signup, form, h.logger)
 			return
 		}
 	}
@@ -121,7 +124,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vry, err := token.NewVerification(u.ID, verificationTTL)
+	vry, err := token.NewVerification(u.ID, h.verificationTTL)
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
@@ -134,7 +137,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	h.sendVerificationCode(u.Email, vry.Plaintext)
 
-	if err := h.sessions.Renew(r.Context(), w, sess); err != nil {
+	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
@@ -194,28 +197,6 @@ func (h *Handler) sendExistingAccount(user User) {
 	})
 }
 
-func (h *Handler) renderSignup(w http.ResponseWriter, r *http.Request, status int, form any) {
-	sess := session.FromContext(r)
-
-	u := GetUserContext(r)
-
-	page := htmlutil.Page{
-		Version:   url.QueryEscape(vcs.Version()),
-		CSRFToken: sess.CSRF(),
-		Flash:     sess.Pop("flash"),
-		Form:      form,
-	}
-
-	if !u.IsAnonymous() {
-		page.UserEmail = u.Email
-		page.Verified = u.Verified
-	}
-
-	if err := htmlutil.WriteHTML(w, status, h.templates.Signup, page); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-	}
-}
-
 type VerifyForm struct {
 	Email       string
 	FieldErrors map[string]string
@@ -223,7 +204,7 @@ type VerifyForm struct {
 
 func (h *Handler) VerifyPage(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r)
-	h.renderVerify(w, r, http.StatusOK, VerifyForm{Email: sess.Get("pending_email")})
+	render(w, r, http.StatusOK, h.templates.Verify, VerifyForm{Email: sess.Get("pending_email")}, h.logger)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -246,13 +227,13 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	if !h.limiter.Allow(ipKey) {
 		h.logger.Warn("verify throttled", "key", ipKey)
 		form.FieldErrors = map[string]string{"code": MsgTooManyTries}
-		h.renderVerify(w, r, http.StatusTooManyRequests, form)
+		render(w, r, http.StatusTooManyRequests, h.templates.Verify, form, h.logger)
 		return
 	}
 
 	if code == "" {
 		form.FieldErrors = map[string]string{"code": MsgCodeRequired}
-		h.renderVerify(w, r, http.StatusUnprocessableEntity, form)
+		render(w, r, http.StatusUnprocessableEntity, h.templates.Verify, form, h.logger)
 		return
 	}
 
@@ -261,7 +242,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, ErrUserNotFound) {
 			h.limiter.Fail(ipKey)
 			form.FieldErrors = map[string]string{"code": MsgCodeInvalid}
-			h.renderVerify(w, r, http.StatusUnprocessableEntity, form)
+			render(w, r, http.StatusUnprocessableEntity, h.templates.Verify, form, h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -275,7 +256,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	if err = h.store.Update(r.Context(), u); err != nil {
 		if errors.Is(err, ErrEditConflict) {
 			form.FieldErrors = map[string]string{"code": MsgVerifyRetry}
-			h.renderVerify(w, r, http.StatusConflict, form)
+			render(w, r, http.StatusConflict, h.templates.Verify, form, h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -303,30 +284,6 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
-
-func (h *Handler) renderVerify(w http.ResponseWriter, r *http.Request, status int, form VerifyForm) {
-	sess := session.FromContext(r)
-
-	u := GetUserContext(r)
-
-	page := htmlutil.Page{
-		Version:   url.QueryEscape(vcs.Version()),
-		CSRFToken: sess.CSRF(),
-		Flash:     sess.Pop("flash"),
-		Form:      form,
-	}
-
-	if !u.IsAnonymous() {
-		page.UserEmail = u.Email
-		page.Verified = u.Verified
-	}
-
-	if err := htmlutil.WriteHTML(w, status, h.templates.Verify, page); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-	}
-}
-
-const resendCooldown = time.Minute
 
 func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r)
@@ -375,17 +332,17 @@ func (h *Handler) resend(ctx context.Context, email string) error {
 		return nil
 	}
 
-	issued, exists, err := h.token.LatestVerificationIssuedAt(ctx, u.ID, verificationTTL)
+	issued, exists, err := h.token.LatestVerificationIssuedAt(ctx, u.ID, h.verificationTTL)
 	if err != nil {
 		return err
 	}
 
-	if exists && time.Since(issued) < resendCooldown {
+	if exists && time.Since(issued) < h.verificationRC {
 		h.logger.Info("resend throttled", "user_id", u.ID)
 		return nil
 	}
 
-	vry, err := token.NewVerification(u.ID, verificationTTL)
+	vry, err := token.NewVerification(u.ID, h.verificationTTL)
 	if err != nil {
 		return err
 	}
@@ -410,7 +367,7 @@ var dummyHash = func() []byte {
 }()
 
 func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	h.renderLogin(w, r, http.StatusOK, LoginForm{})
+	render(w, r, http.StatusOK, h.templates.Login, LoginForm{}, h.logger)
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -435,7 +392,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		if !h.limiter.Allow(key) {
 			h.logger.Warn("login throttled", "key", key)
 			form.FieldErrors = map[string]string{"email": MsgTooManyTries}
-			h.renderLogin(w, r, http.StatusTooManyRequests, form)
+			render(w, r, http.StatusTooManyRequests, h.templates.Login, form, h.logger)
 			return
 		}
 	}
@@ -463,7 +420,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		form.FieldErrors = map[string]string{"email": MsgEmailOrPass}
-		h.renderLogin(w, r, http.StatusUnprocessableEntity, form)
+		render(w, r, http.StatusUnprocessableEntity, h.templates.Login, form, h.logger)
 		return
 	}
 
@@ -505,26 +462,4 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (h *Handler) renderLogin(w http.ResponseWriter, r *http.Request, status int, form LoginForm) {
-	sess := session.FromContext(r)
-
-	u := GetUserContext(r)
-
-	page := htmlutil.Page{
-		Version:   url.QueryEscape(vcs.Version()),
-		CSRFToken: sess.CSRF(),
-		Flash:     sess.Pop("flash"),
-		Form:      form,
-	}
-
-	if !u.IsAnonymous() {
-		page.UserEmail = u.Email
-		page.Verified = u.Verified
-	}
-
-	if err := htmlutil.WriteHTML(w, status, h.templates.Login, page); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-	}
 }

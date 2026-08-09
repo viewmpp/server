@@ -31,7 +31,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /login", s.userHandler.Login)
 	mux.HandleFunc("POST /logout", s.userHandler.Logout)
 
-	withSession := s.sessions.Middleware(s.authenticate(mux), func(w http.ResponseWriter, r *http.Request, err error) {
+	withSession := s.store.Sessions.Middleware(s.authenticate(mux), func(w http.ResponseWriter, r *http.Request, err error) {
 		htmlutil.ServerErrorResponse(w, r, err, s.logger)
 	})
 

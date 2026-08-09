@@ -81,7 +81,7 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.userStore.GetByID(r.Context(), *sess.UserID)
+		u, err := s.store.Users.GetByID(r.Context(), *sess.UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				sess.UserID = nil

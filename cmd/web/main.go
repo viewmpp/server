@@ -13,8 +13,7 @@ import (
 	"server/internal/project"
 	"server/internal/ratelimit"
 	"server/internal/server"
-	"server/internal/session"
-	"server/internal/token"
+	"server/internal/store"
 	"server/internal/upload"
 	"server/internal/user"
 	"server/internal/viewer"
@@ -50,11 +49,16 @@ func run() error {
 	limiter := ratelimit.New(5, time.Minute)
 	defer limiter.Close()
 
-	projectStore := project.NewStore(db)
-	userStore := user.NewStore(db)
-	sessions := session.NewStore(db, cfg.Env != "dev", logger)
-	tokens := token.NewStore(db)
-	mail := mailer.New(cfg.APIKey, cfg.Sender, templates, logger)
+	s := store.New(db, cfg, logger)
+	vttl, err := time.ParseDuration(cfg.VerificationTTL)
+	if err != nil {
+		return err
+	}
+	vrc, err := time.ParseDuration(cfg.VerificationRC)
+	if err != nil {
+		return err
+	}
+	mail := mailer.New(cfg.Resend, templates, logger)
 
 	client := &parser.Client{
 		URL:  cfg.URL,
@@ -62,9 +66,9 @@ func run() error {
 	}
 
 	viewerHandler := viewer.NewHandler(templates, logger)
-	uploadHandler := upload.NewHandler(client, projectStore, logger)
-	projectHandler := project.NewHandler(projectStore, templates, logger)
-	userHandler := user.NewHandler(userStore, sessions, limiter, tokens, mail, templates, &wg, logger)
+	uploadHandler := upload.NewHandler(client, s.Projects, logger)
+	projectHandler := project.NewHandler(s.Projects, templates, logger)
+	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, limiter, mail, vttl, vrc, templates, &wg, logger)
 
-	return server.New(cfg, viewerHandler, uploadHandler, projectHandler, userHandler, userStore, sessions, &wg, logger).Serve()
+	return server.New(cfg, viewerHandler, uploadHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }
