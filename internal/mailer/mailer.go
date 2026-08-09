@@ -30,7 +30,7 @@ func New(
 	}
 }
 
-func (c *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
+func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
 
 	var html bytes.Buffer
 
@@ -42,12 +42,12 @@ func (c *Mailer) renderTemplate(tmpl *template.Template, data any) (string, erro
 	return html.String(), nil
 }
 
-func (c *Mailer) send(subject, html, recipient string) error {
+func (m *Mailer) send(subject, html, recipient string) error {
 
-	client := c.client
+	client := m.client
 
 	params := &resend.SendEmailRequest{
-		From:    c.sender,
+		From:    m.sender,
 		To:      []string{recipient},
 		Subject: subject,
 		Html:    html,
@@ -55,9 +55,9 @@ func (c *Mailer) send(subject, html, recipient string) error {
 
 	response, err := client.Emails.Send(params)
 	if err != nil {
-		c.logger.Error("failed to send email", "err", err)
+		m.logger.Error("failed to send email", "err", err)
 		return err
 	}
-	c.logger.Info("email sent", "id", response.Id)
+	m.logger.Info("email sent", "id", response.Id)
 	return nil
 }
