@@ -12,8 +12,12 @@ type Templates struct {
 	Verify   *template.Template
 	Login    *template.Template
 	Projects *template.Template
-	Verf     *template.Template
-	Exists   *template.Template
+	Email
+}
+
+type Email struct {
+	Verification  *template.Template
+	AccountExists *template.Template
 }
 
 func NewTemplates() (*Templates, error) {
@@ -42,12 +46,12 @@ func NewTemplates() (*Templates, error) {
 		return nil, err
 	}
 
-	verf, err := parseMail("email_verification.tmpl")
+	verification, err := parseMail("email_verification.tmpl")
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := parseMail("existing_account.tmpl")
+	accExists, err := parseMail("email_account_exists.tmpl")
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +62,10 @@ func NewTemplates() (*Templates, error) {
 		Verify:   verify,
 		Login:    login,
 		Projects: projects,
-		Verf:     verf,
-		Exists:   exists,
+		Email: Email{
+			Verification:  verification,
+			AccountExists: accExists,
+		},
 	}, nil
 }
 

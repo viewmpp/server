@@ -21,7 +21,7 @@ func (m *Mailer) SendVerification(email, code string) error {
 		Code:    code,
 	}
 
-	html, err := m.renderTemplate(m.templates.Verf, data)
+	html, err := m.renderTemplate(m.templates.Verification, data)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (m *Mailer) SendExistingAccount(email string) error {
 		Hint:    "If this wasn't you, you can safely ignore this email.",
 	}
 
-	html, err := m.renderTemplate(m.templates.Exists, data)
+	html, err := m.renderTemplate(m.templates.AccountExists, data)
 	if err != nil {
 		return err
 	}
