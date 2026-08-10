@@ -36,7 +36,7 @@
       <div class="side__account">
         <div class="side__user side__mail" title="{{.UserEmail}}">{{.UserEmail}}</div>
         {{if not .Verified}}<a class="side__warn" href="/verify">Confirm your email</a>{{end}}
-        <form action="/logout" method="POST">
+        <form action="/signout" method="POST">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <button class="linkish" type="submit">Sign out</button>
         </form>
@@ -44,7 +44,7 @@
     {{else}}
       <div class="side__cta">
         <a class="btn btn--primary" href="/signup">Create free account</a>
-        <a class="side__signin" href="/login">Sign in</a>
+        <a class="side__signin" href="/signin">Sign in</a>
       </div>
     {{end}}
   </div>

@@ -27,9 +27,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /verify", s.userHandler.Verify)
 	mux.HandleFunc("POST /verify/resend", s.userHandler.ResendCode)
 
-	mux.HandleFunc("GET /login", s.userHandler.LoginPage)
-	mux.HandleFunc("POST /login", s.userHandler.Login)
-	mux.HandleFunc("POST /logout", s.userHandler.Logout)
+	mux.HandleFunc("GET /signin", s.userHandler.SigninPage)
+	mux.HandleFunc("POST /signin", s.userHandler.Signin)
+	mux.HandleFunc("POST /signout", s.userHandler.Signout)
 
 	withSession := s.store.Sessions.Middleware(s.authenticate(mux), func(w http.ResponseWriter, r *http.Request, err error) {
 		htmlutil.ServerErrorResponse(w, r, err, s.logger)

@@ -6,7 +6,7 @@
 
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
-  <form action="/login" method="POST" novalidate>
+  <form action="/signin" method="POST" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
     {{with index .Form.FieldErrors "email"}}

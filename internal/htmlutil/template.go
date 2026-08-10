@@ -10,7 +10,7 @@ type Templates struct {
 	App      *template.Template
 	Signup   *template.Template
 	Verify   *template.Template
-	Login    *template.Template
+	Signin   *template.Template
 	Projects *template.Template
 	Email
 }
@@ -31,12 +31,12 @@ func NewTemplates() (*Templates, error) {
 		return nil, err
 	}
 
-	verify, err := parsePage("verify.tmpl")
+	signin, err := parsePage("signin.tmpl")
 	if err != nil {
 		return nil, err
 	}
 
-	login, err := parsePage("login.tmpl")
+	verify, err := parsePage("verify.tmpl")
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func NewTemplates() (*Templates, error) {
 		App:      app,
 		Signup:   signup,
 		Verify:   verify,
-		Login:    login,
+		Signin:   signin,
 		Projects: projects,
 		Email: Email{
 			Verification:  verification,
