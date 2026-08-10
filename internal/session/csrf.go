@@ -13,26 +13,19 @@ const (
 )
 
 func (s *Session) CSRF() string {
+	if s.Data[csrfKey] == "" {
+		raw := make([]byte, 32)
+		rand.Read(raw)
+
+		s.Data[csrfKey] = base64.RawURLEncoding.EncodeToString(raw)
+		s.touch()
+	}
+
 	return s.Data[csrfKey]
 }
 
-func (s *Session) ensureCSRF() error {
-	if s.Data[csrfKey] != "" {
-		return nil
-	}
-
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
-		return err
-	}
-
-	s.Data[csrfKey] = base64.RawURLEncoding.EncodeToString(raw)
-
-	return nil
-}
-
 func VerifyCSRF(sess *Session, r *http.Request) bool {
-	want := sess.CSRF()
+	want := sess.Data[csrfKey]
 	got := r.PostFormValue(CSRFField)
 
 	if want == "" || got == "" {

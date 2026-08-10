@@ -10,21 +10,17 @@ func (s *Store) Middleware(next http.Handler, onError func(http.ResponseWriter, 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Cookie")
 
-		sess, err := s.Find(r.Context(), r)
+		sess, err := s.Find(r.Context(), w, r)
 		if errors.Is(err, ErrNotFound) {
-			sess, err = s.New(r.Context(), w)
+			sess, err = s.New(w)
 		}
 		if err != nil {
 			onError(w, r, err)
 			return
 		}
+
 		before := maps.Clone(sess.Data)
 		beforeUser := userID(sess)
-
-		if err := sess.ensureCSRF(); err != nil {
-			onError(w, r, err)
-			return
-		}
 
 		next.ServeHTTP(w, SetContext(r, sess))
 
@@ -32,7 +28,7 @@ func (s *Store) Middleware(next http.Handler, onError func(http.ResponseWriter, 
 			return
 		}
 
-		if err := s.Save(r.Context(), sess); err != nil {
+		if err = s.Save(r.Context(), sess); err != nil {
 			s.logger.Error("session not saved", "err", err, "path", r.URL.Path)
 		}
 	})

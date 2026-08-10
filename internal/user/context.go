@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"net/http"
+	"server/internal/htmlutil"
 )
 
 type contextKey string
@@ -20,4 +21,16 @@ func GetUserContext(r *http.Request) *User {
 		panic("missing user value in request context")
 	}
 	return user
+}
+
+func NewPage(r *http.Request, form any) htmlutil.Page {
+	u := GetUserContext(r)
+
+	page := htmlutil.Page{Form: form, MaxUpload: u.MaxUploadBytes()}
+	if !u.IsAnonymous() {
+		page.UserEmail = u.Email
+		page.Verified = u.Verified
+	}
+
+	return page
 }
