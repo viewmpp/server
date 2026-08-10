@@ -4,12 +4,9 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
-	"server/internal/session"
 	"server/internal/user"
-	"server/internal/vcs"
 )
 
 type Handler struct {
@@ -32,26 +29,11 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess := session.FromContext(r)
-	u := user.GetUserContext(r)
+	page := user.NewPage(r, nil)
+	page.ProjectID = p.PublicID
+	page.FileName = p.FileName
 
-	page := htmlutil.Page{
-		MaxUpload: u.MaxUploadBytes(),
-		Version:   url.QueryEscape(vcs.Version()),
-		Flash:     sess.Pop("flash"),
-		CSRFToken: sess.CSRF(),
-		ProjectID: p.PublicID,
-		FileName:  p.FileName,
-	}
-
-	if !u.IsAnonymous() {
-		page.UserEmail = u.Email
-		page.Verified = u.Verified
-	}
-
-	if err := htmlutil.WriteHTML(w, http.StatusOK, h.templates.App, page); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-	}
+	htmlutil.Render(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
 
 func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +77,7 @@ const listLimit = 100
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
 	if u.IsAnonymous() {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 
@@ -105,18 +87,5 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess := session.FromContext(r)
-
-	page := htmlutil.Page{
-		Version:   url.QueryEscape(vcs.Version()),
-		Flash:     sess.Pop("flash"),
-		CSRFToken: sess.CSRF(),
-		UserEmail: u.Email,
-		Verified:  u.Verified,
-		Form:      projects,
-	}
-
-	if err = htmlutil.WriteHTML(w, http.StatusOK, h.templates.Projects, page); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-	}
+	htmlutil.Render(w, r, http.StatusOK, h.templates.Projects, user.NewPage(r, projects), h.logger)
 }
