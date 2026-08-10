@@ -26,6 +26,19 @@ type Session struct {
 	Data      map[string]string
 	ExpiresAt time.Time
 	dropped   bool
+
+	store *Store
+	w     http.ResponseWriter
+	sent  bool
+}
+
+func (s *Session) touch() {
+	if s.sent || s.store == nil || s.w == nil {
+		return
+	}
+
+	s.store.setCookie(s.w, s)
+	s.sent = true
 }
 
 func (s *Session) Get(key string) string {
@@ -52,28 +65,23 @@ func NewStore(db *sql.DB, secure bool, logger *slog.Logger) *Store {
 	return &Store{db: db, secure: secure, logger: logger}
 }
 
-func (s *Store) New(ctx context.Context, w http.ResponseWriter) (*Session, error) {
+func (s *Store) New(w http.ResponseWriter) (*Session, error) {
 	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
+	_, err := rand.Read(raw)
+	if err != nil {
 		return nil, err
 	}
 
-	sess := &Session{
+	return &Session{
 		Token:     base64.RawURLEncoding.EncodeToString(raw),
 		Data:      map[string]string{},
 		ExpiresAt: time.Now().Add(Lifetime),
-	}
-
-	if err := s.save(ctx, sess); err != nil {
-		return nil, err
-	}
-
-	s.setCookie(w, sess)
-
-	return sess, nil
+		store:     s,
+		w:         w,
+	}, nil
 }
 
-func (s *Store) Find(ctx context.Context, r *http.Request) (*Session, error) {
+func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request) (*Session, error) {
 	cookie, err := r.Cookie(CookieName)
 	if err != nil {
 		return nil, ErrNotFound
@@ -82,7 +90,7 @@ func (s *Store) Find(ctx context.Context, r *http.Request) (*Session, error) {
 	hash := hashToken(cookie.Value)
 
 	var (
-		sess = &Session{Token: cookie.Value}
+		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true}
 		data []byte
 	)
 
@@ -116,18 +124,20 @@ func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session)
 	}
 
 	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
+	_, err := rand.Read(raw)
+	if err != nil {
 		return err
 	}
 
 	sess.Token = base64.RawURLEncoding.EncodeToString(raw)
 	sess.ExpiresAt = time.Now().Add(Lifetime)
 
-	if err := s.save(ctx, sess); err != nil {
+	if err = s.save(ctx, sess); err != nil {
 		return err
 	}
 
 	s.setCookie(w, sess)
+	sess.sent = true
 
 	return nil
 }

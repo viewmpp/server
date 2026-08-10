@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"server/internal/background"
 	"server/internal/config"
 	"server/internal/htmlutil"
 	"server/internal/mailer"
@@ -50,6 +51,13 @@ func run() error {
 	defer limiter.Close()
 
 	s := store.New(db, cfg, logger)
+
+	stop := make(chan struct{})
+	defer close(stop)
+
+	background.Sweep(stop, logger, "sessions", time.Hour, s.Sessions.DeleteExpired)
+	background.Sweep(stop, logger, "tokens", time.Hour, s.Tokens.DeleteExpired)
+
 	vttl, err := time.ParseDuration(cfg.VerificationTTL)
 	if err != nil {
 		return err

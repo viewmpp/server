@@ -79,6 +79,14 @@ func (s *Store) CreateVerification(ctx context.Context, token *Token) error {
 	return nil
 }
 
+func (s *Store) DeleteExpired(ctx context.Context) (int64, error) {
+	res, err := s.db.ExecContext(ctx, `DELETE FROM tokens WHERE expires_at <= now()`)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 func (s *Store) DeleteVerificationsByUserID(ctx context.Context, userID int64) error {
 	query := `DELETE FROM tokens WHERE user_id = $1 AND	scope = 'verification'`
 
