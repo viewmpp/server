@@ -1,0 +1,152 @@
+package user
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"server/internal/background"
+	"server/internal/htmlutil"
+	"server/internal/session"
+	"server/internal/token"
+	"server/internal/validator"
+)
+
+var ErrEmailTaken = errors.New("email belongs to a verified account")
+
+type SignupForm struct {
+	Email       string
+	FieldErrors map[string]string
+	EmailTaken  bool
+}
+
+func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
+	htmlutil.Render(w, r, http.StatusOK, h.templates.Signup, NewPage(r, SignupForm{}), h.logger)
+}
+
+func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
+	sess := session.FromContext(r)
+
+	if err := r.ParseForm(); err != nil {
+		htmlutil.BadRequestPage(w, r, h.logger)
+		return
+	}
+
+	if !session.VerifyCSRF(sess, r) {
+		htmlutil.BadRequestPage(w, r, h.logger)
+		return
+	}
+
+	form := SignupForm{Email: NormalizeEmail(r.PostFormValue("email"))}
+	pass := r.PostFormValue("password")
+
+	v := validator.New()
+	CheckEmail(v, "email", form.Email)
+	CheckPassword(v, "password", pass)
+
+	if !v.Valid() {
+		form.FieldErrors = v.Errors
+		htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
+		return
+	}
+
+	u := User{Email: form.Email}
+	if err := u.password.Set(pass); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	err := h.store.Create(r.Context(), &u)
+	if errors.Is(err, ErrDuplicateEmail) {
+		err = h.takeOverPendingSignup(r.Context(), &u)
+
+		switch {
+		case errors.Is(err, ErrEmailTaken):
+			form.FieldErrors = map[string]string{"email": MsgEmailTaken}
+			form.EmailTaken = true
+			htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
+			return
+
+		case errors.Is(err, ErrEditConflict):
+			form.FieldErrors = map[string]string{"email": MsgSignupRetry}
+			htmlutil.Render(w, r, http.StatusConflict, h.templates.Signup, NewPage(r, form), h.logger)
+			return
+		}
+	}
+
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	vry, err := token.NewVerification(u.ID, h.verificationTTL)
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	if err = h.token.CreateVerification(r.Context(), vry); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	sess.UserID = &u.ID
+	sess.Put("pending_email", form.Email)
+	sess.Put("flash", MsgCodeSent(form.Email))
+
+	if err = h.sessions.Save(r.Context(), sess); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	h.sendVerificationCode(u.Email, vry.Plaintext)
+
+	http.Redirect(w, r, "/verify", http.StatusSeeOther)
+}
+
+func (h *Handler) takeOverPendingSignup(ctx context.Context, u *User) error {
+	existing, err := h.store.GetByEmail(ctx, u.Email)
+	if err != nil {
+		return err
+	}
+
+	if existing.Verified {
+		return ErrEmailTaken
+	}
+
+	u.ID = existing.ID
+	u.Version = existing.Version
+	u.Verified = false
+
+	if err = h.store.Update(ctx, u); err != nil {
+		return err
+	}
+
+	if err = h.token.DeleteVerificationsByUserID(ctx, u.ID); err != nil {
+		return err
+	}
+
+	return h.sessions.DeleteByUserID(ctx, u.ID)
+}
+
+func (h *Handler) sendVerificationCode(email, code string) {
+	background.Run(h.wg, h.logger, func() {
+		if err := h.mailer.SendVerification(email, code); err != nil {
+			h.logger.Error("failed to send verification email", "err", err)
+		}
+	})
+}
+
+func (h *Handler) sendExistingAccount(user User) {
+	background.Run(h.wg, h.logger, func() {
+		err := h.mailer.SendExistingAccount(user.Email)
+		if err != nil {
+			h.logger.Error("failed to send verification email", "err", err)
+			return
+		}
+	})
+}
