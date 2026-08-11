@@ -17,8 +17,14 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.projectHandler.Contract)
 
+	mux.HandleFunc("GET /api/v1/examples/{name}", s.viewerHandler.ExampleContract)
+
+	mux.HandleFunc("GET /example/{name}", s.viewerHandler.ExamplePage)
+
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
 	mux.HandleFunc("GET /p/{id}", s.projectHandler.Page)
+	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
+	mux.HandleFunc("POST /p/{id}/delete", s.projectHandler.Delete)
 
 	mux.HandleFunc("GET /signup", s.userHandler.SignupPage)
 	mux.HandleFunc("POST /signup", s.userHandler.Signup)

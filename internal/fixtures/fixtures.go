@@ -39,3 +39,48 @@ func ByDemo(demo string) Fixture {
 	}
 	return fallback
 }
+
+type Example struct {
+	Name     string
+	Label    string
+	Note     string
+	FileName string
+	Contract []byte
+}
+
+var examples = []Example{
+	{
+		Name:     "office-fit-out",
+		Label:    "Office fit-out",
+		Note:     "nested phases, dependencies, critical path",
+		FileName: "office-fit-out.mpp",
+		Contract: mpp14Baseline,
+	},
+	{
+		Name:     "viaduct",
+		Label:    "Viaduct (Cyrillic)",
+		Note:     "non-Latin task names render as they should",
+		FileName: "виадук.mpp",
+		Contract: cyrillic,
+	},
+	{
+		Name:     "roadworks-xml",
+		Label:    "Roadworks (.xml)",
+		Note:     "Project XML, not only .mpp",
+		FileName: "roadworks.xml",
+		Contract: mspdi,
+	},
+}
+
+func Examples() []Example {
+	return examples
+}
+
+func ByName(name string) (Example, bool) {
+	for _, e := range examples {
+		if e.Name == name {
+			return e, true
+		}
+	}
+	return Example{}, false
+}

@@ -11,14 +11,19 @@ import (
 )
 
 type Page struct {
-	MaxUpload int64
-	Version   string
-	Flash     string
-	Form      any
-	UserEmail string
-	Verified  bool
-	ProjectID string
-	FileName  string
+	MaxUpload    int64
+	Version      string
+	Flash        string
+	Form         any
+	UserEmail    string
+	Verified     bool
+	ProjectID    string
+	ExampleName  string
+	ExampleLabel string
+	FileName     string
+	Access       string
+	IsOwner      bool
+	CanShare     bool
 
 	sess *session.Session
 }

@@ -37,6 +37,8 @@
   var TEXT = {
     tooLarge:     function (mb) { return 'File is larger than ' + mb + ' MB'; },
     ganttFailed:  'Could not load the chart library',
+    copyLink:     'Copy link',
+    linkCopied:   'Link copied',
     serverSaid:   function (status) { return 'server replied ' + status; },
     noName:       'untitled',
     tasks:        'tasks',
@@ -65,9 +67,22 @@
   };
 
   var openProjectID = ui.app.dataset.projectId;
+  var openExampleName = ui.app.dataset.exampleName;
+  var servedOpen = Boolean(openProjectID || openExampleName);
+
   if (openProjectID) {
     openProject(openProjectID, ui.app.dataset.fileName);
+  } else if (openExampleName) {
+    openExample(openExampleName, ui.app.dataset.fileName);
   }
+
+  window.addEventListener('popstate', function () {
+    if (servedOpen) { return; }
+
+    ui.details.classList.add('is-hidden');
+    ui.app.classList.add('is-hidden');
+    ui.landing.classList.remove('is-hidden');
+  });
 
   ui.drop.addEventListener('dragover', function (e) {
     e.preventDefault();
@@ -89,14 +104,12 @@
   });
 
   document.getElementById('reset').addEventListener('click', function () {
-    if (openProjectID) {
+    if (servedOpen) {
       window.location.assign('/');
       return;
     }
     ui.file.value = '';
-    ui.details.classList.add('is-hidden');
-    ui.app.classList.add('is-hidden');
-    ui.landing.classList.remove('is-hidden');
+    window.history.back();
   });
 
   function send(file) {
@@ -129,7 +142,7 @@
         return loadGantt().then(function () {
           show(contract, file.name);
           var id = res && res.headers.get('X-Project-Id');
-          if (id) { window.history.replaceState(null, '', '/p/' + id); }
+          window.history.pushState({ chart: true }, '', id ? '/p/' + id : location.href);
         });
       })
       .catch(function (err) {
@@ -141,7 +154,15 @@
   }
 
   function openProject(id, fileName) {
-    fetch('/api/v1/projects/' + encodeURIComponent(id))
+    openContract('/api/v1/projects/' + encodeURIComponent(id), fileName);
+  }
+
+  function openExample(name, fileName) {
+    openContract('/api/v1/examples/' + encodeURIComponent(name), fileName);
+  }
+
+  function openContract(url, fileName) {
+    fetch(url)
       .then(function (response) {
         if (!response.ok) { throw new Error(TEXT.serverSaid(response.status)); }
         return response.json();
@@ -436,4 +457,25 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  document.addEventListener('submit', function (event) {
+    var message = event.target.getAttribute('data-confirm');
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('#copy-link');
+    if (!button) { return; }
+
+    var link = location.origin + button.getAttribute('data-link');
+
+    navigator.clipboard.writeText(link).then(function () {
+      button.textContent = TEXT.linkCopied;
+      setTimeout(function () { button.textContent = TEXT.copyLink; }, 2000);
+    }, function () {
+      window.prompt(TEXT.copyLink, link);
+    });
+  });
 })();

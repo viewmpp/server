@@ -1,4 +1,10 @@
-{{define "title"}}MPP Viewer — open an MS Project plan without installing anything{{end}}
+{{define "title"}}
+  {{- if .ExampleLabel -}}
+    {{.ExampleLabel}} — an MS Project plan in the browser | MPP Viewer
+  {{- else -}}
+    MPP Viewer — open an MS Project plan without installing anything
+  {{- end -}}
+{{end}}
 
 {{define "main"}}
 <main class="landing centered" id="landing">
@@ -17,9 +23,25 @@
   </div>
 
   <p class="drop__error is-hidden" id="error"></p>
+
+  {{if .Form}}
+    <div class="samples">
+      <p class="samples__lead">No file at hand? Open one of these:</p>
+      <ul class="samples__list">
+        {{range .Form}}
+          <li>
+            <a class="sample" href="/example/{{.Name}}">
+              <span class="sample__label">{{.Label}}</span>
+              <span class="sample__note">{{.Note}}</span>
+            </a>
+          </li>
+        {{end}}
+      </ul>
+    </div>
+  {{end}}
 </main>
 
-<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-file-name="{{.FileName}}">
+<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}">
   <header class="bar">
     <div class="bar__title">
       <span id="project-name" class="muted"></span>
@@ -46,6 +68,32 @@
       <label class="check"><input type="checkbox" id="toggle-critical" checked> critical path</label>
       <label class="check"><input type="checkbox" id="toggle-grid" checked> grid</label>
     </div>
+
+    {{if .IsOwner}}
+      <div class="bar__group">
+        {{if eq .Access "public"}}
+          <form action="/p/{{.ProjectID}}/access" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <input type="hidden" name="access" value="private">
+            <button class="btn" type="submit">Stop sharing</button>
+          </form>
+          <button class="btn" id="copy-link" data-link="/p/{{.ProjectID}}">Copy link</button>
+        {{else if .CanShare}}
+          <form action="/p/{{.ProjectID}}/access" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <input type="hidden" name="access" value="public">
+            <button class="btn" type="submit">Share</button>
+          </form>
+        {{else}}
+          <span class="label" title="Sharing is part of the Pro plan">Private</span>
+        {{end}}
+
+        <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <button class="btn btn--danger" type="submit">Delete</button>
+        </form>
+      </div>
+    {{end}}
 
     <div class="bar__group">
       <button class="btn" id="reset">Another file</button>
