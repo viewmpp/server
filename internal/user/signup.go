@@ -158,12 +158,10 @@ func (h *Handler) sendVerificationCode(email, code string) {
 	})
 }
 
-func (h *Handler) sendExistingAccount(user User) {
+func (h *Handler) sendExistingAccount(email string) {
 	background.Run(h.wg, h.logger, func() {
-		err := h.mailer.SendExistingAccount(user.Email)
-		if err != nil {
-			h.logger.Error("failed to send verification email", "err", err)
-			return
+		if err := h.mailer.SendExistingAccount(email); err != nil {
+			h.logger.Error("failed to send existing account email", "err", err)
 		}
 	})
 }
