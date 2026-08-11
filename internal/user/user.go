@@ -51,6 +51,10 @@ func (u *User) HasSubscription() bool {
 	return u.Subscription == SubscriptionPro
 }
 
+func (u *User) CanShare() bool {
+	return u.Verified && u.HasSubscription()
+}
+
 func (u *User) MaxUploadBytes() int64 {
 	if u.HasSubscription() {
 		return MaxUploadPro

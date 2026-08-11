@@ -17,6 +17,10 @@
           <div class="card__meta">
             <time datetime="{{.CreatedAt.Format "2006-01-02"}}">{{.CreatedAt.Format "2 Jan 2006"}}</time>
             <span class="tag tag--{{.Access}}">{{.Access}}</span>
+            <form action="/p/{{.PublicID}}/delete" method="POST" data-confirm="Delete {{.FileName}}?">
+              <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+              <button class="linkish" type="submit">Delete</button>
+            </form>
           </div>
         </li>
       {{end}}

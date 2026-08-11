@@ -41,7 +41,7 @@ func (c *Client) Parse(ctx context.Context, body io.Reader, size int64) ([]byte,
 	}
 	if res.StatusCode != http.StatusOK {
 		pe := &ParseError{Status: res.StatusCode}
-		if err := json.Unmarshal(data, pe); err != nil {
+		if err = json.Unmarshal(data, pe); err != nil {
 			pe.Message = string(data)
 		}
 		return nil, pe

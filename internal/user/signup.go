@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"server/internal/background"
 	"server/internal/htmlutil"
+	"server/internal/ratelimit"
 	"server/internal/session"
 	"server/internal/token"
 	"server/internal/validator"
@@ -16,7 +17,6 @@ var ErrEmailTaken = errors.New("email belongs to a verified account")
 type SignupForm struct {
 	Email       string
 	FieldErrors map[string]string
-	EmailTaken  bool
 }
 
 func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +38,21 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	form := SignupForm{Email: NormalizeEmail(r.PostFormValue("email"))}
 	pass := r.PostFormValue("password")
+
+	keys := []string{"signup:" + form.Email, "signup-ip:" + ratelimit.ClientIP(r)}
+
+	for _, key := range keys {
+		if !h.limiter.Allow(key) {
+			h.logger.Warn("signup throttled", "key", key)
+			form.FieldErrors = map[string]string{"email": MsgTooManyTries}
+			htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
+			return
+		}
+	}
+
+	for _, key := range keys {
+		h.limiter.Fail(key)
+	}
 
 	v := validator.New()
 	CheckEmail(v, "email", form.Email)
@@ -61,9 +76,8 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 		switch {
 		case errors.Is(err, ErrEmailTaken):
-			form.FieldErrors = map[string]string{"email": MsgEmailTaken}
-			form.EmailTaken = true
-			htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
+			h.sendExistingAccount(form.Email)
+			h.startVerification(w, r, sess, form.Email)
 			return
 
 		case errors.Is(err, ErrEditConflict):
@@ -89,21 +103,24 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
-
-	sess.UserID = &u.ID
-	sess.Put("pending_email", form.Email)
-	sess.Put("flash", MsgCodeSent(form.Email))
-
-	if err = h.sessions.Save(r.Context(), sess); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
-
 	h.sendVerificationCode(u.Email, vry.Plaintext)
+
+	h.startVerification(w, r, sess, form.Email)
+}
+
+func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, email string) {
+	if err := h.sessions.Renew(r.Context(), w, sess); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	sess.Put("pending_email", email)
+	sess.Put("flash", MsgCodeSent(email))
+
+	if err := h.sessions.Save(r.Context(), sess); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
 
 	http.Redirect(w, r, "/verify", http.StatusSeeOther)
 }
