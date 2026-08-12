@@ -35,6 +35,22 @@ func (p Page) CSRFToken() string {
 	return p.sess.CSRF()
 }
 
+func AcceptPost(w http.ResponseWriter, r *http.Request, logger *slog.Logger) (*session.Session, bool) {
+	sess := session.FromContext(r)
+
+	if err := r.ParseForm(); err != nil {
+		BadRequestPage(w, r, logger)
+		return nil, false
+	}
+
+	if !session.VerifyCSRF(sess, r) {
+		BadRequestPage(w, r, logger)
+		return nil, false
+	}
+
+	return sess, true
+}
+
 func Render(w http.ResponseWriter, r *http.Request, status int, ts *template.Template, page Page, logger *slog.Logger) {
 	sess := session.FromContext(r)
 

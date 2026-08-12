@@ -49,6 +49,27 @@ func (l *Limiter) Reset(key string) {
 	delete(l.hits, key)
 }
 
+func (l *Limiter) AllowAll(keys []string) (string, bool) {
+	for _, key := range keys {
+		if !l.Allow(key) {
+			return key, false
+		}
+	}
+	return "", true
+}
+
+func (l *Limiter) FailAll(keys []string) {
+	for _, key := range keys {
+		l.Fail(key)
+	}
+}
+
+func (l *Limiter) ResetAll(keys []string) {
+	for _, key := range keys {
+		l.Reset(key)
+	}
+}
+
 func (l *Limiter) Close() {
 	close(l.stopped)
 }

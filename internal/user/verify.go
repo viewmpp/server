@@ -22,15 +22,8 @@ func (h *Handler) VerifyPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 
@@ -100,15 +93,8 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 

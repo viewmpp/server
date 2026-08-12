@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/ratelimit"
-	"server/internal/session"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,15 +24,8 @@ func (h *Handler) SigninPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 
@@ -42,13 +34,11 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	keys := []string{"signin:" + form.Email, "signin-ip:" + ratelimit.ClientIP(r)}
 
-	for _, key := range keys {
-		if !h.limiter.Allow(key) {
-			h.logger.Warn("signin throttled", "key", key)
-			form.FieldErrors = map[string]string{"email": MsgTooManyTries}
-			htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signin, NewPage(r, form), h.logger)
-			return
-		}
+	if key, ok := h.limiter.AllowAll(keys); !ok {
+		h.logger.Warn("signin throttled", "key", key)
+		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
+		htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signin, NewPage(r, form), h.logger)
+		return
 	}
 
 	u, err := h.store.GetByEmail(r.Context(), form.Email)
@@ -69,18 +59,14 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !matched {
-		for _, key := range keys {
-			h.limiter.Fail(key)
-		}
+		h.limiter.FailAll(keys)
 
 		form.FieldErrors = map[string]string{"email": MsgEmailOrPass}
 		htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signin, NewPage(r, form), h.logger)
 		return
 	}
 
-	for _, key := range keys {
-		h.limiter.Reset(key)
-	}
+	h.limiter.ResetAll(keys)
 
 	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -98,15 +84,8 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Signout(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 

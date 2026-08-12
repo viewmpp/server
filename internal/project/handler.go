@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
-	"server/internal/session"
 	"server/internal/user"
 )
 
@@ -54,15 +53,8 @@ func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 
@@ -105,15 +97,8 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 

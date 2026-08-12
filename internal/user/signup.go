@@ -24,15 +24,8 @@ func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r)
-
-	if err := r.ParseForm(); err != nil {
-		htmlutil.BadRequestPage(w, r, h.logger)
-		return
-	}
-
-	if !session.VerifyCSRF(sess, r) {
-		htmlutil.BadRequestPage(w, r, h.logger)
+	sess, ok := htmlutil.AcceptPost(w, r, h.logger)
+	if !ok {
 		return
 	}
 
@@ -41,18 +34,14 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	keys := []string{"signup:" + form.Email, "signup-ip:" + ratelimit.ClientIP(r)}
 
-	for _, key := range keys {
-		if !h.limiter.Allow(key) {
-			h.logger.Warn("signup throttled", "key", key)
-			form.FieldErrors = map[string]string{"email": MsgTooManyTries}
-			htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
-			return
-		}
+	if key, ok := h.limiter.AllowAll(keys); !ok {
+		h.logger.Warn("signup throttled", "key", key)
+		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
+		htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
+		return
 	}
 
-	for _, key := range keys {
-		h.limiter.Fail(key)
-	}
+	h.limiter.FailAll(keys)
 
 	v := validator.New()
 	CheckEmail(v, "email", form.Email)
