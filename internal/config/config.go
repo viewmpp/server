@@ -16,6 +16,7 @@ type Config struct {
 	Mailer
 	BGSweep
 	Session
+	Reset
 }
 
 type Parser struct {
@@ -45,6 +46,11 @@ type BGSweep struct {
 	Timeout    time.Duration
 }
 
+type Reset struct {
+	ResetTTL time.Duration
+	BaseURL  string
+}
+
 type Session struct {
 	Lifetime time.Duration
 }
@@ -57,6 +63,9 @@ func Load() Config {
 	flag.StringVar(&cfg.Env, "env", env.GetString("ENV", "dev"), "environment dev|stage|prod")
 	flag.IntVar(&cfg.EarlyAccessSeats, "early-access-seats", env.GetInt("EARLY_ACCESS_SEATS", 100),
 		"how many users may claim Pro for free; 0 closes early access")
+	flag.DurationVar(&cfg.ResetTTL, "reset-ttl", env.GetDuration("RESET_TTL", time.Hour), "password reset link lifetime")
+	flag.StringVar(&cfg.BaseURL, "base-url", env.GetString("BASE_URL", "http://localhost:4000"),
+		"public address used in emailed links")
 	flag.IntVar(&cfg.Proxies, "proxies", env.GetInt("PROXIES", 0),
 		"number of trusted reverse proxies in front of the server; 0 means none")
 	flag.StringVar(&cfg.URL, "parser-url", env.GetString("PARSER_URL", "http://localhost:8080/parse"), "parser url")

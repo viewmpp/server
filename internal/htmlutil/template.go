@@ -18,11 +18,14 @@ type Pages struct {
 	Verify   *template.Template
 	Projects *template.Template
 	Unlock   *template.Template
+	Forgot   *template.Template
+	Reset    *template.Template
 }
 
 type Emails struct {
 	Verification  *template.Template
 	AccountExists *template.Template
+	PasswordReset *template.Template
 }
 
 type Errors struct {
@@ -78,6 +81,16 @@ func NewPages() (*Pages, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	forgot, err := parsePage("forgot.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	reset, err := parsePage("reset.tmpl")
+	if err != nil {
+		return nil, err
+	}
 	return &Pages{
 		App:      app,
 		Signin:   signin,
@@ -85,6 +98,8 @@ func NewPages() (*Pages, error) {
 		Verify:   verify,
 		Projects: projects,
 		Unlock:   unlock,
+		Forgot:   forgot,
+		Reset:    reset,
 	}, nil
 }
 
@@ -99,9 +114,15 @@ func NewEmails() (*Emails, error) {
 		return nil, err
 	}
 
+	passwordReset, err := parseEmail("email_password_reset.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Emails{
 		Verification:  verification,
 		AccountExists: accExists,
+		PasswordReset: passwordReset,
 	}, nil
 }
 

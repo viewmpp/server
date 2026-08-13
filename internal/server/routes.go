@@ -33,6 +33,11 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /verify", s.userHandler.Verify)
 	mux.HandleFunc("POST /verify/resend", s.userHandler.ResendCode)
 
+	mux.HandleFunc("GET /reset", s.userHandler.ForgotPage)
+	mux.HandleFunc("POST /reset", s.userHandler.Forgot)
+	mux.HandleFunc("GET /reset/{token}", s.userHandler.ResetPage)
+	mux.HandleFunc("POST /reset/{token}", s.userHandler.Reset)
+
 	mux.HandleFunc("GET /signin", s.userHandler.SigninPage)
 	mux.HandleFunc("POST /signin", s.userHandler.Signin)
 	mux.HandleFunc("POST /signout", s.userHandler.Signout)

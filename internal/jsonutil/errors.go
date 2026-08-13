@@ -3,6 +3,7 @@ package jsonutil
 import (
 	"log/slog"
 	"net/http"
+	"server/internal/safelog"
 )
 
 func errorResponse(w http.ResponseWriter, status int, data any) {
@@ -10,7 +11,7 @@ func errorResponse(w http.ResponseWriter, status int, data any) {
 }
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logger *slog.Logger) {
-	logger.Error("error occurs", "err", err, "method", r.Method, "uri", r.RequestURI)
+	logger.Error("error occurs", "err", err, "method", r.Method, "uri", safelog.URI(r.RequestURI))
 	message := "the server encountered a problem and could not process your request"
 	errorResponse(w, http.StatusInternalServerError, message)
 }

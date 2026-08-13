@@ -13,6 +13,7 @@ type Scope string
 
 var (
 	ScopeVerification = Scope("verification")
+	ScopeReset        = Scope("reset")
 )
 
 type Token struct {
@@ -33,6 +34,10 @@ func NewStore(db *sql.DB) *Store {
 
 func NewVerification(userID int64, ttl time.Duration) (*Token, error) {
 	return New(userID, ScopeVerification, ttl, 16)
+}
+
+func NewReset(userID int64, ttl time.Duration) (*Token, error) {
+	return New(userID, ScopeReset, ttl, 32)
 }
 
 func New(userID int64, scope Scope, ttl time.Duration, bytes int) (*Token, error) {
@@ -77,6 +82,33 @@ func (s *Store) CreateVerification(ctx context.Context, token *Token) error {
 	}
 
 	return nil
+}
+
+func (s *Store) CreateReset(ctx context.Context, token *Token) error {
+	query :=
+		`INSERT INTO tokens (user_id, token_hash, scope, expires_at)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (user_id)
+		WHERE scope = 'reset'
+		DO UPDATE SET token_hash = EXCLUDED.token_hash, expires_at = EXCLUDED.expires_at`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+
+	args := []any{token.UserID, token.Hash, token.Scope, token.ExpiresAt}
+
+	_, err := s.db.ExecContext(ctx, query, args...)
+
+	return err
+}
+
+func (s *Store) DeleteResetsByUserID(ctx context.Context, userID int64) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, `DELETE FROM tokens WHERE user_id = $1 AND scope = 'reset'`, userID)
+
+	return err
 }
 
 func (s *Store) DeleteExpired(ctx context.Context) (int64, error) {

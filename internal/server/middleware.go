@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/safelog"
 	"server/internal/session"
 	"server/internal/user"
 	"strings"
@@ -39,7 +40,7 @@ func (s *Server) logRequest(next http.Handler) http.Handler {
 
 		args := []any{
 			slog.String("method", r.Method),
-			slog.String("uri", r.RequestURI),
+			slog.String("uri", safelog.URI(r.RequestURI)),
 			slog.Int("status_code", status),
 			slog.Duration("duration", time.Since(starts)),
 		}

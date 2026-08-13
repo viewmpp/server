@@ -1,0 +1,22 @@
+{{define "title"}}Choose a new password — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="auth centered">
+  <h1>Choose a new password</h1>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <form action="/reset/{{.Form.Token}}" method="POST" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    <div class="field">
+      <label for="password">New password</label>
+      {{with index .Form.FieldErrors "password"}}<span class="field__error">{{.}}</span>{{end}}
+      <input id="password" type="password" name="password" autocomplete="new-password" autofocus required>
+      <p class="field__hint">At least 8 characters.</p>
+    </div>
+
+    <button class="btn btn--primary" type="submit">Save and sign in</button>
+  </form>
+</main>
+{{end}}

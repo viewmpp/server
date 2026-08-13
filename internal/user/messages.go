@@ -20,11 +20,16 @@ const (
 	MsgSignupRetry         = "Could not finish signing up, please try again"
 	MsgVerifyRetry         = "Could not finish, please try again"
 	MsgEmailConfirmed      = "Email confirmed"
+	MsgPasswordChanged     = "Password changed"
 	MsgVerifyLater         = "Confirm your email — without it you cannot get back in if you forget your password"
 )
 
 func MsgEarlyAccessGranted(seat int) string {
 	return fmt.Sprintf("Pro is on — you are early user #%d. It stays free for you.", seat)
+}
+
+func MsgResetSent(email string) string {
+	return "If " + email + " has an account, we sent a link to it"
 }
 
 func MsgCodeSent(email string) string {

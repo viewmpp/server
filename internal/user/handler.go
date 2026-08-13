@@ -19,6 +19,8 @@ type Handler struct {
 	mailer           *mailer.Mailer
 	verificationTTL  time.Duration
 	verificationRC   time.Duration
+	resetTTL         time.Duration
+	baseURL          string
 	earlyAccessSeats int
 	templates        *htmlutil.Templates
 	wg               *sync.WaitGroup
@@ -33,6 +35,8 @@ func NewHandler(
 	mailer *mailer.Mailer,
 	vttl time.Duration,
 	vrc time.Duration,
+	resetTTL time.Duration,
+	baseURL string,
 	earlyAccessSeats int,
 	templates *htmlutil.Templates,
 	wg *sync.WaitGroup,
@@ -46,6 +50,8 @@ func NewHandler(
 		mailer:           mailer,
 		verificationTTL:  vttl,
 		verificationRC:   vrc,
+		resetTTL:         resetTTL,
+		baseURL:          baseURL,
 		earlyAccessSeats: earlyAccessSeats,
 		templates:        templates,
 		wg:               wg,

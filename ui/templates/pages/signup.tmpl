@@ -16,7 +16,7 @@
       {{end}}
       <input id="email" type="email" name="email" value="{{.Form.Email}}" autocomplete="email" required>
       {{if .Form.EmailTaken}}
-        <p class="field__hint"><a href="/signin">Sign in instead</a></p>
+        <p class="field__hint"><a href="/signin">Sign in</a> or <a href="/reset">reset your password</a></p>
       {{end}}
     </div>
 
