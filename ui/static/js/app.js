@@ -35,11 +35,7 @@
   };
 
   var TEXT = {
-    tooLarge:     function (mb) { return 'File is larger than ' + mb + ' MB'; },
     ganttFailed:  'Could not load the chart library',
-    copyLink:     'Copy link',
-    linkCopied:   'Link copied',
-    serverSaid:   function (status) { return 'server replied ' + status; },
     noName:       'untitled',
     tasks:        'tasks',
     links:        'links',
@@ -84,23 +80,17 @@
     ui.landing.classList.remove('is-hidden');
   });
 
-  ui.drop.addEventListener('dragover', function (e) {
-    e.preventDefault();
-    ui.drop.classList.add('is-over');
-  });
-
-  ui.drop.addEventListener('dragleave', function () {
-    ui.drop.classList.remove('is-over');
-  });
-
-  ui.drop.addEventListener('drop', function (e) {
-    e.preventDefault();
-    ui.drop.classList.remove('is-over');
-    send(e.dataTransfer.files[0]);
-  });
-
-  ui.file.addEventListener('change', function () {
-    send(ui.file.files[0]);
+  window.MppUpload.bind({
+    drop: ui.drop,
+    file: ui.file,
+    onStart: function () { ui.error.classList.add('is-hidden'); },
+    onError: fail,
+    onDone: function (contract, file, projectID) {
+      return loadGantt().then(function () {
+        show(contract, file.name);
+        window.history.pushState({ chart: true }, '', projectID ? '/p/' + projectID : location.href);
+      });
+    }
   });
 
   document.getElementById('reset').addEventListener('click', function () {
@@ -112,46 +102,6 @@
     window.history.back();
   });
 
-  function send(file) {
-    if (!file) { return; }
-
-    var limit = Number(ui.drop.dataset.maxUpload);
-    if (limit && file.size > limit) {
-      fail(TEXT.tooLarge(Math.round(limit / 1048576)));
-      return;
-    }
-
-    ui.error.classList.add('is-hidden');
-    ui.drop.classList.add('is-busy');
-
-    var res = null;
-
-    fetch('/api/v1/upload?name=' + encodeURIComponent(file.name), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/octet-stream' },
-      body: file
-    })
-      .then(function (response) {
-        res = response;
-        return response.json().then(function (payload) {
-          if (!response.ok) { throw new Error(payload || TEXT.serverSaid(response.status)); }
-          return payload;
-        });
-      })
-      .then(function (contract) {
-        return loadGantt().then(function () {
-          show(contract, file.name);
-          var id = res && res.headers.get('X-Project-Id');
-          window.history.pushState({ chart: true }, '', id ? '/p/' + id : location.href);
-        });
-      })
-      .catch(function (err) {
-        fail(err.message);
-      })
-      .then(function () {
-        ui.drop.classList.remove('is-busy');
-      });
-  }
 
   function openProject(id, fileName) {
     openContract('/api/v1/projects/' + encodeURIComponent(id), fileName);
@@ -164,7 +114,7 @@
   function openContract(url, fileName) {
     fetch(url)
       .then(function (response) {
-        if (!response.ok) { throw new Error(TEXT.serverSaid(response.status)); }
+        if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
         return response.json();
       })
       .then(function (contract) {
@@ -458,24 +408,4 @@
       .replace(/"/g, '&quot;');
   }
 
-  document.addEventListener('submit', function (event) {
-    var message = event.target.getAttribute('data-confirm');
-    if (message && !window.confirm(message)) {
-      event.preventDefault();
-    }
-  });
-
-  document.addEventListener('click', function (event) {
-    var button = event.target.closest('#copy-link');
-    if (!button) { return; }
-
-    var link = location.origin + button.getAttribute('data-link');
-
-    navigator.clipboard.writeText(link).then(function () {
-      button.textContent = TEXT.linkCopied;
-      setTimeout(function () { button.textContent = TEXT.copyLink; }, 2000);
-    }, function () {
-      window.prompt(TEXT.copyLink, link);
-    });
-  });
 })();
