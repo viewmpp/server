@@ -7,20 +7,47 @@ import (
 )
 
 type Templates struct {
-	App      *template.Template
-	Signup   *template.Template
-	Verify   *template.Template
-	Signin   *template.Template
-	Projects *template.Template
-	Email
+	*Pages
+	*Emails
 }
 
-type Email struct {
+type Pages struct {
+	App      *template.Template
+	Signin   *template.Template
+	Signup   *template.Template
+	Verify   *template.Template
+	Projects *template.Template
+}
+
+type Emails struct {
 	Verification  *template.Template
 	AccountExists *template.Template
 }
 
+type Errors struct {
+	ServerError *template.Template
+	BadRequest  *template.Template
+	NotFound    *template.Template
+}
+
 func NewTemplates() (*Templates, error) {
+	pages, err := NewPages()
+	if err != nil {
+		return nil, err
+	}
+
+	emails, err := NewEmails()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Templates{
+		Pages:  pages,
+		Emails: emails,
+	}, nil
+}
+
+func NewPages() (*Pages, error) {
 	app, err := parsePage("app.tmpl")
 	if err != nil {
 		return nil, err
@@ -45,27 +72,29 @@ func NewTemplates() (*Templates, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	verification, err := parseMail("email_verification.tmpl")
-	if err != nil {
-		return nil, err
-	}
-
-	accExists, err := parseMail("email_account_exists.tmpl")
-	if err != nil {
-		return nil, err
-	}
-
-	return &Templates{
+	return &Pages{
 		App:      app,
+		Signin:   signin,
 		Signup:   signup,
 		Verify:   verify,
-		Signin:   signin,
 		Projects: projects,
-		Email: Email{
-			Verification:  verification,
-			AccountExists: accExists,
-		},
+	}, nil
+}
+
+func NewEmails() (*Emails, error) {
+	verification, err := parseEmail("email_verification.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	accExists, err := parseEmail("email_account_exists.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Emails{
+		Verification:  verification,
+		AccountExists: accExists,
 	}, nil
 }
 
@@ -73,6 +102,6 @@ func parsePage(name string) (*template.Template, error) {
 	return template.ParseFS(ui.Files, "templates/base.tmpl", fmt.Sprintf("templates/pages/%s", name))
 }
 
-func parseMail(name string) (*template.Template, error) {
+func parseEmail(name string) (*template.Template, error) {
 	return template.ParseFS(ui.Files, fmt.Sprintf("templates/emails/%s", name))
 }

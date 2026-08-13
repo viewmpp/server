@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Something went wrong — MPP Viewer</title>
+<style>
+  :root {
+    --text: #27282e;
+    --secondary: #6c707e;
+    --disabled: #a8adbd;
+    --line: #dfe1e5;
+    --main: #3369d6;
+    --link: #315fbd;
+    --bg: #ffffff;
+    --error: #cc3645;
+    --error-bg: #fff2f3;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--text);
+    background: var(--bg);
+    font: 14px/20px system-ui, Arial, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums slashed-zero;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .box { width: 100%; max-width: 420px; text-align: center; }
+
+  .code {
+    margin: 0 0 8px;
+    color: var(--error);
+    font-size: 56px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -1px;
+  }
+
+  h1 { margin: 0 0 8px; font-size: 20px; line-height: 1.3; font-weight: 600; }
+
+  p { margin: 0 0 16px; color: var(--secondary); }
+
+  .hint {
+    margin: 0 0 24px;
+    padding: 8px 12px;
+    background: var(--error-bg);
+    border-radius: var(--radius);
+    color: var(--error);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 16px;
+    background: var(--main);
+    border: 1px solid #2e55a3;
+    border-radius: var(--radius);
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .btn:hover { background: #315fbd; }
+
+  .brand {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--disabled);
+    font-size: 12px;
+  }
+  .brand a { color: var(--link); text-decoration: none; }
+  .brand a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <main class="box">
+    <p class="code">500</p>
+    <h1>Something went wrong on our side</h1>
+    <p class="hint">Your file was not saved. Nothing was sent anywhere.</p>
+    <p>The error has been logged. Try again in a moment.</p>
+    <a class="btn" href="/">Go to the start</a>
+    <p class="brand"><a href="/">MPP Viewer</a> — MS Project plans in the browser</p>
+  </main>
+</body>
+</html>

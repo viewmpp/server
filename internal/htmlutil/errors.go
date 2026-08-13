@@ -8,16 +8,29 @@ import (
 	"server/ui"
 )
 
-var errorPage = template.Must(template.ParseFS(ui.Files, "templates/error.tmpl"))
+var serverError = template.Must(template.ParseFS(ui.Files, "templates/errors/server_error.tmpl"))
+
+var badRequest = template.Must(template.ParseFS(ui.Files, "templates/errors/bad_request.tmpl"))
+
+var notFound = template.Must(template.ParseFS(ui.Files, "templates/errors/not_found.tmpl"))
 
 func errorResponse(w http.ResponseWriter, status int) {
 	buf := new(bytes.Buffer)
-	err := errorPage.Execute(buf, nil)
+	var err error
+	switch status {
+	case http.StatusBadRequest:
+		err = badRequest.Execute(buf, nil)
+	case http.StatusNotFound:
+		err = notFound.Execute(buf, nil)
+	default:
+		err = serverError.Execute(buf, nil)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
 }

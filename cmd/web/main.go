@@ -55,8 +55,18 @@ func run() error {
 	stop := make(chan struct{})
 	defer close(stop)
 
-	background.Sweep(stop, logger, "sessions", time.Hour, s.Sessions.DeleteExpired)
-	background.Sweep(stop, logger, "tokens", time.Hour, s.Tokens.DeleteExpired)
+	bgRepetition, err := time.ParseDuration(cfg.Repetition)
+	if err != nil {
+		return err
+	}
+
+	bgTimeout, err := time.ParseDuration(cfg.Timeout)
+	if err != nil {
+		return err
+	}
+
+	background.Sweep(stop, logger, "sessions", bgRepetition, bgTimeout, s.Sessions.DeleteExpired)
+	background.Sweep(stop, logger, "tokens", bgRepetition, bgTimeout, s.Tokens.DeleteExpired)
 
 	vttl, err := time.ParseDuration(cfg.VerificationTTL)
 	if err != nil {
