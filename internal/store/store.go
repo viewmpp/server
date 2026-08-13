@@ -21,7 +21,7 @@ func New(db *sql.DB, cfg config.Config, logger *slog.Logger) *Store {
 	return &Store{
 		Users:    user.NewStore(db),
 		Tokens:   token.NewStore(db),
-		Sessions: session.NewStore(db, cfg.Env != "dev", logger),
+		Sessions: session.NewStore(db, cfg.Lifetime, cfg.Env != "dev", logger),
 		Projects: project.NewStore(db),
 	}
 }

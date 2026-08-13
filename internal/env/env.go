@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 	"strconv"
+	"time"
 )
 
 func GetString(key string, fallback string) string {
@@ -25,4 +26,18 @@ func GetInt(key string, fallback int) int {
 	}
 
 	return i
+}
+
+func GetDuration(key string, fallback time.Duration) time.Duration {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	d, err := time.ParseDuration(value)
+	if err != nil {
+		return fallback
+	}
+
+	return d
 }

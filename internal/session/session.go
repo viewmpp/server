@@ -13,10 +13,7 @@ import (
 	"time"
 )
 
-const (
-	CookieName = "session"
-	Lifetime   = 12 * time.Hour
-)
+const CookieName = "session"
 
 var ErrNotFound = errors.New("session not found")
 
@@ -55,13 +52,19 @@ func (s *Session) Pop(key string) string {
 }
 
 type Store struct {
-	db     *sql.DB
-	secure bool
-	logger *slog.Logger
+	db       *sql.DB
+	lifetime time.Duration
+	secure   bool
+	logger   *slog.Logger
 }
 
-func NewStore(db *sql.DB, secure bool, logger *slog.Logger) *Store {
-	return &Store{db: db, secure: secure, logger: logger}
+func NewStore(db *sql.DB, lifetime time.Duration, secure bool, logger *slog.Logger) *Store {
+	return &Store{
+		db:       db,
+		lifetime: lifetime,
+		secure:   secure,
+		logger:   logger,
+	}
 }
 
 func (s *Store) New(w http.ResponseWriter) (*Session, error) {
@@ -74,7 +77,7 @@ func (s *Store) New(w http.ResponseWriter) (*Session, error) {
 	return &Session{
 		Token:     base64.RawURLEncoding.EncodeToString(raw),
 		Data:      map[string]string{},
-		ExpiresAt: time.Now().Add(Lifetime),
+		ExpiresAt: time.Now().Add(s.lifetime),
 		store:     s,
 		w:         w,
 	}, nil
@@ -129,7 +132,7 @@ func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session)
 	}
 
 	sess.Token = base64.RawURLEncoding.EncodeToString(raw)
-	sess.ExpiresAt = time.Now().Add(Lifetime)
+	sess.ExpiresAt = time.Now().Add(s.lifetime)
 
 	if err = s.save(ctx, sess); err != nil {
 		return err

@@ -58,27 +58,9 @@ func run() error {
 	stop := make(chan struct{})
 	defer close(stop)
 
-	bgRepetition, err := time.ParseDuration(cfg.Repetition)
-	if err != nil {
-		return err
-	}
+	background.Sweep(stop, logger, "sessions", cfg.Repetition, cfg.Timeout, s.Sessions.DeleteExpired)
+	background.Sweep(stop, logger, "tokens", cfg.Repetition, cfg.Timeout, s.Tokens.DeleteExpired)
 
-	bgTimeout, err := time.ParseDuration(cfg.Timeout)
-	if err != nil {
-		return err
-	}
-
-	background.Sweep(stop, logger, "sessions", bgRepetition, bgTimeout, s.Sessions.DeleteExpired)
-	background.Sweep(stop, logger, "tokens", bgRepetition, bgTimeout, s.Tokens.DeleteExpired)
-
-	vttl, err := time.ParseDuration(cfg.VerificationTTL)
-	if err != nil {
-		return err
-	}
-	vrc, err := time.ParseDuration(cfg.VerificationRC)
-	if err != nil {
-		return err
-	}
 	mail := mailer.New(cfg.Resend, templates, logger)
 
 	client := &parser.Client{
@@ -89,7 +71,7 @@ func run() error {
 	viewerHandler := viewer.NewHandler(templates, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, logger)
 	projectHandler := project.NewHandler(s.Projects, templates, logger)
-	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, limiter, mail, vttl, vrc, templates, &wg, logger)
+	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, limiter, mail, cfg.VerificationTTL, cfg.VerificationRC, templates, &wg, logger)
 
 	return server.New(cfg, viewerHandler, uploadHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

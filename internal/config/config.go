@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"server/internal/env"
+	"time"
 )
 
 type Config struct {
@@ -13,6 +14,7 @@ type Config struct {
 	DB
 	Mailer
 	BGSweep
+	Session
 }
 
 type Parser struct {
@@ -23,13 +25,13 @@ type DB struct {
 	DSN          string
 	MaxOpenConns int
 	MaxIdleConns int
-	MaxIdleTime  string
+	MaxIdleTime  time.Duration
 }
 
 type Mailer struct {
 	Resend
-	VerificationTTL string
-	VerificationRC  string
+	VerificationTTL time.Duration
+	VerificationRC  time.Duration
 }
 
 type Resend struct {
@@ -38,8 +40,12 @@ type Resend struct {
 }
 
 type BGSweep struct {
-	Repetition string
-	Timeout   string
+	Repetition time.Duration
+	Timeout    time.Duration
+}
+
+type Session struct {
+	Lifetime time.Duration
 }
 
 func Load() Config {
@@ -55,16 +61,17 @@ func Load() Config {
 		"postgres data source name")
 	flag.IntVar(&cfg.MaxOpenConns, "max-open-conns", env.GetInt("DB_MAX_OPEN_CONNS", 25), "postgres max open connections")
 	flag.IntVar(&cfg.MaxIdleConns, "max-idle-conns", env.GetInt("DB_MAX_IDLE_CONNS", 25), "postgres max idle connections")
-	flag.StringVar(&cfg.MaxIdleTime, "max-idle-time", env.GetString("DB_MAX_IDLE_TIME", "15m"), "postgres max idle time")
+	flag.DurationVar(&cfg.MaxIdleTime, "max-idle-time", env.GetDuration("DB_MAX_IDLE_TIME", 15*time.Minute), "postgres max idle time")
 	flag.StringVar(&cfg.APIKey, "resend-api-key", env.GetString("RESEND_API_KEY", ""), "resend api key")
 	flag.StringVar(&cfg.Sender, "resend-sender", env.GetString("RESEND_SENDER", ""), "resend mail sender")
-	flag.StringVar(&cfg.VerificationTTL, "verification-ttl", env.GetString("VERIFICATION_TTL", "30m"), "verification time to live")
-	flag.StringVar(&cfg.VerificationRC, "verification-resend-cooldown", env.GetString("VERIFICATION_RESEND_COOLDOWN", "1m"),
+	flag.DurationVar(&cfg.VerificationTTL, "verification-ttl", env.GetDuration("VERIFICATION_TTL", 30*time.Minute), "verification time to live")
+	flag.DurationVar(&cfg.VerificationRC, "verification-resend-cooldown", env.GetDuration("VERIFICATION_RESEND_COOLDOWN", 1*time.Minute),
 		"mail verification resend cooldown")
-	flag.StringVar(&cfg.Repetition, "background-sweep-repetition", env.GetString("BACKGROUND_SWEEP_REPETITION", "1h"),
+	flag.DurationVar(&cfg.Repetition, "background-sweep-repetition", env.GetDuration("BACKGROUND_SWEEP_REPETITION", 1*time.Hour),
 		"background goroutine sweep repetition")
-	flag.StringVar(&cfg.Timeout, "background-sweep-timeout", env.GetString("BACKGROUND_SWEEP_TIMEOUT", "30s"),
+	flag.DurationVar(&cfg.Timeout, "background-sweep-timeout", env.GetDuration("BACKGROUND_SWEEP_TIMEOUT", 30*time.Second),
 		"background goroutine sweep timeout")
+	flag.DurationVar(&cfg.Lifetime, "session-lifetime", env.GetDuration("SESSION_LIFETIME", 12*time.Hour), "session lifetime")
 
 	flag.Parse()
 
