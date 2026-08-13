@@ -1,12 +1,20 @@
 package project
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"path/filepath"
+	"server/internal/contract"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/user"
+	"server/internal/xlsx"
+	"strconv"
+	"strings"
 )
 
 type Handler struct {
@@ -43,6 +51,49 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	page.CanShare = u.CanShare()
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
+}
+
+func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
+	p, ok := h.find(w, r, false)
+	if !ok {
+		return
+	}
+
+	c, err := contract.Decode(p.Contract)
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	var buf bytes.Buffer
+	if err = xlsx.Write(&buf, c); err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", disposition(p.FileName))
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
+
+	_, _ = buf.WriteTo(w)
+}
+
+func disposition(fileName string) string {
+	name := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	if name == "" {
+		name = "project"
+	}
+	name += ".xlsx"
+
+	ascii := strings.Map(func(r rune) rune {
+		if r < 32 || r > 126 || r == '"' || r == '\\' {
+			return '_'
+		}
+		return r
+	}, name)
+
+	return fmt.Sprintf("attachment; filename=%q; filename*=UTF-8''%s", ascii, url.PathEscape(name))
 }
 
 func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {

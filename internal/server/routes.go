@@ -21,6 +21,7 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
 	mux.HandleFunc("GET /p/{id}", s.projectHandler.Page)
+	mux.HandleFunc("GET /p/{id}/xlsx", s.projectHandler.Export)
 	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
 	mux.HandleFunc("POST /p/{id}/delete", s.projectHandler.Delete)
 

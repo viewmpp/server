@@ -69,6 +69,12 @@
       <label class="check"><input type="checkbox" id="toggle-grid" checked> grid</label>
     </div>
 
+    {{if .ProjectID}}
+      <div class="bar__group">
+        <a class="btn" href="/p/{{.ProjectID}}/xlsx">Export to Excel</a>
+      </div>
+    {{end}}
+
     {{if .IsOwner}}
       <div class="bar__group">
         {{if eq .Access "public"}}

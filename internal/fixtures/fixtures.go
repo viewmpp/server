@@ -27,6 +27,17 @@ type Fixture struct {
 	Contract []byte
 }
 
+func All() map[string][]byte {
+	return map[string][]byte{
+		"mpp8.json":          mpp8,
+		"mpp9.json":          mpp9,
+		"mpp12.json":         mpp12,
+		"mpp14baseline.json": mpp14Baseline,
+		"cyrillic.json":      cyrillic,
+		"mspdi.json":         mspdi,
+	}
+}
+
 var byDemo = map[string]Fixture{
 	"cyrillic": {FileName: "виадук.mpp", Contract: cyrillic},
 }
