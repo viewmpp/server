@@ -11,6 +11,7 @@ type Config struct {
 	Parser
 	DB
 	Mailer
+	BGSweep
 }
 
 type Parser struct {
@@ -35,6 +36,11 @@ type Resend struct {
 	Sender string
 }
 
+type BGSweep struct {
+	Repetition string
+	Timeout   string
+}
+
 func Load() Config {
 
 	var cfg Config
@@ -52,6 +58,10 @@ func Load() Config {
 	flag.StringVar(&cfg.VerificationTTL, "verification-ttl", env.GetString("VERIFICATION_TTL", "30m"), "verification time to live")
 	flag.StringVar(&cfg.VerificationRC, "verification-resend-cooldown", env.GetString("VERIFICATION_RESEND_COOLDOWN", "1m"),
 		"mail verification resend cooldown")
+	flag.StringVar(&cfg.Repetition, "background-sweep-repetition", env.GetString("BACKGROUND_SWEEP_REPETITION", "1h"),
+		"background goroutine sweep repetition")
+	flag.StringVar(&cfg.Timeout, "background-sweep-timeout", env.GetString("BACKGROUND_SWEEP_TIMEOUT", "30s"),
+		"background goroutine sweep timeout")
 
 	flag.Parse()
 

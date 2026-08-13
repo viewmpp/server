@@ -8,11 +8,9 @@ import (
 	"time"
 )
 
-const sweepTimeout = 30 * time.Second
-
-func Sweep(stop <-chan struct{}, logger *slog.Logger, name string, every time.Duration, fn func(context.Context) (int64, error)) {
+func Sweep(stop <-chan struct{}, logger *slog.Logger, name string, repetition, timeout time.Duration, fn func(context.Context) (int64, error)) {
 	sweep := func() {
-		ctx, cancel := context.WithTimeout(context.Background(), sweepTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
 		n, err := fn(ctx)
@@ -26,7 +24,7 @@ func Sweep(stop <-chan struct{}, logger *slog.Logger, name string, every time.Du
 	}
 
 	go func() {
-		ticker := time.NewTicker(every)
+		ticker := time.NewTicker(repetition)
 		defer ticker.Stop()
 
 		sweep()
