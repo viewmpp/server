@@ -4,6 +4,7 @@ const (
 	MsgEmailRequired  = "Enter your email address"
 	MsgEmailTooLong   = "That address is too long"
 	MsgEmailInvalid   = "That does not look like an email address"
+	MsgEmailTaken     = "This address is already registered"
 	MsgEmailOrPass    = "Wrong email or password"
 	MsgPassRequired   = "Choose a password"
 	MsgPassTooShort   = "Password must be at least 8 characters"

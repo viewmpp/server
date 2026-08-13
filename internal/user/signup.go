@@ -17,6 +17,7 @@ var ErrEmailTaken = errors.New("email belongs to a verified account")
 type SignupForm struct {
 	Email       string
 	FieldErrors map[string]string
+	EmailTaken  bool
 }
 
 func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +67,10 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, ErrEmailTaken):
 			h.sendExistingAccount(form.Email)
-			h.startVerification(w, r, sess, form.Email)
+
+			form.FieldErrors = map[string]string{"email": MsgEmailTaken}
+			form.EmailTaken = true
+			htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
 			return
 
 		case errors.Is(err, ErrEditConflict):
@@ -94,17 +98,18 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	h.sendVerificationCode(u.Email, vry.Plaintext)
 
-	h.startVerification(w, r, sess, form.Email)
+	h.startVerification(w, r, sess, &u)
 }
 
-func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, email string) {
+func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, u *User) {
 	if err := h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
-	sess.Put("pending_email", email)
-	sess.Put("flash", MsgCodeSent(email))
+	sess.UserID = &u.ID
+	sess.Put("pending_email", u.Email)
+	sess.Put("flash", MsgCodeSent(u.Email))
 
 	if err := h.sessions.Save(r.Context(), sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
