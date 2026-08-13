@@ -17,6 +17,7 @@ type Pages struct {
 	Signup   *template.Template
 	Verify   *template.Template
 	Projects *template.Template
+	Unlock   *template.Template
 }
 
 type Emails struct {
@@ -72,12 +73,18 @@ func NewPages() (*Pages, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	unlock, err := parsePage("unlock.tmpl")
+	if err != nil {
+		return nil, err
+	}
 	return &Pages{
 		App:      app,
 		Signin:   signin,
 		Signup:   signup,
 		Verify:   verify,
 		Projects: projects,
+		Unlock:   unlock,
 	}, nil
 }
 

@@ -8,13 +8,18 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"time"
 )
 
 const (
-	AccessPrivate = "private"
-	AccessPublic  = "public"
+	AccessPrivate   = "private"
+	AccessPublic    = "public"
+	AccessProtected = "protected"
+
+	MinPasswordLength = 4
+	MaxPasswordLength = 72
 
 	publicIDBytes = 12
 	maxContract   = 32 << 20
@@ -29,11 +34,27 @@ type Project struct {
 	FileName  string
 	Contract  []byte
 	Access    string
+	Password  []byte
 	CreatedAt time.Time
 }
 
 func (p *Project) IsPublic() bool {
 	return p.Access == AccessPublic
+}
+
+func (p *Project) IsProtected() bool {
+	return p.Access == AccessProtected
+}
+
+func (p *Project) IsShared() bool {
+	return p.IsPublic() || p.IsProtected()
+}
+
+func (p *Project) PasswordMatches(plaintext string) bool {
+	if len(p.Password) == 0 {
+		return false
+	}
+	return bcrypt.CompareHashAndPassword(p.Password, []byte(plaintext)) == nil
 }
 
 type Store struct {
@@ -42,6 +63,22 @@ type Store struct {
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
+}
+
+func (s *Store) CountShared(ctx context.Context, userID int64) (int, error) {
+	query := `SELECT count(*) FROM projects WHERE user_id = $1 AND access IN ($2, $3)`
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var quantity int
+
+	err := s.db.QueryRowContext(ctx, query, userID, AccessPublic, AccessProtected).Scan(&quantity)
+	if err != nil {
+		return 0, err
+	}
+
+	return quantity, nil
 }
 
 func (s *Store) Save(ctx context.Context, userID int64, fileName string, contract []byte) (string, error) {
@@ -71,7 +108,7 @@ func (s *Store) Save(ctx context.Context, userID int64, fileName string, contrac
 
 func (s *Store) GetByPublicID(ctx context.Context, publicID string) (*Project, error) {
 	query := `
-		SELECT id, public_id, user_id, file_name, contract, access, created_at
+		SELECT id, public_id, user_id, file_name, contract, access, password_hash, created_at
 		FROM projects WHERE public_id = $1`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -83,7 +120,7 @@ func (s *Store) GetByPublicID(ctx context.Context, publicID string) (*Project, e
 	)
 
 	err := s.db.QueryRowContext(ctx, query, publicID).Scan(
-		&p.ID, &p.PublicID, &p.UserID, &p.FileName, &packed, &p.Access, &p.CreatedAt,
+		&p.ID, &p.PublicID, &p.UserID, &p.FileName, &packed, &p.Access, &p.Password, &p.CreatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -126,13 +163,13 @@ func (s *Store) ListByUserID(ctx context.Context, userID int64, limit int) ([]*P
 	return out, rows.Err()
 }
 
-func (s *Store) SetAccess(ctx context.Context, publicID string, userID int64, access string) error {
-	query := `UPDATE projects SET access = $1 WHERE public_id = $2 AND user_id = $3`
+func (s *Store) SetAccess(ctx context.Context, publicID string, userID int64, access string, password []byte) error {
+	query := `UPDATE projects SET access = $1, password_hash = $2 WHERE public_id = $3 AND user_id = $4`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.db.ExecContext(ctx, query, access, publicID, userID)
+	res, err := s.db.ExecContext(ctx, query, access, password, publicID, userID)
 	if err != nil {
 		return err
 	}

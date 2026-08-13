@@ -12,16 +12,17 @@ import (
 )
 
 type Handler struct {
-	store           *Store
-	token           *token.Store
-	sessions        *session.Store
-	limiter         *ratelimit.Limiter
-	mailer          *mailer.Mailer
-	verificationTTL time.Duration
-	verificationRC  time.Duration
-	templates       *htmlutil.Templates
-	wg              *sync.WaitGroup
-	logger          *slog.Logger
+	store            *Store
+	token            *token.Store
+	sessions         *session.Store
+	limiter          *ratelimit.Limiter
+	mailer           *mailer.Mailer
+	verificationTTL  time.Duration
+	verificationRC   time.Duration
+	earlyAccessSeats int
+	templates        *htmlutil.Templates
+	wg               *sync.WaitGroup
+	logger           *slog.Logger
 }
 
 func NewHandler(
@@ -32,20 +33,22 @@ func NewHandler(
 	mailer *mailer.Mailer,
 	vttl time.Duration,
 	vrc time.Duration,
+	earlyAccessSeats int,
 	templates *htmlutil.Templates,
 	wg *sync.WaitGroup,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
-		store:           store,
-		token:           token,
-		sessions:        sessions,
-		limiter:         limiter,
-		mailer:          mailer,
-		verificationTTL: vttl,
-		verificationRC:  vrc,
-		templates:       templates,
-		wg:              wg,
-		logger:          logger,
+		store:            store,
+		token:            token,
+		sessions:         sessions,
+		limiter:          limiter,
+		mailer:           mailer,
+		verificationTTL:  vttl,
+		verificationRC:   vrc,
+		earlyAccessSeats: earlyAccessSeats,
+		templates:        templates,
+		wg:               wg,
+		logger:           logger,
 	}
 }

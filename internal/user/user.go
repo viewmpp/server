@@ -31,16 +31,19 @@ const (
 	MaxUploadPro  = 50 << 20
 )
 
+const MaxPublicFree = 2
+
 var AnonymousUser = &User{Subscription: SubscriptionFree}
 
 type User struct {
-	ID           int64  `json:"id"`
-	Email        string `json:"email"`
-	password     `json:"-"`
-	Verified     bool `json:"verified"`
-	Subscription `json:"subscription"`
-	CreatedAt    time.Time `json:"created_at"`
-	Version      int       `json:"version"`
+	ID                int64  `json:"id"`
+	Email             string `json:"email"`
+	password          `json:"-"`
+	Verified          bool `json:"verified"`
+	Subscription      `json:"subscription"`
+	SubscriptionUntil *time.Time `json:"subscription_until"`
+	CreatedAt         time.Time  `json:"created_at"`
+	Version           int        `json:"version"`
 }
 
 func (u *User) IsAnonymous() bool {
@@ -48,11 +51,20 @@ func (u *User) IsAnonymous() bool {
 }
 
 func (u *User) HasSubscription() bool {
-	return u.Subscription == SubscriptionPro
+	if u.Subscription != SubscriptionPro {
+		return false
+	}
+	return u.SubscriptionUntil == nil || u.SubscriptionUntil.After(time.Now())
 }
 
-func (u *User) CanShare() bool {
-	return u.Verified && u.HasSubscription()
+func (u *User) CanShare(shared int) bool {
+	if !u.Verified {
+		return false
+	}
+	if u.HasSubscription() {
+		return true
+	}
+	return shared < MaxPublicFree
 }
 
 func (u *User) MaxUploadBytes() int64 {
@@ -102,7 +114,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) Save(ctx context.Context, user *User) error {
-	query := `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, verified, subscription, created_at, version`
+	query := `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, verified, subscription, subscription_until, created_at, version`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -114,6 +126,7 @@ func (s *Store) Save(ctx context.Context, user *User) error {
 		&user.ID,
 		&user.Verified,
 		&user.Subscription,
+		&user.SubscriptionUntil,
 		&user.CreatedAt,
 		&user.Version,
 	)
@@ -156,12 +169,51 @@ func (s *Store) Update(ctx context.Context, user *User) error {
 	return nil
 }
 
+func (s *Store) CountSubscribers(ctx context.Context) (int, error) {
+	query := `SELECT count(*) FROM users WHERE subscription = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var count int
+	if err := s.db.QueryRowContext(ctx, query, SubscriptionPro).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (s *Store) GrantSubscription(ctx context.Context, userID int64, until *time.Time) error {
+	query := `
+		UPDATE users
+		SET subscription = $1, subscription_until = $2, version = version + 1
+		WHERE id = $3 AND verified = TRUE AND subscription = $4`
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, SubscriptionPro, until, userID, SubscriptionFree)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrEditConflict
+	}
+
+	return nil
+}
+
 func (s *Store) GetByToken(ctx context.Context, plaintext string, scope token.Scope) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(plaintext))
 
 	query := `
 		SELECT users.id, users.email, users.password_hash, users.verified,
-		       users.subscription, users.created_at, users.version
+		       users.subscription, users.subscription_until, users.created_at, users.version
 		FROM users
 		INNER JOIN tokens ON users.id = tokens.user_id
 		WHERE tokens.token_hash = $1
@@ -179,6 +231,7 @@ func (s *Store) GetByToken(ctx context.Context, plaintext string, scope token.Sc
 		&user.password.hash,
 		&user.Verified,
 		&user.Subscription,
+		&user.SubscriptionUntil,
 		&user.CreatedAt,
 		&user.Version,
 	)
@@ -195,7 +248,7 @@ func (s *Store) GetByToken(ctx context.Context, plaintext string, scope token.Sc
 
 func (s *Store) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query :=
-		`SELECT id, email, password_hash, verified, subscription, created_at, version
+		`SELECT id, email, password_hash, verified, subscription, subscription_until, created_at, version
 		FROM users WHERE email = $1`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -209,6 +262,7 @@ func (s *Store) GetByEmail(ctx context.Context, email string) (*User, error) {
 		&user.password.hash,
 		&user.Verified,
 		&user.Subscription,
+		&user.SubscriptionUntil,
 		&user.CreatedAt,
 		&user.Version,
 	)
@@ -227,7 +281,7 @@ func (s *Store) GetByEmail(ctx context.Context, email string) (*User, error) {
 
 func (s *Store) GetByID(ctx context.Context, id int64) (*User, error) {
 	query :=
-		`SELECT id, email, password_hash, verified, subscription, created_at, version
+		`SELECT id, email, password_hash, verified, subscription, subscription_until, created_at, version
 		FROM users WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -241,6 +295,7 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*User, error) {
 		&user.password.hash,
 		&user.Verified,
 		&user.Subscription,
+		&user.SubscriptionUntil,
 		&user.CreatedAt,
 		&user.Version,
 	)

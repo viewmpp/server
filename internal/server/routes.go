@@ -22,6 +22,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
 	mux.HandleFunc("GET /p/{id}", s.projectHandler.Page)
 	mux.HandleFunc("GET /p/{id}/xlsx", s.projectHandler.Export)
+	mux.HandleFunc("POST /p/{id}/unlock", s.projectHandler.Unlock)
 	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
 	mux.HandleFunc("POST /p/{id}/delete", s.projectHandler.Delete)
 
@@ -35,6 +36,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /signin", s.userHandler.SigninPage)
 	mux.HandleFunc("POST /signin", s.userHandler.Signin)
 	mux.HandleFunc("POST /signout", s.userHandler.Signout)
+
+	mux.HandleFunc("POST /subscribe", s.userHandler.Subscribe)
 
 	mux.HandleFunc("/", s.notFound)
 

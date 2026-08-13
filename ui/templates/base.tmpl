@@ -46,6 +46,13 @@
 
         {{if not .Verified}}
           <a class="side__warn" href="/verify">Email not confirmed</a>
+        {{else if .Pro}}
+          <span class="side__plan">Pro</span>
+        {{else}}
+          <form action="/subscribe" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <button class="side__upgrade linkish" type="submit">Get Pro — free for early users</button>
+          </form>
         {{end}}
 
         <form action="/signout" method="POST">

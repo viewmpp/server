@@ -11,25 +11,32 @@ import (
 	"server/internal/contract"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/ratelimit"
 	"server/internal/user"
 	"server/internal/xlsx"
 	"strconv"
 	"strings"
+	"unicode/utf8"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
 	store     *Store
+	limiter   *ratelimit.Limiter
 	templates *htmlutil.Templates
 	logger    *slog.Logger
 }
 
 func NewHandler(
 	store *Store,
+	limiter *ratelimit.Limiter,
 	templates *htmlutil.Templates,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
 		store:     store,
+		limiter:   limiter,
 		templates: templates,
 		logger:    logger,
 	}
@@ -43,12 +50,21 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 
 	u := user.GetUserContext(r)
 
+	shared := 0
+	if !u.IsAnonymous() {
+		var err error
+		if shared, err = h.store.CountShared(r.Context(), u.ID); err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+	}
+
 	page := user.NewPage(r, nil)
 	page.ProjectID = p.PublicID
 	page.FileName = p.FileName
 	page.Access = p.Access
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID
-	page.CanShare = u.CanShare()
+	page.CanShare = u.CanShare(shared)
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
@@ -122,18 +138,47 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 	publicID := r.PathValue("id")
 
 	access := r.PostFormValue("access")
-	if access != AccessPublic && access != AccessPrivate {
+	if access != AccessPublic && access != AccessPrivate && access != AccessProtected {
 		htmlutil.BadRequestPage(w, r, h.logger)
 		return
 	}
 
-	if access == AccessPublic && !u.CanShare() {
-		sess.Put("flash", MsgShareNeedsPro)
-		http.Redirect(w, r, "/p/"+publicID, http.StatusSeeOther)
-		return
+	back := "/p/" + publicID
+
+	var password []byte
+
+	if access != AccessPrivate {
+		shared, err := h.store.CountShared(r.Context(), u.ID)
+		if err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+
+		if !u.CanShare(shared) {
+			sess.Put("flash", shareRefusal(u))
+			http.Redirect(w, r, back, http.StatusSeeOther)
+			return
+		}
 	}
 
-	if err := h.store.SetAccess(r.Context(), publicID, u.ID, access); err != nil {
+	if access == AccessProtected {
+		plaintext := r.PostFormValue("password")
+
+		if n := utf8.RuneCountInString(plaintext); n < MinPasswordLength || n > MaxPasswordLength {
+			sess.Put("flash", MsgPasswordLength(MinPasswordLength))
+			http.Redirect(w, r, back, http.StatusSeeOther)
+			return
+		}
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), 12)
+		if err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+		password = hash
+	}
+
+	if err := h.store.SetAccess(r.Context(), publicID, u.ID, access, password); err != nil {
 		if errors.Is(err, ErrNotFound) {
 			htmlutil.NotFoundPage(w, r, h.logger)
 			return
@@ -142,13 +187,16 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if access == AccessPublic {
+	switch access {
+	case AccessPublic:
 		sess.Put("flash", MsgNowPublic)
-	} else {
+	case AccessProtected:
+		sess.Put("flash", MsgNowProtected)
+	default:
 		sess.Put("flash", MsgNowPrivate)
 	}
 
-	http.Redirect(w, r, "/p/"+publicID, http.StatusSeeOther)
+	http.Redirect(w, r, back, http.StatusSeeOther)
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -188,18 +236,22 @@ func (h *Handler) find(w http.ResponseWriter, r *http.Request, asJSON bool) (*Pr
 		return nil, false
 	}
 
-	u := user.GetUserContext(r)
+	if p != nil && mayRead(r, p) {
+		return p, true
+	}
 
-	if p == nil || (!p.IsPublic() && (u.IsAnonymous() || u.ID != p.UserID)) {
-		if asJSON {
-			jsonutil.NotFoundResponse(w)
-		} else {
-			htmlutil.NotFoundPage(w, r, h.logger)
-		}
+	if p != nil && p.IsProtected() && !asJSON {
+		h.unlockPage(w, r, p, "")
 		return nil, false
 	}
 
-	return p, true
+	if asJSON {
+		jsonutil.NotFoundResponse(w)
+	} else {
+		htmlutil.NotFoundPage(w, r, h.logger)
+	}
+
+	return nil, false
 }
 
 const listLimit = 100

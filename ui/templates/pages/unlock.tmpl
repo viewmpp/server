@@ -1,0 +1,24 @@
+{{define "title"}}Password required — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="auth centered">
+  <h1>This plan is protected</h1>
+
+  <p class="lead">
+    {{with .Form.FileName}}<strong>{{.}}</strong> is{{else}}It is{{end}}
+    shared with a password. Ask whoever sent you the link.
+  </p>
+
+  <form action="/p/{{.ProjectID}}/unlock" method="POST" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    <div class="field">
+      <label for="password">Password</label>
+      {{with index .Form.FieldErrors "password"}}<span class="field__error">{{.}}</span>{{end}}
+      <input id="password" type="password" name="password" autocomplete="off" autofocus required>
+    </div>
+
+    <button class="btn btn--primary" type="submit">Open the plan</button>
+  </form>
+</main>
+{{end}}

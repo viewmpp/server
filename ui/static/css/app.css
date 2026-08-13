@@ -160,6 +160,19 @@ code {
 }
 .side__warn:hover { text-decoration: none; background: #ffedc2; }
 
+.side__plan {
+  align-self: flex-start;
+  padding: 1px var(--unit);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  border-radius: 10px;
+  color: var(--success);
+  font-size: 11px;
+}
+
+.side__account .side__upgrade { align-self: flex-start; color: var(--main); font-size: 12px; text-align: left; }
+.side__account .side__upgrade:hover { text-decoration: underline; }
+
 .side__account .side__out { align-self: flex-start; color: var(--secondary); font-size: 12px; }
 .side__account .side__out:hover { color: var(--text); }
 
@@ -349,6 +362,19 @@ code {
 
 .tag { padding: 1px var(--unit); border-radius: var(--radius-sm); font-size: 12px; }
 .tag--private { background: var(--bg-tag); color: var(--secondary); }
+.tag--protected { background: var(--warning-bg); border: 1px solid #f0d9a8; color: var(--warning); }
+
+.protect { display: flex; gap: 4px; }
+.protect__pass {
+  width: 118px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+}
+.protect__pass:focus { outline: none; border-color: var(--border-hover); }
+
 .tag--public { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
 .card__meta .linkish { font-size: 12px; color: var(--secondary); }
 .card__meta .linkish:hover { color: var(--error); }

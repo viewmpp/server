@@ -77,21 +77,32 @@
 
     {{if .IsOwner}}
       <div class="bar__group">
-        {{if eq .Access "public"}}
+        {{if eq .Access "private"}}
+          {{if .CanShare}}
+            <form action="/p/{{.ProjectID}}/access" method="POST">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+              <input type="hidden" name="access" value="public">
+              <button class="btn" type="submit">Share</button>
+            </form>
+
+            <form action="/p/{{.ProjectID}}/access" method="POST" class="protect">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+              <input type="hidden" name="access" value="protected">
+              <input class="protect__pass" type="password" name="password"
+                     placeholder="password" autocomplete="off" minlength="4" required>
+              <button class="btn" type="submit">Share with password</button>
+            </form>
+          {{else}}
+            <span class="label">Private</span>
+          {{end}}
+        {{else}}
+          <span class="tag tag--{{.Access}}">{{.Access}}</span>
+          <button class="btn" id="copy-link" data-link="/p/{{.ProjectID}}">Copy link</button>
           <form action="/p/{{.ProjectID}}/access" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <input type="hidden" name="access" value="private">
             <button class="btn" type="submit">Stop sharing</button>
           </form>
-          <button class="btn" id="copy-link" data-link="/p/{{.ProjectID}}">Copy link</button>
-        {{else if .CanShare}}
-          <form action="/p/{{.ProjectID}}/access" method="POST">
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <input type="hidden" name="access" value="public">
-            <button class="btn" type="submit">Share</button>
-          </form>
-        {{else}}
-          <span class="label" title="Sharing is part of the Pro plan">Private</span>
         {{end}}
 
         <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">

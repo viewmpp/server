@@ -30,6 +30,7 @@ func NewPage(r *http.Request, form any) htmlutil.Page {
 	if !u.IsAnonymous() {
 		page.UserEmail = u.Email
 		page.Verified = u.Verified
+		page.Pro = u.HasSubscription()
 	}
 
 	return page

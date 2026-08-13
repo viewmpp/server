@@ -17,6 +17,7 @@ type Page struct {
 	Form         any
 	UserEmail    string
 	Verified     bool
+	Pro          bool
 	ProjectID    string
 	ExampleName  string
 	ExampleLabel string
