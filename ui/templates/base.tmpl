@@ -34,11 +34,23 @@
   <div class="side__foot">
     {{if .UserEmail}}
       <div class="side__account">
-        <div class="side__user side__mail" title="{{.UserEmail}}">{{.UserEmail}}</div>
-        {{if not .Verified}}<a class="side__warn" href="/verify">Confirm your email</a>{{end}}
+        <div class="side__id">
+          <span class="side__avatar" aria-hidden="true">
+            <svg viewBox="0 0 20 20">
+              <circle cx="10" cy="7" r="3"/>
+              <path d="M4 16.5c0-2.5 2.7-4 6-4s6 1.5 6 4"/>
+            </svg>
+          </span>
+          <span class="side__user side__mail" title="{{.UserEmail}}">{{.UserEmail}}</span>
+        </div>
+
+        {{if not .Verified}}
+          <a class="side__warn" href="/verify">Email not confirmed</a>
+        {{end}}
+
         <form action="/signout" method="POST">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <button class="linkish" type="submit">Sign out</button>
+          <button class="side__out linkish" type="submit">Sign out</button>
         </form>
       </div>
     {{else}}
