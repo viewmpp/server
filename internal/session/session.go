@@ -25,11 +25,10 @@ type Session struct {
 	UserID    *int64
 	Data      map[string]string
 	ExpiresAt time.Time
-	dropped   bool
-
-	store *Store
-	w     http.ResponseWriter
-	sent  bool
+	Dropped   bool
+	store     *Store
+	w         http.ResponseWriter
+	sent      bool
 }
 
 func (s *Session) touch() {
@@ -153,7 +152,7 @@ func (s *Store) Clear(ctx context.Context, w http.ResponseWriter, sess *Session)
 		return err
 	}
 
-	sess.dropped = true
+	sess.Dropped = true
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,

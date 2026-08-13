@@ -59,7 +59,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.store.Create(r.Context(), &u)
+	err := h.store.Save(r.Context(), &u)
 	if errors.Is(err, ErrDuplicateEmail) {
 		err = h.takeOverPendingSignup(r.Context(), &u)
 

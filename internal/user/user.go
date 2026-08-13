@@ -101,7 +101,7 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) Create(ctx context.Context, user *User) error {
+func (s *Store) Save(ctx context.Context, user *User) error {
 	query := `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, verified, subscription, created_at, version`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)

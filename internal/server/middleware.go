@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
@@ -93,5 +94,40 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, user.SetUserContext(r, u))
+	})
+}
+
+func sessionUserID(sess *session.Session) int64 {
+	if sess.UserID == nil {
+		return 0
+	}
+	return *sess.UserID
+}
+
+func (s *Server) withSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Cookie")
+
+		sess, err := s.store.Sessions.Find(r.Context(), w, r)
+		if errors.Is(err, session.ErrNotFound) {
+			sess, err = s.store.Sessions.New(w)
+		}
+		if err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, s.logger)
+			return
+		}
+
+		before := maps.Clone(sess.Data)
+		beforeUser := sessionUserID(sess)
+
+		next.ServeHTTP(w, session.SetContext(r, sess))
+
+		if sess.Dropped || (maps.Equal(before, sess.Data) && beforeUser == sessionUserID(sess)) {
+			return
+		}
+
+		if err = s.store.Sessions.Save(r.Context(), sess); err != nil {
+			s.logger.Error("session not saved", "err", err, "path", r.URL.Path)
+		}
 	})
 }
