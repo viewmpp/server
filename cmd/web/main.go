@@ -47,7 +47,10 @@ func run() error {
 	}
 	defer db.Close()
 
-	limiter := ratelimit.New(5, time.Minute)
+	limiter, err := ratelimit.New(5, time.Minute, cfg.Proxies)
+	if err != nil {
+		return err
+	}
 	defer limiter.Close()
 
 	s := store.New(db, cfg, logger)

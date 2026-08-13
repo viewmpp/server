@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-	Port int
-	Env  string
+	Port    int
+	Env     string
+	Proxies int
 	Parser
 	DB
 	Mailer
@@ -47,6 +48,8 @@ func Load() Config {
 
 	flag.IntVar(&cfg.Port, "port", env.GetInt("PORT", 4000), "server port")
 	flag.StringVar(&cfg.Env, "env", env.GetString("ENV", "dev"), "environment dev|stage|prod")
+	flag.IntVar(&cfg.Proxies, "proxies", env.GetInt("PROXIES", 0),
+		"number of trusted reverse proxies in front of the server; 0 means none")
 	flag.StringVar(&cfg.URL, "parser-url", env.GetString("PARSER_URL", "http://localhost:8080/parse"), "parser url")
 	flag.StringVar(&cfg.DSN, "dsn", env.GetString("DB_DSN", ""),
 		"postgres data source name")

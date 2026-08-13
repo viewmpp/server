@@ -11,5 +11,27 @@ services:
     volumes:
       - server-db-data:/var/lib/postgresql/data
 
+  parser:
+    build:
+      context: ../parser
+    image: parser:local
+    container_name: parser
+    restart: on-failure
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 1536m
+    env_file:
+      - ../parser/.env
+    ports:
+      - '127.0.0.1:8080:8080'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost:8080/healthcheck" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
+
 volumes:
   server-db-data:

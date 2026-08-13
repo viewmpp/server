@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"server/internal/htmlutil"
-	"server/internal/ratelimit"
 	"server/internal/session"
 	"server/internal/token"
 	"time"
@@ -30,7 +29,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	form := VerifyForm{Email: sess.Get("pending_email")}
 	code := NormalizeCode(r.PostFormValue("code"))
 
-	ipKey := "verify-ip:" + ratelimit.ClientIP(r)
+	ipKey := "verify-ip:" + h.limiter.ClientIP(r)
 	if !h.limiter.Allow(ipKey) {
 		h.logger.Warn("verify throttled", "key", ipKey)
 		form.FieldErrors = map[string]string{"code": MsgTooManyTries}

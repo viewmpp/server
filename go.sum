@@ -11,6 +11,8 @@ github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/realclientip/realclientip-go v1.0.0 h1:+yPxeC0mEaJzq1BfCt2h4BxlyrvIIBzR6suDc3BEF1U=
+github.com/realclientip/realclientip-go v1.0.0/go.mod h1:CXnUdVwFRcXFJIRb/dTYqbT7ud48+Pi2pFm80bxDmcI=
 github.com/resend/resend-go/v3 v3.12.0 h1:fzoMd76NShVv1vzjym5owBYrnpA/U1GfyqvUN43Brks=
 github.com/resend/resend-go/v3 v3.12.0/go.mod h1:iI7VA0NoGjWvsNii5iNC5Dy0llsI3HncXPejhniYzwE=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

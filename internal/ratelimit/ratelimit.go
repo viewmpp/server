@@ -1,31 +1,56 @@
 package ratelimit
 
 import (
-	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/realclientip/realclientip-go"
 )
 
 type Limiter struct {
-	mu      sync.Mutex
-	hits    map[string][]time.Time
-	limit   int
-	window  time.Duration
-	stopped chan struct{}
+	mu       sync.Mutex
+	hits     map[string][]time.Time
+	limit    int
+	window   time.Duration
+	strategy realclientip.Strategy
+	stopped  chan struct{}
 }
 
-func New(limit int, window time.Duration) *Limiter {
+func New(limit int, window time.Duration, proxies int) (*Limiter, error) {
+	strategy, err := clientIPStrategy(proxies)
+	if err != nil {
+		return nil, err
+	}
+
 	l := &Limiter{
-		hits:    make(map[string][]time.Time),
-		limit:   limit,
-		window:  window,
-		stopped: make(chan struct{}),
+		hits:     make(map[string][]time.Time),
+		limit:    limit,
+		window:   window,
+		strategy: strategy,
+		stopped:  make(chan struct{}),
 	}
 
 	go l.sweep()
 
-	return l
+	return l, nil
+}
+
+func clientIPStrategy(proxies int) (realclientip.Strategy, error) {
+	if proxies <= 0 {
+		return realclientip.RemoteAddrStrategy{}, nil
+	}
+
+	trusted, err := realclientip.NewRightmostTrustedCountStrategy("X-Forwarded-For", proxies)
+	if err != nil {
+		return nil, err
+	}
+
+	return realclientip.NewChainStrategy(trusted, realclientip.RemoteAddrStrategy{}), nil
+}
+
+func (l *Limiter) ClientIP(r *http.Request) string {
+	return l.strategy.ClientIP(r.Header, r.RemoteAddr)
 }
 
 func (l *Limiter) Allow(key string) bool {
@@ -109,10 +134,3 @@ func (l *Limiter) sweep() {
 	}
 }
 
-func ClientIP(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return host
-}

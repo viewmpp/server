@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"server/internal/background"
 	"server/internal/htmlutil"
-	"server/internal/ratelimit"
 	"server/internal/session"
 	"server/internal/token"
 	"server/internal/validator"
@@ -33,7 +32,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	form := SignupForm{Email: NormalizeEmail(r.PostFormValue("email"))}
 	pass := r.PostFormValue("password")
 
-	keys := []string{"signup:" + form.Email, "signup-ip:" + ratelimit.ClientIP(r)}
+	keys := []string{"signup:" + form.Email, "signup-ip:" + h.limiter.ClientIP(r)}
 
 	if key, ok := h.limiter.AllowAll(keys); !ok {
 		h.logger.Warn("signup throttled", "key", key)
