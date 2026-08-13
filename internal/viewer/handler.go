@@ -25,7 +25,7 @@ func NewHandler(
 }
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
-	htmlutil.Render(w, r, http.StatusOK, h.templates.App, user.NewPage(r, fixtures.Examples()), h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, user.NewPage(r, fixtures.Examples()), h.logger)
 }
 
 func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 	page.ExampleLabel = e.Label
 	page.FileName = e.FileName
 
-	htmlutil.Render(w, r, http.StatusOK, h.templates.App, page, h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
 
 func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {

@@ -51,28 +51,20 @@ func AcceptPost(w http.ResponseWriter, r *http.Request, logger *slog.Logger) (*s
 	return sess, true
 }
 
-func Render(w http.ResponseWriter, r *http.Request, status int, ts *template.Template, page Page, logger *slog.Logger) {
+func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.Template, page Page, logger *slog.Logger) {
 	sess := session.FromContext(r)
 
 	page.Version = url.QueryEscape(vcs.Version())
 	page.Flash = sess.Pop("flash")
 	page.sess = sess
 
-	if err := WriteHTML(w, status, ts, page); err != nil {
-		ServerErrorResponse(w, r, err, logger)
-	}
-}
-
-func WriteHTML(w http.ResponseWriter, status int, ts *template.Template, page Page) error {
 	buf := new(bytes.Buffer)
 	if err := ts.ExecuteTemplate(buf, "base", page); err != nil {
-		return err
+		ServerErrorResponse(w, r, err, logger)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
-
-	return nil
 }

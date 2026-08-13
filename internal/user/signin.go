@@ -20,7 +20,7 @@ var dummyHash = func() []byte {
 }()
 
 func (h *Handler) SigninPage(w http.ResponseWriter, r *http.Request) {
-	htmlutil.Render(w, r, http.StatusOK, h.templates.Signin, NewPage(r, SigninForm{}), h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Signin, NewPage(r, SigninForm{}), h.logger)
 }
 
 func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 	if key, ok := h.limiter.AllowAll(keys); !ok {
 		h.logger.Warn("signin throttled", "key", key)
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
-		htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signin, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Signin, NewPage(r, form), h.logger)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 		h.limiter.FailAll(keys)
 
 		form.FieldErrors = map[string]string{"email": MsgEmailOrPass}
-		htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signin, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signin, NewPage(r, form), h.logger)
 		return
 	}
 

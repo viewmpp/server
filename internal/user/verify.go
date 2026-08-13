@@ -18,7 +18,7 @@ type VerifyForm struct {
 
 func (h *Handler) VerifyPage(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r)
-	htmlutil.Render(w, r, http.StatusOK, h.templates.Verify, NewPage(r, VerifyForm{Email: sess.Get("pending_email")}), h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Verify, NewPage(r, VerifyForm{Email: sess.Get("pending_email")}), h.logger)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -34,13 +34,13 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	if !h.limiter.Allow(ipKey) {
 		h.logger.Warn("verify throttled", "key", ipKey)
 		form.FieldErrors = map[string]string{"code": MsgTooManyTries}
-		htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Verify, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Verify, NewPage(r, form), h.logger)
 		return
 	}
 
 	if code == "" {
 		form.FieldErrors = map[string]string{"code": MsgCodeRequired}
-		htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, ErrUserNotFound) {
 			h.limiter.Fail(ipKey)
 			form.FieldErrors = map[string]string{"code": MsgCodeInvalid}
-			htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
+			htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -63,7 +63,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	if err = h.store.Update(r.Context(), u); err != nil {
 		if errors.Is(err, ErrEditConflict) {
 			form.FieldErrors = map[string]string{"code": MsgVerifyRetry}
-			htmlutil.Render(w, r, http.StatusConflict, h.templates.Verify, NewPage(r, form), h.logger)
+			htmlutil.WriteHTML(w, r, http.StatusConflict, h.templates.Verify, NewPage(r, form), h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

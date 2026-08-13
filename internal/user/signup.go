@@ -20,7 +20,7 @@ type SignupForm struct {
 }
 
 func (h *Handler) SignupPage(w http.ResponseWriter, r *http.Request) {
-	htmlutil.Render(w, r, http.StatusOK, h.templates.Signup, NewPage(r, SignupForm{}), h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Signup, NewPage(r, SignupForm{}), h.logger)
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	if key, ok := h.limiter.AllowAll(keys); !ok {
 		h.logger.Warn("signup throttled", "key", key)
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
-		htmlutil.Render(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	if !v.Valid() {
 		form.FieldErrors = v.Errors
-		htmlutil.Render(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
+		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
 		return
 	}
 
@@ -71,7 +71,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 		case errors.Is(err, ErrEditConflict):
 			form.FieldErrors = map[string]string{"email": MsgSignupRetry}
-			htmlutil.Render(w, r, http.StatusConflict, h.templates.Signup, NewPage(r, form), h.logger)
+			htmlutil.WriteHTML(w, r, http.StatusConflict, h.templates.Signup, NewPage(r, form), h.logger)
 			return
 		}
 	}

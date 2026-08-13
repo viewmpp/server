@@ -15,7 +15,11 @@ type Handler struct {
 	logger    *slog.Logger
 }
 
-func NewHandler(store *Store, templates *htmlutil.Templates, logger *slog.Logger) *Handler {
+func NewHandler(
+	store *Store,
+	templates *htmlutil.Templates,
+	logger *slog.Logger,
+) *Handler {
 	return &Handler{
 		store:     store,
 		templates: templates,
@@ -38,7 +42,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID
 	page.CanShare = u.CanShare()
 
-	htmlutil.Render(w, r, http.StatusOK, h.templates.App, page, h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
 
 func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
@@ -162,5 +166,5 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmlutil.Render(w, r, http.StatusOK, h.templates.Projects, user.NewPage(r, projects), h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Projects, user.NewPage(r, projects), h.logger)
 }
