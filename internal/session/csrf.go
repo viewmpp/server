@@ -15,7 +15,7 @@ const (
 func (s *Session) CSRF() string {
 	if s.Data[csrfKey] == "" {
 		raw := make([]byte, 32)
-		rand.Read(raw)
+		_, _ = rand.Read(raw)
 
 		s.Data[csrfKey] = base64.RawURLEncoding.EncodeToString(raw)
 		s.touch()
