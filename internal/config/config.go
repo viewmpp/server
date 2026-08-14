@@ -11,12 +11,17 @@ type Config struct {
 	Env              string
 	Proxies          int
 	EarlyAccessSeats int
+	Project
 	Parser
 	DB
 	Mailer
 	BGSweep
 	Session
 	Reset
+}
+
+type Project struct {
+	ListLimit int
 }
 
 type Parser struct {
@@ -84,6 +89,7 @@ func Load() Config {
 	flag.DurationVar(&cfg.Timeout, "background-sweep-timeout", env.GetDuration("BACKGROUND_SWEEP_TIMEOUT", 30*time.Second),
 		"background goroutine sweep timeout")
 	flag.DurationVar(&cfg.Lifetime, "session-lifetime", env.GetDuration("SESSION_LIFETIME", 12*time.Hour), "session lifetime")
+	flag.IntVar(&cfg.ListLimit, "list-limit", env.GetInt("LIST_LIMIT", 100), "project list limit")
 
 	flag.Parse()
 

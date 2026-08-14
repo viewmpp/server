@@ -70,7 +70,7 @@ func run() error {
 
 	viewerHandler := viewer.NewHandler(templates, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, logger)
-	projectHandler := project.NewHandler(s.Projects, limiter, templates, logger)
+	projectHandler := project.NewHandler(s.Projects, limiter, cfg.ListLimit, templates, logger)
 	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, limiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, templates, &wg, logger)
 
 	return server.New(cfg, viewerHandler, uploadHandler, projectHandler, userHandler, s, &wg, logger).Serve()

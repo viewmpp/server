@@ -24,6 +24,7 @@ import (
 type Handler struct {
 	store     *Store
 	limiter   *ratelimit.Limiter
+	listLimit int
 	templates *htmlutil.Templates
 	logger    *slog.Logger
 }
@@ -31,12 +32,14 @@ type Handler struct {
 func NewHandler(
 	store *Store,
 	limiter *ratelimit.Limiter,
+	listLimit int,
 	templates *htmlutil.Templates,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
 		store:     store,
 		limiter:   limiter,
+		listLimit: listLimit,
 		templates: templates,
 		logger:    logger,
 	}
@@ -143,7 +146,7 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	back := "/p/" + publicID
+	back := fmt.Sprintf("/p/%s", publicID)
 
 	var password []byte
 
@@ -254,8 +257,6 @@ func (h *Handler) find(w http.ResponseWriter, r *http.Request, asJSON bool) (*Pr
 	return nil, false
 }
 
-const listLimit = 100
-
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
 	if u.IsAnonymous() {
@@ -263,7 +264,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projects, err := h.store.ListByUserID(r.Context(), u.ID, listLimit)
+	projects, err := h.store.ListByUserID(r.Context(), u.ID, h.listLimit)
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
