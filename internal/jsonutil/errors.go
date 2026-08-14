@@ -35,6 +35,10 @@ func ContentTooLargeError(w http.ResponseWriter) {
 	errorResponse(w, http.StatusRequestEntityTooLarge, message)
 }
 
+func TooManyRequestsResponse(w http.ResponseWriter) {
+	errorResponse(w, http.StatusTooManyRequests, "too many uploads, try again shortly")
+}
+
 func NotFoundResponse(w http.ResponseWriter) {
 	message := "not found"
 	errorResponse(w, http.StatusNotFound, message)

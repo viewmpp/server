@@ -8,15 +8,18 @@ import (
 	"path/filepath"
 	"server/internal/jsonutil"
 	"server/internal/parser"
+	"server/internal/ratelimit"
 	"server/internal/user"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
 type Handler struct {
-	store  uploadStore
-	client *parser.Client
-	logger *slog.Logger
+	store   uploadStore
+	client  *parser.Client
+	limiter *ratelimit.Limiter
+	logger  *slog.Logger
 }
 
 type uploadStore interface {
@@ -26,17 +29,24 @@ type uploadStore interface {
 func NewHandler(
 	client *parser.Client,
 	store uploadStore,
+	limiter *ratelimit.Limiter,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
-		store:  store,
-		client: client,
-		logger: logger,
+		store:   store,
+		client:  client,
+		limiter: limiter,
+		logger:  logger,
 	}
 }
 
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
+
+	if !h.allow(r, u) {
+		jsonutil.TooManyRequestsResponse(w)
+		return
+	}
 
 	limit := u.MaxUploadBytes()
 
@@ -94,4 +104,22 @@ func sanitizeFileName(name string) string {
 	}
 
 	return name
+}
+
+func (h *Handler) allow(r *http.Request, u *user.User) bool {
+	keys := []string{"upload-ip:" + h.limiter.ClientIP(r)}
+
+	if !u.IsAnonymous() {
+		keys = append(keys, "upload-user:"+strconv.FormatInt(u.ID, 10))
+	}
+
+	key, allowed := h.limiter.AllowAll(keys)
+	if !allowed {
+		h.logger.Warn("upload throttled", "key", key)
+		return false
+	}
+
+	h.limiter.FailAll(keys)
+
+	return true
 }
