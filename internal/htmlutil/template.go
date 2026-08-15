@@ -18,6 +18,7 @@ type Pages struct {
 	Verify   *template.Template
 	Projects *template.Template
 	Unlock   *template.Template
+	Examples *template.Template
 	Forgot   *template.Template
 	Reset    *template.Template
 }
@@ -82,6 +83,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	examples, err := parsePage("examples.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	forgot, err := parsePage("forgot.tmpl")
 	if err != nil {
 		return nil, err
@@ -98,6 +104,7 @@ func NewPages() (*Pages, error) {
 		Verify:   verify,
 		Projects: projects,
 		Unlock:   unlock,
+		Examples: examples,
 		Forgot:   forgot,
 		Reset:    reset,
 	}, nil

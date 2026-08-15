@@ -79,7 +79,7 @@ func run() error {
 
 	mail := mailer.New(cfg.Resend, templates, logger)
 
-	viewerHandler := viewer.NewHandler(templates, logger)
+	viewerHandler := viewer.NewHandler(templates, cfg.BaseURL, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
 	projectHandler := project.NewHandler(s.Projects, userLimiter, cfg.LenListLimit, templates, logger)
 	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, templates, &wg, logger)

@@ -20,6 +20,7 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.viewerHandler.ExampleContract)
 
+	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
 	mux.HandleFunc("GET /example/{name}", s.viewerHandler.ExamplePage)
 
 	mux.HandleFunc("GET /projects", s.projectHandler.List)

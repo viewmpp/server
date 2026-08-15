@@ -1,0 +1,27 @@
+{{define "title"}}Example MPP files — open a sample MS Project plan | MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="page centered">
+  <div class="page__head">
+    <h1>Example plans</h1>
+    <a class="btn btn--primary btn--inline" href="/">Open your own file</a>
+  </div>
+
+  <p class="lead">
+    Real MS&nbsp;Project schedules you can open right now — no file of your own, no signup.
+    Each one shows the Gantt chart, the task table and the dependencies exactly as the viewer draws them.
+  </p>
+
+  <ul class="cards">
+    {{range .Form}}
+      <li class="card">
+        <a class="card__name" href="/example/{{.Name}}">{{.Label}}</a>
+        <div class="card__meta">
+          <span>{{.Note}}</span>
+          <code>{{.FileName}}</code>
+        </div>
+      </li>
+    {{end}}
+  </ul>
+</main>
+{{end}}
