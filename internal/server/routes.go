@@ -11,6 +11,9 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("GET /{$}", s.viewerHandler.Landing)
 
+	mux.HandleFunc("GET /robots.txt", s.robots)
+	mux.HandleFunc("GET /sitemap.xml", s.sitemap)
+
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.projectHandler.Contract)
