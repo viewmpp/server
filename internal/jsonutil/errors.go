@@ -16,11 +16,6 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logg
 	errorResponse(w, http.StatusInternalServerError, message)
 }
 
-func InvalidAuthenticationTokenResponse(w http.ResponseWriter) {
-	message := "invalid authentication token"
-	errorResponse(w, http.StatusUnauthorized, message)
-}
-
 func BadRequestResponse(w http.ResponseWriter, err any) {
 	errorResponse(w, http.StatusBadRequest, err)
 }
