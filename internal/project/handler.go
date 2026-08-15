@@ -63,6 +63,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := user.NewPage(r, nil)
+	page.NoIndex = true
 	page.ProjectID = p.PublicID
 	page.FileName = p.FileName
 	page.Access = p.Access

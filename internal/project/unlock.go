@@ -18,6 +18,7 @@ func (h *Handler) unlockPage(w http.ResponseWriter, r *http.Request, p *Project,
 	}
 
 	page := user.NewPage(r, form)
+	page.NoIndex = true
 	page.ProjectID = p.PublicID
 
 	htmlutil.WriteHTML(w, r, http.StatusUnauthorized, h.templates.Unlock, page, h.logger)

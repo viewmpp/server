@@ -11,6 +11,11 @@ import (
 )
 
 type Page struct {
+	Title        string
+	Description  string
+	Canonical    string
+	NoIndex      bool
+	Public       bool
 	MaxUpload    int64
 	Version      string
 	Flash        string
@@ -65,7 +70,16 @@ func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Cache-Control", cacheControl(page, sess))
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
+}
+
+const publicMaxAge = "public, max-age=300"
+
+func cacheControl(page Page, sess *session.Session) string {
+	if page.Public && sess.UserID == nil {
+		return publicMaxAge
+	}
+	return "no-store"
 }
