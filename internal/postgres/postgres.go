@@ -10,7 +10,7 @@ import (
 )
 
 func Open(cfg config.DB) (*sql.DB, error) {
-	db, err := sql.Open("pgx", cfg.DSN)
+	db, err := sql.Open("pgx", cfg.DBDSN)
 	if err != nil {
 		return nil, err
 	}
