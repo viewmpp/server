@@ -1,0 +1,76 @@
+{{define "title"}}Privacy — MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="page legal centered">
+  <div class="page__head">
+    <h1>Privacy</h1>
+  </div>
+
+  <p class="legal__note">
+    <strong>Draft.</strong> The facts below describe exactly what the service does today.
+    The operator's legal name, address, contact address and governing law still have to be
+    filled in, and the document reviewed, before this page can be published.
+  </p>
+
+  <h2>The file you upload</h2>
+  <p>
+    An uploaded <code>.mpp</code> or <code>.xml</code> file is passed straight to the component
+    that reads it and is <strong>never written to disk or to the database</strong>. It exists only
+    in memory for the duration of the request. What is kept — and only if you are signed in and
+    chose to save the plan — is the extracted schedule: task names, dates, durations, resource
+    names, dependencies and notes. The original file is not recoverable from it.
+  </p>
+  <p>
+    If you are not signed in, nothing about the plan is stored at all. Closing the tab ends it.
+  </p>
+
+  <h2>What is stored when you have an account</h2>
+  <table class="legal__table">
+    <tr><th>Data</th><th>Why</th><th>How long</th></tr>
+    <tr><td>Email address</td><td>Signing in, password recovery, service notices</td><td>Until the account is deleted</td></tr>
+    <tr><td>Password</td><td>Signing in</td><td>Stored only as a bcrypt hash; the password itself is never kept</td></tr>
+    <tr><td>Saved plans</td><td>Returning to a plan, sharing a link</td><td>Until you delete them</td></tr>
+    <tr><td>Sharing password</td><td>Protecting a shared link</td><td>Stored as a bcrypt hash; removed when sharing stops</td></tr>
+    <tr><td>Subscription state</td><td>Access to paid features</td><td>Until the account is deleted</td></tr>
+  </table>
+
+  <h2>Cookies</h2>
+  <p>
+    One cookie, named <code>session</code>. It holds a random identifier and nothing else — no
+    personal data travels in it. It is set only when it is actually needed: when you open a form
+    or sign in. Simply reading a plan sets no cookie at all.
+  </p>
+  <p>
+    The session expires after 12 hours and the record behind it is deleted automatically.
+    There are no analytics, advertising or third-party tracking cookies.
+  </p>
+
+  <h2>Logs</h2>
+  <p>
+    Each request is logged with its method, address, response code and duration. Password-reset
+    links are redacted before writing. Your network address is used to limit how often uploads and
+    sign-in attempts can be made; it is held in memory only and is discarded within minutes.
+  </p>
+
+  <h2>Who else sees the data</h2>
+  <p>
+    Email is delivered by <strong>Resend</strong>, which receives your address and the message
+    text in order to send it. No other third party receives anything.
+  </p>
+  <p>
+    A public or password-protected link is readable by anyone who has it. That is what sharing
+    means; make it private again at any time and the link stops working immediately. Shared plans
+    are excluded from search engines.
+  </p>
+
+  <h2>Your choices</h2>
+  <p>
+    Delete any saved plan from your projects at any time. To have the account and everything in it
+    removed, write to <strong>[contact address]</strong>.
+  </p>
+
+  <h2>Contact</h2>
+  <p><strong>[legal name, address, contact address]</strong></p>
+  <p class="legal__meta">Last updated: <strong>[date]</strong></p>
+</main>
+{{end}}
