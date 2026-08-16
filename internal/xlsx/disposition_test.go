@@ -1,4 +1,4 @@
-package project
+package xlsx
 
 import "testing"
 
@@ -12,8 +12,8 @@ func TestDisposition(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := disposition(c.in); got != c.want {
-			t.Errorf("disposition(%q)\n got  %s\n want %s", c.in, got, c.want)
+		if got := Disposition(c.in); got != c.want {
+			t.Errorf("Disposition(%q)\n got  %s\n want %s", c.in, got, c.want)
 		}
 	}
 }
