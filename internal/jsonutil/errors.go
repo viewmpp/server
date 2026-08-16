@@ -34,6 +34,10 @@ func TooManyRequestsResponse(w http.ResponseWriter) {
 	errorResponse(w, http.StatusTooManyRequests, "too many uploads, try again shortly")
 }
 
+func UnauthorizedResponse(w http.ResponseWriter) {
+	errorResponse(w, http.StatusUnauthorized, "you must be signed in to do that")
+}
+
 func NotFoundResponse(w http.ResponseWriter) {
 	message := "not found"
 	errorResponse(w, http.StatusNotFound, message)

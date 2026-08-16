@@ -19,6 +19,7 @@ type Pages struct {
 	Projects *template.Template
 	Unlock   *template.Template
 	Examples *template.Template
+	Convert  *template.Template
 	Forgot   *template.Template
 	Reset    *template.Template
 }
@@ -88,6 +89,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	convert, err := parsePage("convert.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	forgot, err := parsePage("forgot.tmpl")
 	if err != nil {
 		return nil, err
@@ -105,6 +111,7 @@ func NewPages() (*Pages, error) {
 		Projects: projects,
 		Unlock:   unlock,
 		Examples: examples,
+		Convert:  convert,
 		Forgot:   forgot,
 		Reset:    reset,
 	}, nil
@@ -134,7 +141,10 @@ func NewEmails() (*Emails, error) {
 }
 
 func parsePage(name string) (*template.Template, error) {
-	return template.ParseFS(ui.Files, "templates/base.tmpl", fmt.Sprintf("templates/pages/%s", name))
+	return template.ParseFS(ui.Files,
+		"templates/base.tmpl",
+		"templates/partials/viewer.tmpl",
+		fmt.Sprintf("templates/pages/%s", name))
 }
 
 func parseEmail(name string) (*template.Template, error) {

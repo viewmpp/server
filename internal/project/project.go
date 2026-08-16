@@ -10,7 +10,10 @@ import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"io"
+	"path/filepath"
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const (
@@ -82,6 +85,8 @@ func (s *Store) CountShared(ctx context.Context, userID int64) (int, error) {
 }
 
 func (s *Store) Save(ctx context.Context, userID int64, fileName string, contract []byte) (string, error) {
+	fileName = sanitizeFileName(fileName)
+
 	publicID, err := newPublicID()
 	if err != nil {
 		return "", err
@@ -236,4 +241,23 @@ func decompress(data []byte) ([]byte, error) {
 	defer func() { _ = zr.Close() }()
 
 	return io.ReadAll(io.LimitReader(zr, maxContract))
+}
+
+func sanitizeFileName(name string) string {
+	name = filepath.Base(name)
+	if !utf8.ValidString(name) {
+		return ""
+	}
+	name = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, name)
+	for len(name) > 255 {
+		_, size := utf8.DecodeLastRuneInString(name[:255])
+		name = name[:255-size+size%1]
+	}
+
+	return name
 }

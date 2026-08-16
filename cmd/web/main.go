@@ -7,6 +7,7 @@ import (
 	"os"
 	"server/internal/background"
 	"server/internal/config"
+	"server/internal/export"
 	"server/internal/htmlutil"
 	"server/internal/mailer"
 	"server/internal/parser"
@@ -81,8 +82,9 @@ func run() error {
 
 	viewerHandler := viewer.NewHandler(templates, cfg.BaseURL, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
-	projectHandler := project.NewHandler(s.Projects, userLimiter, cfg.LenListLimit, templates, logger)
+	exportHandler := export.NewHandler(uploadLimiter, logger)
+	projectHandler := project.NewHandler(s.Projects, cfg.BaseURL, userLimiter, cfg.LenListLimit, templates, logger)
 	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, templates, &wg, logger)
 
-	return server.New(cfg, viewerHandler, uploadHandler, projectHandler, userHandler, s, &wg, logger).Serve()
+	return server.New(cfg, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

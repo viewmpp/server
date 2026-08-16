@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"server/internal/config"
+	"server/internal/export"
 	"server/internal/project"
 	"server/internal/store"
 	"server/internal/upload"
@@ -24,6 +25,7 @@ type Server struct {
 	cfg            config.Config
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
+	exportHandler  *export.Handler
 	projectHandler *project.Handler
 	userHandler    *user.Handler
 	store          *store.Store
@@ -35,6 +37,7 @@ func New(
 	cfg config.Config,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
+	exportHandler *export.Handler,
 	projectHandler *project.Handler,
 	userHandler *user.Handler,
 	store *store.Store,
@@ -45,6 +48,7 @@ func New(
 		cfg:            cfg,
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
+		exportHandler:  exportHandler,
 		projectHandler: projectHandler,
 		userHandler:    userHandler,
 		store:          store,

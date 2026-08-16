@@ -316,6 +316,25 @@ code {
   .samples__list { grid-template-columns: 1fr; }
 }
 
+.aside-link { margin: calc(var(--unit) * 2) 0 0; color: var(--secondary); font-size: 13px; }
+
+.saved { margin-top: calc(var(--unit) * 4); }
+.saved__lead { margin: 0 0 calc(var(--unit) * 1.5); color: var(--secondary); font-size: 13px; }
+.saved__list { display: grid; gap: var(--unit); margin: 0; padding: 0; list-style: none; }
+.saved__list li { display: flex; }
+
+.convert {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--unit) * 2) calc(var(--unit) * 3);
+  background: var(--success-bg);
+  border-bottom: 1px solid var(--success-border);
+}
+.convert__done { display: flex; align-items: center; gap: calc(var(--unit) * 2); flex-wrap: wrap; }
+.convert__title { margin: 0; font-weight: 500; }
+.convert__offer { margin: 0; color: var(--secondary); font-size: 13px; }
+
 /* forms */
 
 .flash {

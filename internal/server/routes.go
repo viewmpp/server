@@ -16,10 +16,13 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
+	mux.HandleFunc("POST /api/v1/xlsx", s.exportHandler.XLSX)
+	mux.HandleFunc("POST /api/v1/projects", s.projectHandler.Create)
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.projectHandler.Contract)
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.viewerHandler.ExampleContract)
 
+	mux.HandleFunc("GET /mpp-to-excel", s.projectHandler.ConvertPage)
 	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
 	mux.HandleFunc("GET /example/{name}", s.viewerHandler.ExamplePage)
 

@@ -5,14 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"path/filepath"
 	"server/internal/jsonutil"
 	"server/internal/parser"
 	"server/internal/ratelimit"
 	"server/internal/user"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 )
 
 type Handler struct {
@@ -74,8 +71,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !u.IsAnonymous() {
-		filename := sanitizeFileName(r.URL.Query().Get("name"))
-		publicID, err := h.store.Save(r.Context(), u.ID, filename, contract)
+		publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), contract)
 		if err != nil {
 			jsonutil.ServerErrorResponse(w, r, err, h.logger)
 			return
@@ -85,25 +81,6 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(contract)
-}
-
-func sanitizeFileName(name string) string {
-	name = filepath.Base(name)
-	if !utf8.ValidString(name) {
-		return ""
-	}
-	name = strings.Map(func(r rune) rune {
-		if r < 0x20 || r == 0x7f {
-			return -1
-		}
-		return r
-	}, name)
-	for len(name) > 255 {
-		_, size := utf8.DecodeLastRuneInString(name[:255])
-		name = name[:255-size+size%1]
-	}
-
-	return name
 }
 
 func (h *Handler) allow(r *http.Request, u *user.User) bool {

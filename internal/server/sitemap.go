@@ -18,7 +18,7 @@ type sitemapURL struct {
 }
 
 func sitemapPaths() []string {
-	paths := []string{"/", "/examples"}
+	paths := []string{"/", "/mpp-to-excel", "/examples"}
 
 	for _, e := range fixtures.Examples() {
 		paths = append(paths, "/example/"+e.Name)

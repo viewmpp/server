@@ -6,6 +6,36 @@
     serverSaid: function (status) { return 'server replied ' + status; }
   };
 
+  window.MppExport = {
+    xlsx: function (contract, fileName) {
+      return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contract)
+      }).then(function (response) {
+        if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
+        return response.blob();
+      }).then(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (String(fileName || '').replace(/\.[^.]*$/, '') || 'project') + '.xlsx';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    },
+
+    save: function (contract, fileName) {
+      return fetch('/api/v1/projects?name=' + encodeURIComponent(fileName || ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contract)
+      }).then(function (response) {
+        if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
+        return response.json();
+      });
+    }
+  };
+
   window.MppUpload = {
     bind: function (opts) {
       var drop = opts.drop;

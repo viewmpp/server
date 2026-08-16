@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
-	"path/filepath"
 	"server/internal/contract"
+	"server/internal/fixtures"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/ratelimit"
@@ -23,6 +22,7 @@ import (
 
 type Handler struct {
 	store     *Store
+	baseURL   string
 	limiter   *ratelimit.Limiter
 	listLimit int
 	templates *htmlutil.Templates
@@ -31,6 +31,7 @@ type Handler struct {
 
 func NewHandler(
 	store *Store,
+	baseURL string,
 	limiter *ratelimit.Limiter,
 	listLimit int,
 	templates *htmlutil.Templates,
@@ -38,6 +39,7 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		store:     store,
+		baseURL:   strings.TrimSuffix(baseURL, "/"),
 		limiter:   limiter,
 		listLimit: listLimit,
 		templates: templates,
@@ -92,28 +94,11 @@ func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", disposition(p.FileName))
+	w.Header().Set("Content-Disposition", xlsx.Disposition(p.FileName))
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
 	_, _ = buf.WriteTo(w)
-}
-
-func disposition(fileName string) string {
-	name := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-	if name == "" {
-		name = "project"
-	}
-	name += ".xlsx"
-
-	ascii := strings.Map(func(r rune) rune {
-		if r < 32 || r > 126 || r == '"' || r == '\\' {
-			return '_'
-		}
-		return r
-	}, name)
-
-	return fmt.Sprintf("attachment; filename=%q; filename*=UTF-8''%s", ascii, url.PathEscape(name))
 }
 
 func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
@@ -256,6 +241,28 @@ func (h *Handler) find(w http.ResponseWriter, r *http.Request, asJSON bool) (*Pr
 	}
 
 	return nil, false
+}
+
+func (h *Handler) ConvertPage(w http.ResponseWriter, r *http.Request) {
+	u := user.GetUserContext(r)
+
+	var saved []*Project
+
+	if !u.IsAnonymous() {
+		var err error
+		if saved, err = h.store.ListByUserID(r.Context(), u.ID, h.listLimit); err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+	}
+
+	page := user.NewPage(r, saved)
+	page.Examples = fixtures.Examples()
+	page.Description = "Convert an MS Project .mpp file to an Excel .xlsx spreadsheet in your browser — tasks, dates, durations and predecessors, with no install and no signup."
+	page.Canonical = h.baseURL + "/mpp-to-excel"
+	page.Public = true
+
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Convert, page, h.logger)
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {

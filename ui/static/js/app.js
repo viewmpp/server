@@ -19,6 +19,8 @@
   };
 
   var model = null;
+  var loaded = null;
+  var loadedName = '';
   var showCritical = true;
   var started = false;
 
@@ -93,6 +95,19 @@
     }
   });
 
+  var exportButton = document.getElementById('export-xlsx');
+  if (exportButton) {
+    exportButton.addEventListener('click', function () {
+      if (!loaded) { return; }
+
+      exportButton.disabled = true;
+
+      window.MppExport.xlsx(loaded, loadedName)
+        .catch(function (err) { fail(err.message); })
+        .then(function () { exportButton.disabled = false; });
+    });
+  }
+
   document.getElementById('reset').addEventListener('click', function () {
     if (servedOpen) {
       window.location.assign('/');
@@ -163,11 +178,18 @@
       started = true;
     }
 
+    loaded = contract;
+    loadedName = fileName || '';
+
     model = window.MppMapper.toModel(contract);
     gantt.clearAll();
     gantt.parse({ data: model.data, links: model.links });
     setScale('day');
     describe(contract, fileName);
+
+    document.dispatchEvent(new CustomEvent('mpp:loaded', {
+      detail: { contract: contract, fileName: fileName || '' }
+    }));
   }
 
   function start() {

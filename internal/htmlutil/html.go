@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"server/internal/fixtures"
 	"server/internal/session"
 	"server/internal/vcs"
 )
@@ -20,6 +21,7 @@ type Page struct {
 	Version      string
 	Flash        string
 	Form         any
+	Examples     []fixtures.Example
 	UserEmail    string
 	Verified     bool
 	Pro          bool

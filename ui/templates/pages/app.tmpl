@@ -24,6 +24,10 @@
 
   <p class="drop__error is-hidden" id="error"></p>
 
+  <p class="aside-link">
+    Just need the data? <a href="/mpp-to-excel">Convert MPP to Excel</a>
+  </p>
+
   {{if .Form}}
     <div class="samples">
       <p class="samples__lead">No file at hand? Open a sample plan</p>
@@ -41,101 +45,7 @@
   {{end}}
 </main>
 
-<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}">
-  <header class="bar">
-    <div class="bar__title">
-      <span id="project-name" class="muted"></span>
-    </div>
-
-    <div class="bar__group">
-      <input type="search" id="search" class="search" placeholder="search tasks" autocomplete="off">
-    </div>
-
-    <div class="bar__group">
-      <span class="label">Scale</span>
-      <button class="btn btn--scale is-active" data-scale="day">Day</button>
-      <button class="btn btn--scale" data-scale="week">Week</button>
-      <button class="btn btn--scale" data-scale="month">Month</button>
-      <button class="btn btn--scale" data-scale="quarter">Quarter</button>
-    </div>
-
-    <div class="bar__group">
-      <button class="btn" id="collapse-all">Collapse all</button>
-      <button class="btn" id="expand-all">Expand all</button>
-    </div>
-
-    <div class="bar__group">
-      <label class="check"><input type="checkbox" id="toggle-critical" checked> critical path</label>
-      <label class="check"><input type="checkbox" id="toggle-grid" checked> grid</label>
-    </div>
-
-    {{if .ProjectID}}
-      <div class="bar__group">
-        <a class="btn" href="/p/{{.ProjectID}}/xlsx">Export to Excel</a>
-      </div>
-    {{end}}
-
-    {{if .IsOwner}}
-      <div class="bar__group">
-        {{if eq .Access "private"}}
-          {{if .CanShare}}
-            <form action="/p/{{.ProjectID}}/access" method="POST">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-              <input type="hidden" name="access" value="public">
-              <button class="btn" type="submit">Share</button>
-            </form>
-
-            <form action="/p/{{.ProjectID}}/access" method="POST" class="protect">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-              <input type="hidden" name="access" value="protected">
-              <input class="protect__pass" type="password" name="password"
-                     placeholder="password" autocomplete="off" minlength="4" required>
-              <button class="btn" type="submit">Share with password</button>
-            </form>
-          {{else}}
-            <span class="label">Private</span>
-          {{end}}
-        {{else}}
-          <span class="tag tag--{{.Access}}">{{.Access}}</span>
-          <button class="btn" id="copy-link" data-link="/p/{{.ProjectID}}">Copy link</button>
-          <form action="/p/{{.ProjectID}}/access" method="POST">
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <input type="hidden" name="access" value="private">
-            <button class="btn" type="submit">Stop sharing</button>
-          </form>
-        {{end}}
-
-        <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
-          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <button class="btn btn--danger" type="submit">Delete</button>
-        </form>
-      </div>
-    {{end}}
-
-    <div class="bar__group">
-      <button class="btn" id="reset">Another file</button>
-    </div>
-  </header>
-
-  <div class="summary is-hidden" id="summary"></div>
-
-  <div class="workspace">
-    <div id="gantt-here"></div>
-
-    <aside id="details" class="details is-hidden">
-      <button class="details__close" id="details-close" aria-label="Close">&times;</button>
-      <div id="details-body"></div>
-    </aside>
-  </div>
-
-  <footer class="statusbar">
-    <span id="stats">—</span>
-    <span class="legend">
-      <i class="sw sw--crit"></i> critical task
-      <i class="sw sw--off"></i> non-working day
-    </span>
-  </footer>
-</div>
+{{template "viewer" .}}
 {{end}}
 
 {{define "scripts"}}
