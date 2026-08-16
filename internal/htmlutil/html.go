@@ -9,6 +9,7 @@ import (
 	"server/internal/fixtures"
 	"server/internal/session"
 	"server/internal/vcs"
+	"strconv"
 )
 
 type Page struct {
@@ -75,6 +76,10 @@ func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.
 	w.Header().Set("Cache-Control", cacheControl(page, sess))
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
+}
+
+func (p Page) MaxUploadLabel() string {
+	return strconv.FormatInt(p.MaxUpload>>20, 10) + " MB"
 }
 
 const publicMaxAge = "public, max-age=300"
