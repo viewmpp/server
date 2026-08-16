@@ -46,7 +46,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	u, err := h.store.GetByToken(r.Context(), code, token.ScopeVerification)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			h.limiter.Fail(ipKey)
+			h.limiter.Count(ipKey)
 			form.FieldErrors = map[string]string{"code": MsgCodeInvalid}
 			htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
 			return

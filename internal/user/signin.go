@@ -58,7 +58,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !matched {
-		h.limiter.FailAll(keys)
+		h.limiter.CountAll(keys)
 
 		form.FieldErrors = map[string]string{"email": MsgEmailOrPass}
 		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signin, NewPage(r, form), h.logger)

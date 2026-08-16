@@ -42,14 +42,12 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 
 	keys := []string{"reset:" + form.Email, "reset-ip:" + h.limiter.ClientIP(r)}
 
-	if key, allowed := h.limiter.AllowAll(keys); !allowed {
+	if key, allowed := h.limiter.TakeAll(keys); !allowed {
 		h.logger.Warn("reset throttled", "key", key)
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
 		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Forgot, NewPage(r, form), h.logger)
 		return
 	}
-
-	h.limiter.FailAll(keys)
 
 	if err := h.issueReset(r, form.Email); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

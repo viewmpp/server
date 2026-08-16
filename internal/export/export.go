@@ -29,13 +29,11 @@ func NewHandler(limiter *ratelimit.Limiter, logger *slog.Logger) *Handler {
 func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 	key := "export-ip:" + h.limiter.ClientIP(r)
 
-	if !h.limiter.Allow(key) {
+	if !h.limiter.Take(key) {
 		h.logger.Warn("export throttled", "key", key)
 		jsonutil.TooManyRequestsResponse(w)
 		return
 	}
-
-	h.limiter.Fail(key)
 
 	if r.ContentLength > MaxContractBytes {
 		jsonutil.ContentTooLargeError(w)

@@ -34,14 +34,12 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	keys := []string{"signup:" + form.Email, "signup-ip:" + h.limiter.ClientIP(r)}
 
-	if key, ok := h.limiter.AllowAll(keys); !ok {
+	if key, ok := h.limiter.TakeAll(keys); !ok {
 		h.logger.Warn("signup throttled", "key", key)
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
 		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
 		return
 	}
-
-	h.limiter.FailAll(keys)
 
 	v := validator.New()
 	CheckEmail(v, "email", form.Email)

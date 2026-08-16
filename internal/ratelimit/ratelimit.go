@@ -53,18 +53,70 @@ func (l *Limiter) ClientIP(r *http.Request) string {
 	return l.strategy.ClientIP(r.Header, r.RemoteAddr)
 }
 
+func (l *Limiter) Take(key string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if !l.allow(key) {
+		return false
+	}
+
+	l.count(key)
+
+	return true
+}
+
+func (l *Limiter) TakeAll(keys []string) (string, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	for _, key := range keys {
+		if !l.allow(key) {
+			return key, false
+		}
+	}
+
+	for _, key := range keys {
+		l.count(key)
+	}
+
+	return "", true
+}
+
 func (l *Limiter) Allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	return len(l.fresh(key)) < l.limit
+	return l.allow(key)
 }
 
-func (l *Limiter) Fail(key string) {
+func (l *Limiter) AllowAll(keys []string) (string, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	l.hits[key] = append(l.fresh(key), time.Now())
+	for _, key := range keys {
+		if !l.allow(key) {
+			return key, false
+		}
+	}
+
+	return "", true
+}
+
+func (l *Limiter) Count(key string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.count(key)
+}
+
+func (l *Limiter) CountAll(keys []string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	for _, key := range keys {
+		l.count(key)
+	}
 }
 
 func (l *Limiter) Reset(key string) {
@@ -74,24 +126,12 @@ func (l *Limiter) Reset(key string) {
 	delete(l.hits, key)
 }
 
-func (l *Limiter) AllowAll(keys []string) (string, bool) {
-	for _, key := range keys {
-		if !l.Allow(key) {
-			return key, false
-		}
-	}
-	return "", true
-}
-
-func (l *Limiter) FailAll(keys []string) {
-	for _, key := range keys {
-		l.Fail(key)
-	}
-}
-
 func (l *Limiter) ResetAll(keys []string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	for _, key := range keys {
-		l.Reset(key)
+		delete(l.hits, key)
 	}
 }
 
@@ -99,17 +139,24 @@ func (l *Limiter) Close() {
 	close(l.stopped)
 }
 
+func (l *Limiter) allow(key string) bool {
+	return len(l.fresh(key)) < l.limit
+}
+
+func (l *Limiter) count(key string) {
+	l.hits[key] = append(l.fresh(key), time.Now())
+}
+
 func (l *Limiter) fresh(key string) []time.Time {
+	hits := l.hits[key]
 	cutoff := time.Now().Add(-l.window)
 
-	kept := l.hits[key][:0]
-	for _, t := range l.hits[key] {
-		if t.After(cutoff) {
-			kept = append(kept, t)
-		}
+	i := 0
+	for i < len(hits) && !hits[i].After(cutoff) {
+		i++
 	}
 
-	return kept
+	return hits[i:]
 }
 
 func (l *Limiter) sweep() {
@@ -123,14 +170,13 @@ func (l *Limiter) sweep() {
 		case <-ticker.C:
 			l.mu.Lock()
 			for key := range l.hits {
-				if len(l.fresh(key)) == 0 {
+				if kept := l.fresh(key); len(kept) == 0 {
 					delete(l.hits, key)
 				} else {
-					l.hits[key] = l.fresh(key)
+					l.hits[key] = kept
 				}
 			}
 			l.mu.Unlock()
 		}
 	}
 }
-

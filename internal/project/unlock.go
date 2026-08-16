@@ -50,7 +50,7 @@ func (h *Handler) Unlock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !p.PasswordMatches(r.PostFormValue("password")) {
-		h.limiter.FailAll(keys)
+		h.limiter.CountAll(keys)
 		h.unlockPage(w, r, p, MsgWrongPassword)
 		return
 	}

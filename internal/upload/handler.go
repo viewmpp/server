@@ -90,13 +90,11 @@ func (h *Handler) allow(r *http.Request, u *user.User) bool {
 		keys = append(keys, "upload-user:"+strconv.FormatInt(u.ID, 10))
 	}
 
-	key, allowed := h.limiter.AllowAll(keys)
+	key, allowed := h.limiter.TakeAll(keys)
 	if !allowed {
 		h.logger.Warn("upload throttled", "key", key)
 		return false
 	}
-
-	h.limiter.FailAll(keys)
 
 	return true
 }
