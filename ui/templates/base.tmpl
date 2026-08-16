@@ -7,6 +7,13 @@
 {{if .NoIndex}}<meta name="robots" content="noindex">
 {{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}">
 {{end}}<title>{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}</title>
+{{if .Description}}<meta property="og:type" content="website">
+<meta property="og:site_name" content="MPP Viewer">
+<meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}">
+<meta property="og:description" content="{{.Description}}">
+{{if .Canonical}}<meta property="og:url" content="{{.Canonical}}">
+{{end}}<meta name="twitter:card" content="summary">
+{{end}}
 <link rel="stylesheet" href="/static/css/app.css?v={{.Version}}">
 {{block "head" .}}{{end}}
 </head>

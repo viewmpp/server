@@ -1,6 +1,7 @@
 package viewer
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"server/internal/fixtures"
@@ -29,7 +30,12 @@ func NewHandler(
 }
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
-	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, user.NewPage(r, fixtures.Examples()), h.logger)
+	page := user.NewPage(r, fixtures.Examples())
+	page.Description = "Open an MS Project .mpp or .xml file in your browser and read the Gantt chart straight away — tasks, dates, dependencies and the critical path, with no install and no signup."
+	page.Canonical = h.baseURL + "/"
+	page.Public = true
+
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
 
 func (h *Handler) ExamplesPage(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +58,9 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 	page.ExampleName = e.Name
 	page.ExampleLabel = e.Label
 	page.FileName = e.FileName
+	page.Description = exampleDescription(e)
+	page.Canonical = h.baseURL + "/example/" + e.Name
+	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
@@ -66,4 +75,10 @@ func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	_, _ = w.Write(e.Contract)
+}
+
+func exampleDescription(e fixtures.Example) string {
+	return fmt.Sprintf(
+		"%s — %s. Open this sample MS Project plan in the browser: Gantt chart, task table and dependencies, no install and no signup.",
+		e.Label, e.Note)
 }

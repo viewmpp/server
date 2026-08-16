@@ -66,6 +66,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 
 	page := user.NewPage(r, nil)
 	page.NoIndex = true
+	page.Description = fmt.Sprintf("%s — an MS Project plan you can open in the browser, no install needed.", p.FileName)
 	page.ProjectID = p.PublicID
 	page.FileName = p.FileName
 	page.Access = p.Access

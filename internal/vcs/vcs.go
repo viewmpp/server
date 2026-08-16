@@ -3,6 +3,7 @@ package vcs
 import (
 	"fmt"
 	"runtime/debug"
+	"time"
 )
 
 func Version() string {
@@ -28,4 +29,26 @@ func Version() string {
 		}
 	}
 	return revision
+}
+
+func Time() (time.Time, bool) {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return time.Time{}, false
+	}
+
+	for _, s := range bi.Settings {
+		if s.Key != "vcs.time" {
+			continue
+		}
+
+		at, err := time.Parse(time.RFC3339, s.Value)
+		if err != nil {
+			return time.Time{}, false
+		}
+
+		return at, true
+	}
+
+	return time.Time{}, false
 }
