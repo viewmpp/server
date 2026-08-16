@@ -33,6 +33,8 @@ const (
 
 const MaxPublicFree = 2
 
+const MaxSavedFree = 20
+
 var AnonymousUser = &User{Subscription: SubscriptionFree}
 
 type User struct {
@@ -65,6 +67,13 @@ func (u *User) CanShare(shared int) bool {
 		return true
 	}
 	return shared < MaxPublicFree
+}
+
+func (u *User) CanSave(saved int) bool {
+	if u.HasSubscription() {
+		return true
+	}
+	return saved < MaxSavedFree
 }
 
 func (u *User) MaxUploadBytes() int64 {

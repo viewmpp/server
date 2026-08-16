@@ -664,3 +664,5 @@ code {
 .faq dd { margin: 4px 0 0; color: var(--secondary); line-height: 1.7; }
 
 .related { display: flex; flex-wrap: wrap; gap: calc(var(--unit) * 2); margin-top: calc(var(--unit) * 5); font-size: 13px; }
+
+.saved-note { margin: 0 0 calc(var(--unit) * 2); color: var(--secondary); font-size: 12px; }

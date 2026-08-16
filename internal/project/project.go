@@ -84,6 +84,21 @@ func (s *Store) CountShared(ctx context.Context, userID int64) (int, error) {
 	return quantity, nil
 }
 
+func (s *Store) CountByUserID(ctx context.Context, userID int64) (int, error) {
+	query := `SELECT count(*) FROM projects WHERE user_id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var quantity int
+
+	if err := s.db.QueryRowContext(ctx, query, userID).Scan(&quantity); err != nil {
+		return 0, err
+	}
+
+	return quantity, nil
+}
+
 func (s *Store) Save(ctx context.Context, userID int64, fileName string, contract []byte) (string, error) {
 	fileName = sanitizeFileName(fileName)
 

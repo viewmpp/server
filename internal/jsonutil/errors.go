@@ -30,6 +30,10 @@ func ContentTooLargeError(w http.ResponseWriter) {
 	errorResponse(w, http.StatusRequestEntityTooLarge, message)
 }
 
+func SaveLimitResponse(w http.ResponseWriter, message string) {
+	errorResponse(w, http.StatusConflict, message)
+}
+
 func TooManyRequestsResponse(w http.ResponseWriter) {
 	errorResponse(w, http.StatusTooManyRequests, "too many uploads, try again shortly")
 }

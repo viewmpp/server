@@ -9,6 +9,8 @@
 
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
+  {{with .SavedNote}}<p class="saved-note">{{.}}</p>{{end}}
+
   {{if .Form}}
     <ul class="cards">
       {{range .Form}}

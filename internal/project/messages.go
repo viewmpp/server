@@ -23,6 +23,22 @@ func MsgShareLimit(limit int) string {
 	return fmt.Sprintf("Free accounts can share %d projects at a time. Stop sharing one, or go Pro for unlimited links.", limit)
 }
 
+func MsgSaveLimit(saved int) string {
+	return fmt.Sprintf("You have %d saved plans, the most a free account keeps. Delete one, or go Pro to save without a limit.", saved)
+}
+
+func savedNote(u *user.User, saved, shown int) string {
+	if saved > shown {
+		return fmt.Sprintf("Showing the %d most recent of %d saved plans.", shown, saved)
+	}
+
+	if u.HasSubscription() {
+		return ""
+	}
+
+	return fmt.Sprintf("%d of %d saved plans used.", saved, user.MaxSavedFree)
+}
+
 func shareRefusal(u *user.User) string {
 	if !u.Verified {
 		return MsgConfirmEmail

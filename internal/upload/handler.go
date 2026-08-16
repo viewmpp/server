@@ -21,6 +21,7 @@ type Handler struct {
 
 type uploadStore interface {
 	Save(ctx context.Context, userID int64, fileName string, contract []byte) (string, error)
+	CountByUserID(ctx context.Context, userID int64) (int, error)
 }
 
 func NewHandler(
@@ -71,12 +72,22 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !u.IsAnonymous() {
-		publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), contract)
+		saved, err := h.store.CountByUserID(r.Context(), u.ID)
 		if err != nil {
 			jsonutil.ServerErrorResponse(w, r, err, h.logger)
 			return
 		}
-		w.Header().Set("X-Project-Id", publicID)
+
+		if !u.CanSave(saved) {
+			w.Header().Set("X-Save-Refused", "limit")
+		} else {
+			publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), contract)
+			if err != nil {
+				jsonutil.ServerErrorResponse(w, r, err, h.logger)
+				return
+			}
+			w.Header().Set("X-Project-Id", publicID)
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

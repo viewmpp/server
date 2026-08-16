@@ -33,6 +33,17 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	saved, err := h.store.CountByUserID(r.Context(), u.ID)
+	if err != nil {
+		jsonutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	if !u.CanSave(saved) {
+		jsonutil.SaveLimitResponse(w, MsgSaveLimit(saved))
+		return
+	}
+
 	publicID, err := h.store.Save(r.Context(), u.ID, sanitizeFileName(r.URL.Query().Get("name")), body)
 	if err != nil {
 		jsonutil.ServerErrorResponse(w, r, err, h.logger)

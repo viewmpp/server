@@ -87,9 +87,9 @@
     file: ui.file,
     onStart: function () { ui.error.classList.add('is-hidden'); },
     onError: fail,
-    onDone: function (contract, file, projectID) {
+    onDone: function (contract, file, projectID, refused) {
       return loadGantt().then(function () {
-        show(contract, file.name);
+        show(contract, file.name, refused);
         window.history.pushState({ chart: true }, '', projectID ? '/p/' + projectID : location.href);
       });
     }
@@ -169,7 +169,7 @@
     });
   }
 
-  function show(contract, fileName) {
+  function show(contract, fileName, refused) {
     ui.landing.classList.add('is-hidden');
     ui.app.classList.remove('is-hidden');
 
@@ -188,7 +188,7 @@
     describe(contract, fileName);
 
     document.dispatchEvent(new CustomEvent('mpp:loaded', {
-      detail: { contract: contract, fileName: fileName || '' }
+      detail: { contract: contract, fileName: fileName || '', refused: refused || '' }
     }));
   }
 

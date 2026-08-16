@@ -93,7 +93,7 @@
             });
           })
           .then(function (contract) {
-            return opts.onDone(contract, file, res && res.headers.get('X-Project-Id'));
+            return opts.onDone(contract, file, res && res.headers.get('X-Project-Id'), res && res.headers.get('X-Save-Refused'));
           })
           .catch(function (err) {
             opts.onError(err.message);

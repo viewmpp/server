@@ -35,11 +35,12 @@
       {{end}}
     </div>
 
-    {{if and (not .UserEmail) (not .ProjectID) (not .ExampleName)}}
-      <div class="bar__group offer" id="save-cta">
-        <span class="offer__text" id="save-cta-text">Keep this plan to open it later or share a link</span>
-        <a class="btn btn--primary" id="save-cta-signup" href="/signup" target="_blank" rel="noopener">Create a free account</a>
+    {{if and (not .ProjectID) (not .ExampleName)}}
+      <div class="bar__group offer is-hidden" id="save-cta" data-signed-in="{{if .UserEmail}}1{{else}}0{{end}}">
+        <span class="offer__text" id="save-cta-text"></span>
+        <a class="btn btn--primary is-hidden" id="save-cta-signup" href="/signup" target="_blank" rel="noopener">Create a free account</a>
         <button class="btn btn--primary is-hidden" id="save-cta-save" type="button">Save this plan</button>
+        <a class="btn is-hidden" id="save-cta-manage" href="/projects">Manage plans</a>
       </div>
     {{end}}
 

@@ -280,5 +280,14 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Projects, user.NewPage(r, projects), h.logger)
+	saved, err := h.store.CountByUserID(r.Context(), u.ID)
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	page := user.NewPage(r, projects)
+	page.SavedNote = savedNote(u, saved, len(projects))
+
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Projects, page, h.logger)
 }

@@ -23,6 +23,7 @@ type Page struct {
 	Flash        string
 	Form         any
 	Examples     []fixtures.Example
+	SavedNote    string
 	UserEmail    string
 	Verified     bool
 	Pro          bool
