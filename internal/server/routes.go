@@ -26,6 +26,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
 	mux.HandleFunc("GET /example/{name}", s.viewerHandler.ExamplePage)
 
+	mux.HandleFunc("GET /privacy", s.viewerHandler.PrivacyPage)
+	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
+
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
 	mux.HandleFunc("GET /p/{id}", s.projectHandler.Page)
 	mux.HandleFunc("GET /p/{id}/xlsx", s.projectHandler.Export)
@@ -53,5 +56,5 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("/", s.notFound)
 
-	return s.recoverPanic(s.logRequest(s.withSession(s.authenticate(mux))))
+	return s.recoverPanic(s.logRequest(s.noStore(s.withSession(s.authenticate(mux)))))
 }

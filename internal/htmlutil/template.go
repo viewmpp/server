@@ -22,6 +22,8 @@ type Pages struct {
 	Convert  *template.Template
 	Forgot   *template.Template
 	Reset    *template.Template
+	Privacy  *template.Template
+	Terms    *template.Template
 }
 
 type Emails struct {
@@ -103,6 +105,17 @@ func NewPages() (*Pages, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	privacy, err := parsePage("privacy.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	terms, err := parsePage("terms.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Pages{
 		App:      app,
 		Signin:   signin,
@@ -114,6 +127,8 @@ func NewPages() (*Pages, error) {
 		Convert:  convert,
 		Forgot:   forgot,
 		Reset:    reset,
+		Privacy:  privacy,
+		Terms:    terms,
 	}, nil
 }
 

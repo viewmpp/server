@@ -25,6 +25,25 @@ func (cw *CustomWriter) WriteHeader(code int) {
 	cw.ResponseWriter.WriteHeader(code)
 }
 
+type noStoreWriter struct {
+	http.ResponseWriter
+}
+
+func (w *noStoreWriter) WriteHeader(code int) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.ResponseWriter.WriteHeader(code)
+}
+
+func (s *Server) noStore(next http.Handler) http.Handler {
+	if s.cfg.Env != "dev" {
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(&noStoreWriter{ResponseWriter: w}, r)
+	})
+}
+
 func (s *Server) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		starts := time.Now()

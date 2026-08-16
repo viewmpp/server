@@ -45,6 +45,7 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
+  overflow: hidden;
   display: flex;
   color: var(--text);
   background: var(--bg);
@@ -71,6 +72,7 @@ code {
 /* sidebar */
 
 .side {
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   flex: none;
@@ -180,7 +182,7 @@ code {
 .side__cta .btn { width: 100%; }
 .side__cta .side__signin { text-align: center; font-size: 13px; }
 
-.main { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 100vh; }
+.main { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow-y: auto; }
 
 @media (min-width: 1000px) {
   .centered { transform: translateX(calc(var(--side-w) / -2)); }
@@ -548,6 +550,7 @@ code {
 @media (max-width: 720px) {
   body { flex-direction: column; }
   .side {
+    overflow: visible;
     flex-direction: row;
     align-items: center;
     gap: calc(var(--unit) * 2);
@@ -568,3 +571,16 @@ code {
   .landing h1 { font-size: 22px; }
   .details { position: absolute; inset: 0 0 0 auto; width: min(340px, 100%); z-index: 5; box-shadow: var(--shadow-popup); }
 }
+
+.legal h2 { font-size: 15px; margin: calc(var(--unit) * 4) 0 calc(var(--unit) * 1.5); }
+.legal p { margin: 0 0 calc(var(--unit) * 1.5); line-height: 1.65; color: var(--text); }
+.legal code { font-size: 12px; padding: 1px 4px; border-radius: 3px; background: var(--bg-secondary); }
+.legal__note { padding: calc(var(--unit) * 2); border-left: 2px solid var(--main); background: var(--bg-secondary); font-size: 13px; }
+.legal__meta { margin-top: calc(var(--unit) * 4); font-size: 12px; color: var(--secondary); }
+.legal__table { width: 100%; border-collapse: collapse; margin-bottom: calc(var(--unit) * 1.5); font-size: 13px; }
+.legal__table th { text-align: left; font-weight: 600; }
+.legal__table th, .legal__table td { padding: calc(var(--unit)) calc(var(--unit) * 1.5) calc(var(--unit)) 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+.legal-line { margin: calc(var(--unit) * 5) 0 0; font-size: 12px; color: var(--secondary); }
+.legal-line a { color: var(--secondary); }
+.legal-line a:hover { color: var(--link); }
