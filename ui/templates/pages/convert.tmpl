@@ -1,4 +1,4 @@
-{{define "title"}}MPP to Excel — convert an MS Project file to XLSX online | MPP Viewer{{end}}
+{{define "title"}}MPP to Excel - convert an MS Project file to XLSX online | MPP Viewer{{end}}
 
 {{define "main"}}
 <main class="landing centered" id="landing">
@@ -7,7 +7,7 @@
   <h1>Convert MPP to Excel</h1>
   <p class="lead">
     Drop an <code>.mpp</code> or <code>.xml</code> file and download the schedule as an
-    <code>.xlsx</code> spreadsheet — tasks, dates, durations, resources and predecessors,
+    <code>.xlsx</code> spreadsheet - tasks, dates, durations, resources and predecessors,
     one row per task. No install, no signup.
   </p>
 
@@ -47,7 +47,7 @@
       {{end}}
     {{else}}
       <p class="saved__lead">
-        With an account, converted plans stay here — ready to convert again or share by link.
+        With an account, converted plans stay here - ready to convert again or share by link.
         <a href="/signup">Create a free account</a>
       </p>
     {{end}}
@@ -66,6 +66,114 @@
       {{end}}
     </ul>
   </div>
+
+  <section class="prose">
+<h2>What the spreadsheet contains</h2>
+
+<p>
+  One sheet, named <strong>Tasks</strong>, with one row per task in the order the plan defines,
+  and twelve columns. A filter is switched on across the header row, so you can start narrowing
+  the plan down the moment the file opens.
+</p>
+
+<table class="cols">
+  <tr><th>Column</th><th>What it holds</th></tr>
+  <tr><td><code>WBS</code></td><td>The outline number - <code>1</code>, <code>1.2</code>, <code>1.2.3</code> - which is what tells you where a row sits in the plan once it is out of the chart.</td></tr>
+  <tr><td><code>Task</code></td><td>The task name, indented one step per level of nesting.</td></tr>
+  <tr><td><code>Start</code>, <code>Finish</code></td><td>Real Excel dates with the time of day, not text, so sorting and date arithmetic work.</td></tr>
+  <tr><td><code>Duration</code>, <code>Units</code></td><td>The number and its unit kept apart - <code>5</code> and <code>days</code> - because <code>5 days</code> in one cell cannot be summed or compared.</td></tr>
+  <tr><td><code>Complete</code></td><td>Progress, formatted as a percentage.</td></tr>
+  <tr><td><code>Critical</code></td><td>Whether the task is on the critical path, as recorded in the file.</td></tr>
+  <tr><td><code>Milestone</code></td><td>Whether the row is a milestone - a marker with no duration.</td></tr>
+  <tr><td><code>Resources</code></td><td>The people or equipment assigned to the task.</td></tr>
+  <tr><td><code>Predecessors</code></td><td>The tasks this one waits for. Described below.</td></tr>
+  <tr><td><code>Notes</code></td><td>Whatever the planner typed into the task's notes field.</td></tr>
+</table>
+
+<h2>What happens to the hierarchy</h2>
+
+<p>
+  A project plan is a tree and a spreadsheet is a list, so something has to give. The tree is
+  preserved twice over, in two different ways, on purpose.
+</p>
+
+<p>
+  The <code>Task</code> column is indented one step per level, which is what makes the sheet
+  readable at a glance - you can see the shape of the plan going down the column exactly as you
+  would in Microsoft Project. Summary rows, the ones that contain other tasks, are set in bold.
+  Alongside that, the <code>WBS</code> column carries the outline number, which is what makes the
+  structure survive anything you do next: sort the sheet by finish date, filter it down to one
+  team, paste a handful of rows into a report, and <code>2.4.1</code> still says precisely where
+  that task came from, long after the indentation has stopped meaning anything.
+</p>
+
+<p>
+  What is deliberately not used is Excel's own grouping - the little collapse controls in the
+  margin. They look like the obvious fit, and they are a trap in a file meant for reading and
+  filtering: rows hidden inside a collapsed group are easy to miss, and grouping fights with
+  sorting and filtering, which are the two things people actually do with an exported plan.
+  Every row here is visible, and stays visible.
+</p>
+
+<h2>What happens to dependencies</h2>
+
+<p>
+  Dependency arrows cannot be drawn in a spreadsheet, so they are written out instead. The
+  <code>Predecessors</code> column lists the tasks a row waits for, by task number, in the same
+  shorthand Microsoft Project uses:
+</p>
+
+<ul class="facts">
+  <li><code>12</code> - waits for task 12 to finish. A bare number is the ordinary finish-to-start link, which is the overwhelming majority of them.</li>
+  <li><code>12 SS</code> - starts when task 12 starts. Other link types are marked the same way, and only when they are not the ordinary case, so the column stays scannable.</li>
+  <li><code>12 SS+2d</code> - the same, with a two-day lag. Negative lag, where a task overlaps the one before it, appears as <code>-2d</code>.</li>
+  <li><code>8, 12, 15</code> - several predecessors, listed together.</li>
+</ul>
+
+<p>
+  The numbers refer to task numbers within the plan, so a predecessor can be found by searching
+  the sheet. What you lose against the chart is the ability to see a chain at a glance: following
+  four links deep means four lookups here, where the Gantt view shows it in one look. If that is
+  the question you are trying to answer, read it as a chart and export afterward.
+</p>
+
+<h2>What does not come across</h2>
+
+<p>
+  The drawing itself, for one - there are no bars and no timeline, which is the nature of a
+  spreadsheet. Beyond that, the twelve columns above are the whole of it: the project calendar
+  and its non-working days, baselines, costs and resource workloads stay behind in the original
+  file. What is exported is the task list, which is what an exported plan is normally wanted for.
+</p>
+
+<p>
+  The conversion runs one way. Nothing can write a valid <code>.mpp</code> file except Microsoft
+  Project itself, so a spreadsheet cannot be turned back into a plan - not here and not anywhere
+  else. Treat the <code>.xlsx</code> as something to read, filter and quote from, and keep the
+  original file as the source of truth.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>Do I need an account to get the spreadsheet?</dt>
+  <dd>No. Drop the file, download the .xlsx. An account only matters if you want the plan kept so you can come back to it or share a link.</dd>
+
+  <dt>Does the outline survive the conversion?</dt>
+  <dd>Yes, in two ways: task names are indented one level at a time, and a WBS column carries the outline number such as 1.2.3. Summary rows are bold. Excel's own grouping is not used, so nothing collapses - every row stays visible and sortable.</dd>
+
+  <dt>What happens to dependencies?</dt>
+  <dd>Each row lists the tasks it waits for in a Predecessors column, by task number. A plain number means finish-to-start; other link types are marked, and any lag is shown alongside, for example 12 SS+2d.</dd>
+
+  <dt>Can I convert the spreadsheet back into a .mpp file?</dt>
+  <dd>No, and neither can anything else: the .mpp format is readable but not writable outside Microsoft Project. The spreadsheet is for reading, filtering and pasting into a report.</dd>
+
+</dl>
+
+<nav class="related" aria-label="Related pages">
+  <a href="/examples">Try it on a sample plan</a>
+</nav>
+  </section>
 
   <p class="legal-line">
     <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>

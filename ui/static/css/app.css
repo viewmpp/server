@@ -235,6 +235,7 @@ code {
 /* layout */
 
 .page { width: 100%; max-width: 900px; margin: 0 auto; padding: calc(var(--unit) * 4) calc(var(--unit) * 3) calc(var(--unit) * 8); }
+.page--text { max-width: 620px; }
 .page__head { display: flex; align-items: center; gap: calc(var(--unit) * 2); margin-bottom: calc(var(--unit) * 3); }
 .page__head h1 { font-size: 20px; margin-right: auto; }
 
@@ -274,7 +275,7 @@ code {
 }
 .drop.is-over { border-color: var(--main); background: var(--bg-hover); }
 .drop.is-busy { opacity: .6; pointer-events: none; }
-.drop.is-busy .drop__hint::after { content: " — parsing…"; color: var(--secondary); }
+.drop.is-busy .drop__hint::after { content: " - parsing…"; color: var(--secondary); }
 .drop__hint { margin: 0; font-size: 16px; }
 .drop__note { margin: 0; color: var(--secondary); font-size: 12px; }
 .drop__promise { margin: 0; max-width: 46ch; color: var(--text); font-size: 13px; text-align: center; }
@@ -600,6 +601,66 @@ code {
 .legal__table th { text-align: left; font-weight: 600; }
 .legal__table th, .legal__table td { padding: calc(var(--unit)) calc(var(--unit) * 1.5) calc(var(--unit)) 0; border-bottom: 1px solid var(--border); vertical-align: top; }
 
-.legal-line { margin: calc(var(--unit) * 5) 0 0; font-size: 12px; color: var(--secondary); }
+.legal-line { margin: calc(var(--unit) * 5) 0 0; font-size: 12px; color: var(--secondary); text-align: center; }
 .legal-line a { color: var(--secondary); }
 .legal-line a:hover { color: var(--link); }
+
+/* landing prose */
+
+.prose { margin-top: calc(var(--unit) * 7); text-align: left; }
+.prose h2 { margin: calc(var(--unit) * 5) 0 calc(var(--unit) * 1.5); font-size: 17px; }
+.prose h2:first-child { margin-top: 0; }
+.prose p { margin: 0 0 calc(var(--unit) * 1.5); line-height: 1.7; }
+.prose code { padding: 1px 4px; border-radius: var(--radius-sm); background: var(--bg-tag); font-size: 12px; }
+.prose strong { font-weight: 600; }
+
+.prose .steps, .prose .facts { margin: 0 0 calc(var(--unit) * 2); padding: 0; list-style: none; }
+.prose .steps li, .prose .facts li {
+  position: relative;
+  margin-bottom: calc(var(--unit) * 1.5);
+  padding-left: calc(var(--unit) * 3);
+  line-height: 1.7;
+}
+.prose .steps { counter-reset: step; }
+.prose .steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-selected);
+  color: var(--link);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+.prose .facts li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 11px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--disabled);
+}
+
+.prose .cols { width: 100%; border-collapse: collapse; margin: 0 0 calc(var(--unit) * 2); font-size: 13px; }
+.prose .cols th { text-align: left; font-weight: 600; }
+.prose .cols th, .prose .cols td {
+  padding: var(--unit) calc(var(--unit) * 2) var(--unit) 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.prose .cols td:first-child { white-space: nowrap; }
+
+.faq { margin: 0; }
+.faq dt { margin-top: calc(var(--unit) * 2); font-weight: 600; }
+.faq dd { margin: 4px 0 0; color: var(--secondary); line-height: 1.7; }
+
+.related { display: flex; flex-wrap: wrap; gap: calc(var(--unit) * 2); margin-top: calc(var(--unit) * 5); font-size: 13px; }

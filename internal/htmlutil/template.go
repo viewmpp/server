@@ -12,18 +12,20 @@ type Templates struct {
 }
 
 type Pages struct {
-	App      *template.Template
-	Signin   *template.Template
-	Signup   *template.Template
-	Verify   *template.Template
-	Projects *template.Template
-	Unlock   *template.Template
-	Examples *template.Template
-	Convert  *template.Template
-	Forgot   *template.Template
-	Reset    *template.Template
-	Privacy  *template.Template
-	Terms    *template.Template
+	App            *template.Template
+	Signin         *template.Template
+	Signup         *template.Template
+	Verify         *template.Template
+	Projects       *template.Template
+	Unlock         *template.Template
+	Examples       *template.Template
+	Convert        *template.Template
+	Forgot         *template.Template
+	Reset          *template.Template
+	Privacy        *template.Template
+	Terms          *template.Template
+	WithoutProject *template.Template
+	Mac            *template.Template
 }
 
 type Emails struct {
@@ -116,19 +118,31 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	withoutProject, err := parsePage("without-project.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	mac, err := parsePage("mac.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Pages{
-		App:      app,
-		Signin:   signin,
-		Signup:   signup,
-		Verify:   verify,
-		Projects: projects,
-		Unlock:   unlock,
-		Examples: examples,
-		Convert:  convert,
-		Forgot:   forgot,
-		Reset:    reset,
-		Privacy:  privacy,
-		Terms:    terms,
+		App:            app,
+		Signin:         signin,
+		Signup:         signup,
+		Verify:         verify,
+		Projects:       projects,
+		Unlock:         unlock,
+		Examples:       examples,
+		Convert:        convert,
+		Forgot:         forgot,
+		Reset:          reset,
+		Privacy:        privacy,
+		Terms:          terms,
+		WithoutProject: withoutProject,
+		Mac:            mac,
 	}, nil
 }
 

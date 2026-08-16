@@ -1,14 +1,14 @@
-{{define "title"}}Example MPP files — open a sample MS Project plan | MPP Viewer{{end}}
+{{define "title"}}Example MPP files - open a sample MS Project plan | MPP Viewer{{end}}
 
 {{define "main"}}
-<main class="page centered">
+<main class="page page--text centered">
   <div class="page__head">
     <h1>Example plans</h1>
     <a class="btn btn--primary btn--inline" href="/">Open your own file</a>
   </div>
 
   <p class="lead">
-    Real MS&nbsp;Project schedules you can open right now — no file of your own, no signup.
+    Real MS&nbsp;Project schedules you can open right now - no file of your own, no signup.
     Each one shows the Gantt chart, the task table and the dependencies exactly as the viewer draws them.
   </p>
 
@@ -23,6 +23,81 @@
       </li>
     {{end}}
   </ul>
+
+  <section class="prose">
+<h2>What these samples are for</h2>
+
+<p>
+  Two situations bring people here. Either you want to see what a Microsoft Project schedule
+  looks like before you have one of your own to open, or you have a file that matters and would
+  rather watch a stranger's plan render correctly before handing over yours. Both are reasonable,
+  and both take one click from here.
+</p>
+
+<p>
+  The three plans below are not decoration. Each one exists because it breaks something that
+  commonly goes wrong when a <code>.mpp</code> file is read outside Microsoft Project.
+</p>
+
+<h2>What each one demonstrates</h2>
+
+<ul class="facts">
+  <li>
+    <strong>Office fit-out</strong> - phases inside phases, a full set of dependencies and a
+    marked critical path. This is the shape of a normal construction or delivery schedule, and
+    the one to open if you want to know whether the hierarchy and the dependency arrows survive
+    the trip out of Microsoft Project.
+  </li>
+  <li>
+    <strong>Viaduct</strong> - task names in Cyrillic. Non-Latin text is where cheap converters
+    fall over, usually producing rows of question marks, because the older <code>.mpp</code>
+    generations store text in a way that punishes a lazy reader. Open it and the names are simply
+    there.
+  </li>
+  <li>
+    <strong>Roadworks</strong> - a Project <code>.xml</code> file rather than a binary
+    <code>.mpp</code>. Worth knowing about: if a sender cannot get you an <code>.mpp</code>, this
+    is the format to ask for, and it opens here identically.
+  </li>
+</ul>
+
+<h2>A note on what a sample can tell you</h2>
+
+<p>
+  These are small plans, built to exercise the reader rather than to impress anyone: real
+  structure and real dependencies, invented content, no client data. A sample proves that
+  hierarchy, dates, dependencies and text render properly. It cannot prove anything about how a
+  fifteen-hundred-task programme behaves, which is a fair question - the honest answer is to open
+  yours and see, and since nothing is stored, that costs you nothing but the time it takes.
+</p>
+
+<p>
+  There is no download link on this page, deliberately. The samples open in the viewer; they are
+  not offered as files to take away. If you came looking for an example <code>.mpp</code> to test
+  some other tool with, the file already sitting in your inbox is a better test than anything we
+  could hand you.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>Can I download these as .mpp files?</dt>
+  <dd>No. The samples open directly in the viewer; they are not offered as files to download. If you need a real .mpp to test with, the plan someone sent you is the best one to use - opening it here costs nothing and stores nothing.</dd>
+
+  <dt>Why look at a sample before my own plan?</dt>
+  <dd>To see how a schedule is drawn before handing over a file that may be confidential. The samples cover the three things that usually break elsewhere: deep nesting, non-Latin task names and the XML flavour of the format.</dd>
+
+  <dt>Are these real schedules?</dt>
+  <dd>They are small plans built to exercise the reader - real structure, real dependencies, invented content. No client data appears in them.</dd>
+
+</dl>
+
+<nav class="related" aria-label="Related pages">
+  <a href="/">Open your own file</a>
+  <a href="/mpp-to-excel">Convert MPP to Excel</a>
+  <a href="/open-mpp-file-without-ms-project">Open .mpp without MS Project</a>
+</nav>
+  </section>
 
   <p class="legal-line">
     <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>

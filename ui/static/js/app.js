@@ -278,7 +278,7 @@
   function showDetails(task) {
     var rows = [
       [TEXT.name, escapeHtml(task.name)],
-      [TEXT.wbs, escapeHtml(task.wbs || task.outline_number || '—')],
+      [TEXT.wbs, escapeHtml(task.wbs || task.outline_number || '-')],
       [TEXT.start, shortDateTime(task.start)],
       [TEXT.finish, shortDateTime(task.finish)],
       [TEXT.duration, duration(task.duration)],
@@ -288,7 +288,7 @@
     if (task.is_critical) { rows.push([TEXT.critical, TEXT.yes]); }
     if (task.is_milestone) { rows.push([TEXT.milestone, TEXT.yes]); }
     if (task.baseline) {
-      rows.push([TEXT.baseline, shortDateTime(task.baseline.start) + ' — ' + shortDateTime(task.baseline.finish)]);
+      rows.push([TEXT.baseline, shortDateTime(task.baseline.start) + ' - ' + shortDateTime(task.baseline.finish)]);
     }
 
     var people = (task.assignments || []).map(function (a) {
@@ -415,7 +415,7 @@
   }
 
   function shortDateTime(value) {
-    if (!value) { return '—'; }
+    if (!value) { return '-'; }
     return value.slice(0, 10) + ' ' + value.slice(11, 16);
   }
 

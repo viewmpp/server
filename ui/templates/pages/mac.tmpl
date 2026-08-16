@@ -1,0 +1,131 @@
+{{define "title"}}MPP viewer for Mac - open a Microsoft Project file on macOS | MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <h1>Open an .mpp file on a Mac</h1>
+  <p class="lead">Microsoft Project has never had a macOS version. Drop the file below and read the plan in Safari or Chrome - no virtual machine, no Windows licence, no signup.</p>
+
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
+    <input type="file" id="file" accept=".mpp,.xml" hidden>
+    <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
+    <ul class="drop__terms">
+      <li><code>.mpp</code> or <code>.xml</code></li>
+      <li>up to {{.MaxUploadLabel}}</li>
+      <li>no signup</li>
+    </ul>
+  </div>
+
+  <p class="drop__error is-hidden" id="error"></p>
+
+  <section class="prose">
+<h2>There is no Mac version. That is the whole problem.</h2>
+
+<p>
+  This is not a case of a Mac version being worse, or lagging behind, or missing a few features.
+  Microsoft Project's desktop application runs on Windows and has no macOS build at all. There is
+  nothing to buy, at any price, that puts it on your machine.
+</p>
+
+<p>
+  Which makes the ordinary advice useless. Every thread on the subject ends in the same place:
+  run Windows somehow. That is a real answer for someone who plans projects for a living. It is
+  an absurd answer for someone who was sent one file and needs to read it before a meeting.
+</p>
+
+<h2>The workarounds, honestly priced</h2>
+
+<ul class="facts">
+  <li>
+    <strong>A virtual machine.</strong> The standard recommendation, and it works. It also means
+    paying for the virtualisation app, then a Windows licence, then Microsoft Project itself -
+    three purchases - followed by a long download and an install, all to open an attachment.
+    Expect to give up a meaningful part of your afternoon and a good chunk of disk and memory.
+  </li>
+  <li>
+    <strong>Boot Camp.</strong> Frequently suggested, and no longer possible. It only ever worked
+    on Intel Macs; on Apple Silicon it simply does not exist. If your Mac is recent, this option
+    is not on the table regardless of what an older article tells you.
+  </li>
+  <li>
+    <strong>A remote Windows machine.</strong> A work laptop, a colleague's desk, a cloud desktop.
+    Effective when one is available, and entirely dependent on one being available right now.
+  </li>
+  <li>
+    <strong>Microsoft's browser-based Project.</strong> Reasonable to assume this closes the gap,
+    but it is a separate paid subscription built for planning your own work, not for reading a
+    file that has just arrived from someone else.
+  </li>
+  <li>
+    <strong>A Mac project-management app.</strong> Several will import a schedule, most are paid,
+    and you are installing and learning a planning tool in order to read one document. If you
+    genuinely plan projects on a Mac this may be worth it anyway - but it is not a reading tool.
+  </li>
+  <li>
+    <strong>Ask the sender for a PDF.</strong> Free, and often the sane move. It also costs them
+    a favour and their attention, and what comes back cannot be expanded, collapsed or searched.
+  </li>
+</ul>
+
+<h2>Why the browser is simpler</h2>
+
+<p>
+  Every option above answers the question "how do I run Windows software" - but reading a
+  schedule does not require Windows software. The file needs to be interpreted once, and the
+  result needs to be drawn. Neither step cares what operating system you are on, and both can
+  happen before you finish reading this sentence.
+</p>
+
+<p>
+  So: drop the file in Safari, Chrome or Firefox and the plan appears. Nothing is installed on
+  your Mac, no licence is involved, and no account is required. The file is read in memory and
+  never written to disk - reload the page and it is gone.
+</p>
+
+<p>
+  What comes back is the real structure, not a picture of it: phases you can collapse, dependency
+  arrows, the critical path, non-working days shaded from the project calendar, a searchable task
+  table, and a click on any bar for its dates, progress, predecessors, resources and notes.
+  It is read out of the file rather than recalculated, so the dates match what the sender sees on
+  Windows. Only the styling is ours.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>Is there a Mac version of Microsoft Project?</dt>
+  <dd>No. The desktop application runs on Windows only, and this has been true for the entire modern history of the product. There is no Mac build to buy at any price.</dd>
+
+  <dt>Can I use Boot Camp on an Apple Silicon Mac?</dt>
+  <dd>No. Boot Camp only ever worked on Intel Macs. On Apple Silicon the remaining route to Windows software is a virtual machine, which means paying for the virtualisation app, a Windows licence and a Project licence on top.</dd>
+
+  <dt>Does Microsoft's browser version solve this?</dt>
+  <dd>Not for this problem. It is a separate paid subscription aimed at planning work, not a way to read a file that has just landed in your inbox from someone else.</dd>
+
+  <dt>Will the chart look the same as it does in Project on Windows?</dt>
+  <dd>The structure will: the same task hierarchy, the same dates, durations, dependency arrows, critical tasks and non-working days, because all of it is read out of the file rather than recalculated. The styling is ours, not a pixel copy of Microsoft's.</dd>
+
+</dl>
+
+<nav class="related" aria-label="Related pages">
+  <a href="/open-mpp-file-without-ms-project">What is inside an .mpp file</a>
+  <a href="/mpp-to-excel">Convert it to Excel instead</a>
+  <a href="/examples">See a sample plan first</a>
+</nav>
+  </section>
+
+  <p class="legal-line">
+    <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+  </p>
+</main>
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+<script src="/static/js/save.js?v={{.Version}}"></script>
+{{end}}

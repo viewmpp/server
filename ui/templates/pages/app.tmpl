@@ -1,8 +1,8 @@
 {{define "title"}}
   {{- if .ExampleLabel -}}
-    {{.ExampleLabel}} — an MS Project plan in the browser | MPP Viewer
+    {{.ExampleLabel}} - an MS Project plan in the browser | MPP Viewer
   {{- else -}}
-    MPP Viewer — open an MS Project plan without installing anything
+    MPP Viewer - open an MS Project plan without installing anything
   {{- end -}}
 {{end}}
 
@@ -48,6 +48,108 @@
       </ul>
     </div>
   {{end}}
+
+  <section class="prose">
+<h2>How it works</h2>
+
+<ol class="steps">
+  <li>
+    <strong>Drop the file.</strong> An <code>.mpp</code> saved by any modern version of
+    Microsoft Project, or a Project <code>.xml</code> file. Nothing is installed and you are
+    not asked to register.
+  </li>
+  <li>
+    <strong>It is read, not kept.</strong> The file goes straight into a reader that pulls out
+    the schedule and is gone the moment that finishes. It is never written to disk.
+  </li>
+  <li>
+    <strong>The plan appears.</strong> Usually in a second or two. From there it is an ordinary
+    interactive chart: scroll it, search it, collapse the parts you do not care about.
+  </li>
+</ol>
+
+<h2>What you can actually read</h2>
+
+<p>
+  A schedule is not just a list of dates, and a viewer that shows only names and dates is
+  useless for the question you are normally trying to answer - which is some version of
+  <em>what is late, and what does it drag with it</em>. Everything below comes out of the file:
+</p>
+
+<ul class="facts">
+  <li>
+    <strong>The task hierarchy.</strong> Phases contain tasks contain subtasks, to whatever depth
+    the planner used. Collapse a phase to see the shape of the project on one screen, expand it
+    when you need the detail.
+  </li>
+  <li>
+    <strong>Dependencies.</strong> Arrows between bars, covering all four link types, so you can
+    follow what waits on what instead of guessing from the order of rows.
+  </li>
+  <li>
+    <strong>The critical path.</strong> Tasks with no slack are highlighted - these are the ones
+    where a day lost is a day lost for the whole project.
+  </li>
+  <li>
+    <strong>Non-working days.</strong> Shaded from the project calendar, so a bar that looks two
+    days too long usually turns out to be spanning a weekend.
+  </li>
+  <li>
+    <strong>Everything on a single task.</strong> Click any bar: start and finish, duration,
+    percent complete, its predecessors, the people assigned to it and any notes the planner left.
+  </li>
+</ul>
+
+<p>
+  There is also a search box over the task table, and four zoom levels - day, week, month and
+  quarter - because a two-year programme and a two-week sprint need very different scales to be
+  legible.
+</p>
+
+<h2>What it will not do</h2>
+
+<p>
+  This is a viewer, deliberately. You cannot drag a bar, change a date or re-plan anything, and
+  that is the point: nothing you do while reading can alter the plan its owner is working from.
+  If the schedule is wrong, the conversation belongs with the person who sent it - not with a
+  copy you quietly edited.
+</p>
+
+<p>
+  It also computes nothing. The critical path, the summary dates and the calendars are read out
+  of the file exactly as Microsoft Project saved them, so what you see is what the planner sees,
+  not a second opinion produced by different arithmetic.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>Do I need Microsoft Project installed?</dt>
+  <dd>No. The file is read on the server and drawn as a chart in your browser. Nothing is installed on your machine, and no licence is involved.</dd>
+
+  <dt>Is my file stored anywhere?</dt>
+  <dd>No. The file is read in memory and never written to disk or to a database. If you are not signed in, nothing about the plan survives the request - reloading the page loses it, which is why there is nothing to delete later.</dd>
+
+  <dt>Which versions of .mpp open?</dt>
+  <dd>Files saved by Microsoft Project 2003, 2010, 2016 and 2021 all open through the same reader, along with Project XML (MSPDI) files. The format generation is detected automatically.</dd>
+
+  <dt>Can I edit the schedule here?</dt>
+  <dd>No. This is a viewer: it shows what the file already contains and never changes dates, durations or dependencies. Nothing you do here can alter the plan the sender holds.</dd>
+
+  <dt>How large a file can I open?</dt>
+  <dd>Up to 10 MB without an account. A plan with well over a thousand tasks fits comfortably inside that.</dd>
+
+  <dt>Does it work on a Mac or on Linux?</dt>
+  <dd>Yes. Everything happens in the browser, so the operating system does not matter. This is the usual reason people arrive: Microsoft Project has no macOS version at all.</dd>
+
+</dl>
+
+<nav class="related" aria-label="Related pages">
+  <a href="/examples">Open a sample plan</a>
+  <a href="/open-mpp-file-without-ms-project">Open .mpp without MS Project</a>
+  <a href="/mpp-viewer-mac">Open .mpp on a Mac</a>
+</nav>
+  </section>
 
   <p class="legal-line">
     <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>

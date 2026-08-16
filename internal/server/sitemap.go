@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"net/http"
 	"server/internal/fixtures"
+	"server/internal/landing"
 	"server/internal/vcs"
 	"strings"
 	"time"
@@ -21,7 +22,10 @@ type sitemapURL struct {
 }
 
 func sitemapPaths() []string {
-	paths := []string{"/", "/mpp-to-excel", "/examples"}
+	paths := make([]string, 0, len(landing.All()))
+	for _, page := range landing.All() {
+		paths = append(paths, page.Slug)
+	}
 
 	for _, e := range fixtures.Examples() {
 		paths = append(paths, "/example/"+e.Name)

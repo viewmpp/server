@@ -2,11 +2,13 @@ package viewer
 
 import (
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"server/internal/fixtures"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/landing"
 	"server/internal/user"
 	"strings"
 )
@@ -31,7 +33,7 @@ func NewHandler(
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, fixtures.Examples())
-	page.Description = "Open an MS Project .mpp or .xml file in your browser and read the Gantt chart straight away — tasks, dates, dependencies and the critical path, with no install and no signup."
+	page.Description = landing.BySlug("/").Description
 	page.Canonical = h.baseURL + "/"
 	page.Public = true
 
@@ -40,7 +42,7 @@ func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) ExamplesPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, fixtures.Examples())
-	page.Description = "Open a sample MS Project plan in your browser — Gantt chart, task table and dependencies, with no file of your own and no signup."
+	page.Description = landing.BySlug("/examples").Description
 	page.Canonical = h.baseURL + "/examples"
 	page.Public = true
 
@@ -95,8 +97,27 @@ func (h *Handler) TermsPage(w http.ResponseWriter, r *http.Request) {
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Terms, page, h.logger)
 }
 
+func (h *Handler) WithoutProjectPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/open-mpp-file-without-ms-project", h.templates.WithoutProject)
+}
+
+func (h *Handler) MacPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/mpp-viewer-mac", h.templates.Mac)
+}
+
+func (h *Handler) landing(w http.ResponseWriter, r *http.Request, slug string, tmpl *template.Template) {
+	c := landing.BySlug(slug)
+
+	page := user.NewPage(r, nil)
+	page.Description = c.Description
+	page.Canonical = h.baseURL + c.Slug
+	page.Public = true
+
+	htmlutil.WriteHTML(w, r, http.StatusOK, tmpl, page, h.logger)
+}
+
 func exampleDescription(e fixtures.Example) string {
 	return fmt.Sprintf(
-		"%s — %s. Open this sample MS Project plan in the browser: Gantt chart, task table and dependencies, no install and no signup.",
+		"%s - %s. Open this sample MS Project plan in the browser: Gantt chart, task table and dependencies, no install and no signup.",
 		e.Label, e.Note)
 }

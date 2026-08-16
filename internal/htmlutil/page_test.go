@@ -44,7 +44,7 @@ func TestZeroPageKeepsCurrentHead(t *testing.T) {
 		t.Error("default description is gone")
 	}
 
-	if !strings.Contains(head, "<title>MPP Viewer — open an MS Project plan without installing anything</title>") {
+	if !strings.Contains(head, "<title>MPP Viewer - open an MS Project plan without installing anything</title>") {
 		t.Error("title from the page template is gone")
 	}
 }

@@ -40,7 +40,7 @@ func (m *Mailer) SendPasswordReset(email, link string) error {
 	data := ResetEmailData{
 		Subject: "Reset your password",
 		Message: "Use the link below to choose a new password. It expires shortly.",
-		Hint:    "If you did not ask to reset your password, ignore this email — nothing has changed.",
+		Hint:    "If you did not ask to reset your password, ignore this email - nothing has changed.",
 		Link:    link,
 	}
 

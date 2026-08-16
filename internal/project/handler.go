@@ -10,6 +10,7 @@ import (
 	"server/internal/fixtures"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/landing"
 	"server/internal/ratelimit"
 	"server/internal/user"
 	"server/internal/xlsx"
@@ -66,7 +67,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 
 	page := user.NewPage(r, nil)
 	page.NoIndex = true
-	page.Description = fmt.Sprintf("%s — an MS Project plan you can open in the browser, no install needed.", p.FileName)
+	page.Description = fmt.Sprintf("%s - an MS Project plan you can open in the browser, no install needed.", p.FileName)
 	page.ProjectID = p.PublicID
 	page.FileName = p.FileName
 	page.Access = p.Access
@@ -259,7 +260,7 @@ func (h *Handler) ConvertPage(w http.ResponseWriter, r *http.Request) {
 
 	page := user.NewPage(r, saved)
 	page.Examples = fixtures.Examples()
-	page.Description = "Convert an MS Project .mpp file to an Excel .xlsx spreadsheet in your browser — tasks, dates, durations and predecessors, with no install and no signup."
+	page.Description = landing.BySlug("/mpp-to-excel").Description
 	page.Canonical = h.baseURL + "/mpp-to-excel"
 	page.Public = true
 

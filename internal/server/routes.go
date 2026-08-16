@@ -26,6 +26,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
 	mux.HandleFunc("GET /example/{name}", s.viewerHandler.ExamplePage)
 
+	mux.HandleFunc("GET /open-mpp-file-without-ms-project", s.viewerHandler.WithoutProjectPage)
+	mux.HandleFunc("GET /mpp-viewer-mac", s.viewerHandler.MacPage)
+
 	mux.HandleFunc("GET /privacy", s.viewerHandler.PrivacyPage)
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
 

@@ -1,0 +1,150 @@
+{{define "title"}}Open an .mpp file without Microsoft Project | MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <h1>Open an .mpp file without Microsoft Project</h1>
+  <p class="lead">You were sent a schedule, you do not have Microsoft Project, and you need to read the thing now. Drop the file below and the plan appears - no install, no licence, no signup.</p>
+
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
+    <input type="file" id="file" accept=".mpp,.xml" hidden>
+    <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
+    <ul class="drop__terms">
+      <li><code>.mpp</code> or <code>.xml</code></li>
+      <li>up to {{.MaxUploadLabel}}</li>
+      <li>no signup</li>
+    </ul>
+  </div>
+
+  <p class="drop__error is-hidden" id="error"></p>
+
+  <section class="prose">
+<h2>What is actually inside an .mpp file</h2>
+
+<p>
+  An <code>.mpp</code> file is a binary document. Not text, not a zip archive, not a database you
+  can point something at - a structured binary container that Microsoft Project writes for its
+  own use, holding tasks, calendars, resources, links between tasks and a great deal of internal
+  bookkeeping that only means anything to the program that wrote it.
+</p>
+
+<p>
+  It is also not one format but several. The layout changed across product generations, and a
+  file saved by Project 2003 is put together differently from one saved by Project 2021. Anything
+  claiming to read <code>.mpp</code> files has to understand all of them, which is most of the
+  reason there are so few tools that do.
+</p>
+
+<p>
+  One consequence is worth knowing, because it explains a lot of frustration: the format is
+  <strong>readable but not writable</strong>. There is no library anywhere that can produce a
+  valid <code>.mpp</code> file. Only Microsoft Project writes them. So every tool you find will
+  read the file and hand you something else - a chart, a spreadsheet, a PDF - and none of them
+  will offer to save your changes back.
+</p>
+
+<h2>Why a text editor shows garbage</h2>
+
+<p>
+  Almost everyone tries this first, and it is a sensible thing to try. Opening the file in
+  Notepad or VS Code produces a wall of unreadable characters with occasional recognisable
+  fragments - a task name, a resource, the name of the person who saved it. Those fragments are
+  real, which is what makes it tempting to keep digging.
+</p>
+
+<p>
+  It never pays off. What you are seeing is text stored inside binary records, stripped of the
+  structure that gives it meaning. The editor has no idea which string is a task name and which
+  is a leftover, no idea that task 47 comes after task 12, and no access to the dates at all -
+  those are numbers, not text, and they do not survive the trip through a text editor even to be
+  looked at.
+</p>
+
+<p>
+  Renaming the file changes nothing. <code>.xlsx</code> and <code>.docx</code> really are zip
+  archives you can unpack, so the instinct is well earned - but <code>.mpp</code> is not one of
+  them, and renaming it to <code>.zip</code> or <code>.xml</code> just produces an archive that
+  will not open.
+</p>
+
+<h2>The options, and what each one costs</h2>
+
+<ul class="facts">
+  <li>
+    <strong>Buy Microsoft Project.</strong> Solves it completely, at a price that is difficult to
+    justify for reading one file someone emailed you. It is also Windows-only, which is a
+    dead end outright if you are on a Mac.
+  </li>
+  <li>
+    <strong>Ask the sender to export.</strong> Free and often the right answer - a PDF or a
+    spreadsheet from their copy of Project costs them a minute. The catch is that it costs
+    <em>them</em> a minute, it puts you back in the queue behind their other work, and what comes
+    back is a flat snapshot you cannot expand, collapse or search.
+  </li>
+  <li>
+    <strong>Install a desktop viewer.</strong> Several exist. You are installing a program with
+    permanent access to your machine in order to read one attachment, most of them are Windows-only,
+    and the free ones tend to become paid ones at the point where you have already committed.
+  </li>
+  <li>
+    <strong>An online converter.</strong> Closest to what you want, and the category to be
+    careful in: many quietly keep an indefinite copy of whatever you upload, which for a project
+    schedule means client names, staff names and internal dates sitting on someone else's disk.
+  </li>
+</ul>
+
+<h2>What happens here instead</h2>
+
+<p>
+  The file is read in memory and never written to disk or to a database. There is no copy to
+  expire, no retention window to trust and nothing to ask us to delete later - without an
+  account, nothing about the plan survives the request that carried it. Reload the page and it is
+  genuinely gone.
+</p>
+
+<p>
+  What you get back is the schedule as a chart you can work with: the task hierarchy with phases
+  you can collapse, dependency arrows, the critical path, non-working days shaded from the
+  project calendar, and a click on any bar for its dates, progress, predecessors, resources and
+  notes. If what you actually need is the numbers in a spreadsheet, that route exists too.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>Can I just rename the .mpp file to .txt or .xml?</dt>
+  <dd>No. Renaming changes nothing about the contents. An .mpp file is a binary document, not text in disguise, so a text editor will only ever show fragments of task names floating in unreadable data.</dd>
+
+  <dt>Is an .mpp file a zip archive?</dt>
+  <dd>No. Some Microsoft formats such as .xlsx and .docx are zip archives you can unpack, which is why people try it. The .mpp format is not one of them; it is a structured binary document and unpacking it does nothing.</dd>
+
+  <dt>What about a .xml file from Microsoft Project?</dt>
+  <dd>That is Project XML, also called MSPDI. It is genuinely text and opens here the same way an .mpp does. If the sender has not sent the file yet, asking for XML costs them one extra step in the Save As dialog.</dd>
+
+  <dt>Is a free viewer safer than uploading the file?</dt>
+  <dd>It is a fair question to ask. Here the file is read in memory and never written to disk or to a database, and without an account nothing about it survives the request. A desktop viewer, by contrast, is an installed program with permanent access to your machine.</dd>
+
+</dl>
+
+<nav class="related" aria-label="Related pages">
+  <a href="/mpp-viewer-mac">Doing this on a Mac</a>
+  <a href="/mpp-to-excel">Convert it to Excel instead</a>
+  <a href="/examples">See a sample plan first</a>
+</nav>
+  </section>
+
+  <p class="legal-line">
+    <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+  </p>
+</main>
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+<script src="/static/js/save.js?v={{.Version}}"></script>
+{{end}}
