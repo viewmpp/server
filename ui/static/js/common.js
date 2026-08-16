@@ -30,7 +30,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contract)
       }).then(function (response) {
-        if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
+        if (!response.ok) {
+          var error = new Error(window.MppText.serverSaid(response.status));
+          error.status = response.status;
+          throw error;
+        }
         return response.json();
       });
     }

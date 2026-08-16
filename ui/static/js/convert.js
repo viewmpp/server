@@ -14,6 +14,9 @@
   var toolbarExport = document.getElementById('export-xlsx');
   if (toolbarExport) { toolbarExport.remove(); }
 
+  var toolbarOffer = document.getElementById('save-cta');
+  if (toolbarOffer) { toolbarOffer.remove(); }
+
   document.addEventListener('mpp:loaded', function (event) {
     loaded = event.detail.contract;
     loadedName = event.detail.fileName;

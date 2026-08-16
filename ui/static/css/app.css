@@ -294,6 +294,9 @@ code {
 .drop__terms li + li::before { content: ""; width: 3px; height: 3px; border-radius: 50%; background: var(--disabled); }
 .drop__terms code { font-size: 11px; }
 .drop__error { margin: calc(var(--unit) * 2) 0 0; color: var(--error); }
+
+.offer { gap: var(--unit); }
+.offer__text { color: var(--secondary); font-size: 12px; }
 .link { color: var(--link); cursor: pointer; }
 .link:hover { text-decoration: underline; }
 
