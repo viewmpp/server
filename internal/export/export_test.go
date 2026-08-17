@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"server/internal/clientip"
 	"server/internal/fixtures"
 	"server/internal/ratelimit"
 	"testing"
@@ -16,10 +17,7 @@ import (
 func newHandler(t *testing.T, limit int) *Handler {
 	t.Helper()
 
-	limiter, err := ratelimit.New(limit, time.Minute, 0)
-	if err != nil {
-		t.Fatalf("limiter: %v", err)
-	}
+	limiter := ratelimit.New(limit, time.Minute)
 	t.Cleanup(limiter.Close)
 
 	return NewHandler(limiter, slog.New(slog.DiscardHandler))
@@ -30,6 +28,7 @@ func post(t *testing.T, h *Handler, body []byte, name string) *httptest.Response
 
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/xlsx?name="+name, bytes.NewReader(body))
 	r.RemoteAddr = "203.0.113.5:1234"
+	r = clientip.SetContext(r, "203.0.113.5")
 
 	rec := httptest.NewRecorder()
 	h.XLSX(rec, r)
@@ -82,6 +81,7 @@ func TestRejectsOversizedBody(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/xlsx", bytes.NewReader(huge))
 	r.RemoteAddr = "203.0.113.9:1234"
 	r.ContentLength = int64(len(huge))
+	r = clientip.SetContext(r, "203.0.113.9")
 
 	rec := httptest.NewRecorder()
 	newHandler(t, 100).XLSX(rec, r)

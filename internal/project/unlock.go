@@ -2,6 +2,7 @@ package project
 
 import (
 	"net/http"
+	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/user"
 )
@@ -40,7 +41,7 @@ func (h *Handler) Unlock(w http.ResponseWriter, r *http.Request) {
 
 	keys := []string{
 		"unlock:" + publicID,
-		"unlock-ip:" + h.limiter.ClientIP(r),
+		"unlock-ip:" + clientip.From(r),
 	}
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {

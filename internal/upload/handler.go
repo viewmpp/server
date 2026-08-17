@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"server/internal/clientip"
 	"server/internal/jsonutil"
 	"server/internal/parser"
 	"server/internal/ratelimit"
@@ -95,7 +96,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) allow(r *http.Request, u *user.User) bool {
-	keys := []string{"upload-ip:" + h.limiter.ClientIP(r)}
+	keys := []string{"upload-ip:" + clientip.From(r)}
 
 	if !u.IsAnonymous() {
 		keys = append(keys, "upload-user:"+strconv.FormatInt(u.ID, 10))

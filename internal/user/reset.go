@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"server/internal/background"
+	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/token"
 	"server/internal/validator"
@@ -40,7 +41,7 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	keys := []string{"reset:" + form.Email, "reset-ip:" + h.limiter.ClientIP(r)}
+	keys := []string{"reset:" + form.Email, "reset-ip:" + clientip.From(r)}
 
 	if key, allowed := h.limiter.TakeAll(keys); !allowed {
 		h.logger.Warn("reset throttled", "key", key)

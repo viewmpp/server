@@ -12,8 +12,7 @@ func errorResponse(w http.ResponseWriter, status int, data any) {
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logger *slog.Logger) {
 	logger.Error("error occurs", "err", err, "method", r.Method, "uri", safelog.URI(r.RequestURI))
-	message := "the server encountered a problem and could not process your request"
-	errorResponse(w, http.StatusInternalServerError, message)
+	errorResponse(w, http.StatusInternalServerError, "the server encountered a problem and could not process your request")
 }
 
 func BadRequestResponse(w http.ResponseWriter, err any) {
@@ -21,13 +20,11 @@ func BadRequestResponse(w http.ResponseWriter, err any) {
 }
 
 func LengthRequiredResponse(w http.ResponseWriter) {
-	message := "request must declare its size"
-	errorResponse(w, http.StatusLengthRequired, message)
+	errorResponse(w, http.StatusLengthRequired, "request must declare its size")
 }
 
 func ContentTooLargeError(w http.ResponseWriter) {
-	message := "content too large"
-	errorResponse(w, http.StatusRequestEntityTooLarge, message)
+	errorResponse(w, http.StatusRequestEntityTooLarge, "content too large")
 }
 
 func SaveLimitResponse(w http.ResponseWriter, message string) {
@@ -43,6 +40,5 @@ func UnauthorizedResponse(w http.ResponseWriter) {
 }
 
 func NotFoundResponse(w http.ResponseWriter) {
-	message := "not found"
-	errorResponse(w, http.StatusNotFound, message)
+	errorResponse(w, http.StatusNotFound, "not found")
 }

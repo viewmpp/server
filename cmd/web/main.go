@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"server/internal/background"
+	"server/internal/clientip"
 	"server/internal/config"
 	"server/internal/export"
 	"server/internal/htmlutil"
@@ -52,22 +53,18 @@ func run() error {
 	}
 	defer db.Close()
 
-	uploadLimiter, err := ratelimit.New(cfg.UploadLimit, cfg.UploadWindow, cfg.Proxies)
+	resolver, err := clientip.NewResolver(cfg.Proxies)
 	if err != nil {
 		return err
 	}
+
+	uploadLimiter := ratelimit.New(cfg.UploadLimit, cfg.UploadWindow)
 	defer uploadLimiter.Close()
 
-	projectLimiter, err := ratelimit.New(cfg.ProjectLimit, cfg.ProjectWindow, cfg.Proxies)
-	if err != nil {
-		return err
-	}
+	projectLimiter := ratelimit.New(cfg.ProjectLimit, cfg.ProjectWindow)
 	defer projectLimiter.Close()
 
-	userLimiter, err := ratelimit.New(cfg.UserLimit, cfg.UserWindow, cfg.Proxies)
-	if err != nil {
-		return err
-	}
+	userLimiter := ratelimit.New(cfg.UserLimit, cfg.UserWindow)
 	defer userLimiter.Close()
 
 	s := store.New(db, cfg, logger)
@@ -83,8 +80,8 @@ func run() error {
 	viewerHandler := viewer.NewHandler(templates, cfg.BaseURL, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
 	exportHandler := export.NewHandler(uploadLimiter, logger)
-	projectHandler := project.NewHandler(s.Projects, cfg.BaseURL, userLimiter, cfg.LenListLimit, templates, logger)
+	projectHandler := project.NewHandler(s.Projects, cfg.BaseURL, projectLimiter, cfg.LenListLimit, templates, logger)
 	userHandler := user.NewHandler(s.Users, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, templates, &wg, logger)
 
-	return server.New(cfg, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
+	return server.New(cfg, resolver, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

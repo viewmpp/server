@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"server/internal/clientip"
 	"server/internal/contract"
 	"server/internal/jsonutil"
 	"server/internal/ratelimit"
@@ -27,7 +28,7 @@ func NewHandler(limiter *ratelimit.Limiter, logger *slog.Logger) *Handler {
 }
 
 func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
-	key := "export-ip:" + h.limiter.ClientIP(r)
+	key := "export-ip:" + clientip.From(r)
 
 	if !h.limiter.Take(key) {
 		h.logger.Warn("export throttled", "key", key)

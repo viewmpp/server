@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"server/internal/clientip"
 	"server/internal/config"
 	"server/internal/export"
 	"server/internal/project"
@@ -23,6 +24,7 @@ import (
 
 type Server struct {
 	cfg            config.Config
+	clientIP       *clientip.Resolver
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
 	exportHandler  *export.Handler
@@ -35,6 +37,7 @@ type Server struct {
 
 func New(
 	cfg config.Config,
+	clientIP *clientip.Resolver,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
 	exportHandler *export.Handler,
@@ -46,6 +49,7 @@ func New(
 ) *Server {
 	return &Server{
 		cfg:            cfg,
+		clientIP:       clientIP,
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
 		exportHandler:  exportHandler,

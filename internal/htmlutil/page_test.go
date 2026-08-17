@@ -17,7 +17,7 @@ func TestCacheControl(t *testing.T) {
 		want string
 	}{
 		{"default", Page{}, &session.Session{}, "no-store"},
-		{"public, anonymous", Page{Public: true}, &session.Session{}, publicMaxAge},
+		{"public, anonymous", Page{Public: true}, &session.Session{}, "public, max-age=300"},
 		{"public, signed in", Page{Public: true}, &session.Session{UserID: &signedIn}, "no-store"},
 		{"private, signed in", Page{}, &session.Session{UserID: &signedIn}, "no-store"},
 	}

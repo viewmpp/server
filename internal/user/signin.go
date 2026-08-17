@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"net/http"
+	"server/internal/clientip"
 	"server/internal/htmlutil"
 
 	"golang.org/x/crypto/bcrypt"
@@ -31,7 +32,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 	form := SigninForm{Email: NormalizeEmail(r.PostFormValue("email"))}
 	pass := r.PostFormValue("password")
 
-	keys := []string{"signin:" + form.Email, "signin-ip:" + h.limiter.ClientIP(r)}
+	keys := []string{"signin:" + form.Email, "signin-ip:" + clientip.From(r)}
 
 	if key, ok := h.limiter.AllowAll(keys); !ok {
 		h.logger.Warn("signin throttled", "key", key)

@@ -9,10 +9,7 @@ import (
 func newTestLimiter(t *testing.T, limit int, window time.Duration) *Limiter {
 	t.Helper()
 
-	l, err := New(limit, window, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
+	l := New(limit, window)
 	t.Cleanup(l.Close)
 
 	return l

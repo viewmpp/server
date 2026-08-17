@@ -83,11 +83,9 @@ func (p Page) MaxUploadLabel() string {
 	return strconv.FormatInt(p.MaxUpload>>20, 10) + " MB"
 }
 
-const publicMaxAge = "public, max-age=300"
-
 func cacheControl(page Page, sess *session.Session) string {
 	if page.Public && sess.UserID == nil {
-		return publicMaxAge
+		return "public, max-age=300"
 	}
 	return "no-store"
 }
