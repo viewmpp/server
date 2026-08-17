@@ -19,13 +19,7 @@ func resolve(t *testing.T, proxies int, remote string, forwarded ...string) stri
 		r.Header.Add(header, value)
 	}
 
-	var got string
-
-	res.Middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		got = From(r)
-	})).ServeHTTP(httptest.NewRecorder(), r)
-
-	return got
+	return res.Get(r)
 }
 
 func TestWithoutProxiesTheHeaderIsIgnored(t *testing.T) {
@@ -81,6 +75,12 @@ func TestNeverResolvesToAnEmptyKey(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestContextRoundTrip(t *testing.T) {
+	r := SetContext(httptest.NewRequest(http.MethodGet, "/", nil), "198.51.100.7")
+
+	assert.Equal(t, From(r), "198.51.100.7")
 }
 
 func TestFromPanicsWithoutTheMiddleware(t *testing.T) {

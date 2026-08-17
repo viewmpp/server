@@ -39,12 +39,8 @@ func strategyFor(proxies int) (realclientip.Strategy, error) {
 	return realclientip.NewChainStrategy(trusted, realclientip.RemoteAddrStrategy{}), nil
 }
 
-func (res *Resolver) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := res.strategy.ClientIP(r.Header, r.RemoteAddr)
-
-		next.ServeHTTP(w, SetContext(r, ip))
-	})
+func (res *Resolver) Get(r *http.Request) string {
+	return res.strategy.ClientIP(r.Header, r.RemoteAddr)
 }
 
 func SetContext(r *http.Request, ip string) *http.Request {

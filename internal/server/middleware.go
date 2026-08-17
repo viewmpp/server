@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/safelog"
@@ -32,16 +33,6 @@ type noStoreWriter struct {
 func (w *noStoreWriter) WriteHeader(code int) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.ResponseWriter.WriteHeader(code)
-}
-
-func (s *Server) noStore(next http.Handler) http.Handler {
-	if s.cfg.Env != "dev" {
-		return next
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(&noStoreWriter{ResponseWriter: w}, r)
-	})
 }
 
 func (s *Server) logRequest(next http.Handler) http.Handler {
@@ -93,27 +84,21 @@ func (s *Server) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) authenticate(next http.Handler) http.Handler {
+func (s *Server) noStore(next http.Handler) http.Handler {
+	if s.cfg.Env != "dev" {
+		return next
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess := session.FromContext(r)
+		next.ServeHTTP(&noStoreWriter{ResponseWriter: w}, r)
+	})
+}
 
-		if sess.UserID == nil {
-			next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
-			return
-		}
+func (s *Server) clientIP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := s.resolver.Get(r)
 
-		u, err := s.store.Users.GetByID(r.Context(), *sess.UserID)
-		if err != nil {
-			if errors.Is(err, user.ErrUserNotFound) {
-				sess.UserID = nil
-				next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
-				return
-			}
-			htmlutil.ServerErrorResponse(w, r, err, s.logger)
-			return
-		}
-
-		next.ServeHTTP(w, user.SetUserContext(r, u))
+		next.ServeHTTP(w, clientip.SetContext(r, ip))
 	})
 }
 
@@ -149,5 +134,29 @@ func (s *Server) withSession(next http.Handler) http.Handler {
 		if err = s.store.Sessions.Save(r.Context(), sess); err != nil {
 			s.logger.Error("session not saved", "err", err, "path", r.URL.Path)
 		}
+	})
+}
+
+func (s *Server) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess := session.FromContext(r)
+
+		if sess.UserID == nil {
+			next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
+			return
+		}
+
+		u, err := s.store.Users.GetByID(r.Context(), *sess.UserID)
+		if err != nil {
+			if errors.Is(err, user.ErrUserNotFound) {
+				sess.UserID = nil
+				next.ServeHTTP(w, user.SetUserContext(r, user.AnonymousUser))
+				return
+			}
+			htmlutil.ServerErrorResponse(w, r, err, s.logger)
+			return
+		}
+
+		next.ServeHTTP(w, user.SetUserContext(r, u))
 	})
 }

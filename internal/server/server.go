@@ -24,7 +24,7 @@ import (
 
 type Server struct {
 	cfg            config.Config
-	clientIP       *clientip.Resolver
+	resolver       *clientip.Resolver
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
 	exportHandler  *export.Handler
@@ -37,7 +37,7 @@ type Server struct {
 
 func New(
 	cfg config.Config,
-	clientIP *clientip.Resolver,
+	resolver *clientip.Resolver,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
 	exportHandler *export.Handler,
@@ -49,7 +49,7 @@ func New(
 ) *Server {
 	return &Server{
 		cfg:            cfg,
-		clientIP:       clientIP,
+		resolver:       resolver,
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
 		exportHandler:  exportHandler,

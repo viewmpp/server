@@ -59,5 +59,5 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("/", s.notFound)
 
-	return s.recoverPanic(s.logRequest(s.noStore(s.clientIP.Middleware(s.withSession(s.authenticate(mux))))))
+	return s.recoverPanic(s.logRequest(s.noStore(s.clientIP(s.withSession(s.authenticate(mux))))))
 }
