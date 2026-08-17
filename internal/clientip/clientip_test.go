@@ -3,6 +3,7 @@ package clientip
 import (
 	"net/http"
 	"net/http/httptest"
+	"server/internal/assert"
 	"testing"
 )
 
@@ -10,9 +11,7 @@ func resolve(t *testing.T, proxies int, remote string, forwarded ...string) stri
 	t.Helper()
 
 	res, err := NewResolver(proxies)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = remote

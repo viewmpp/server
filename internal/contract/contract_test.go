@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"server/internal/assert"
 	"server/internal/fixtures"
 	"testing"
 )
@@ -9,9 +10,7 @@ func TestDecodeFixtures(t *testing.T) {
 	for name, raw := range fixtures.All() {
 		t.Run(name, func(t *testing.T) {
 			c, err := Decode(raw)
-			if err != nil {
-				t.Fatalf("decode: %v", err)
-			}
+			assert.NilError(t, err)
 
 			if len(c.Tasks) == 0 {
 				t.Fatal("no tasks decoded")

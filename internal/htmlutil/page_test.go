@@ -2,6 +2,7 @@ package htmlutil
 
 import (
 	"bytes"
+	"server/internal/assert"
 	"server/internal/session"
 	"strings"
 	"testing"
@@ -77,9 +78,7 @@ func render(t *testing.T, page Page) string {
 	t.Helper()
 
 	tmpl, err := parsePage("app.tmpl")
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	assert.NilError(t, err)
 
 	var buf bytes.Buffer
 	if err = tmpl.ExecuteTemplate(&buf, "base", page); err != nil {

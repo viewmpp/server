@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"os"
 	"path/filepath"
+	"server/internal/assert"
 	"testing"
 )
 
@@ -27,9 +28,7 @@ func TestFixturesMatchParser(t *testing.T) {
 			if os.IsNotExist(err) {
 				t.Skipf("parser fixtures not available at %s", path)
 			}
-			if err != nil {
-				t.Fatalf("reading %s: %v", path, err)
-			}
+			assert.NilError(t, err)
 
 			if sum(bytes.TrimSpace(original)) != sum(bytes.TrimSpace(embedded)) {
 				t.Errorf("%s drifted from parser/fixtures/%s\n embedded: %s\n original: %s",
@@ -40,15 +39,9 @@ func TestFixturesMatchParser(t *testing.T) {
 }
 
 func TestByDemoFallsBackToRealMpp(t *testing.T) {
-	if got := ByDemo("").FileName; got != fallback.FileName {
-		t.Errorf("empty demo: got %q, want %q", got, fallback.FileName)
-	}
-	if got := ByDemo("nonsense").FileName; got != fallback.FileName {
-		t.Errorf("unknown demo: got %q, want %q", got, fallback.FileName)
-	}
-	if got := ByDemo("cyrillic").FileName; got != "виадук.mpp" {
-		t.Errorf("cyrillic demo: got %q", got)
-	}
+	assert.Equal(t, ByDemo("").FileName, fallback.FileName)
+	assert.Equal(t, ByDemo("nonsense").FileName, fallback.FileName)
+	assert.Equal(t, ByDemo("cyrillic").FileName, "виадук.mpp")
 }
 
 func sum(data []byte) string {

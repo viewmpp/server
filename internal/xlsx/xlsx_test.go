@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"bytes"
+	"server/internal/assert"
 	"server/internal/contract"
 	"server/internal/fixtures"
 	"strings"
@@ -14,25 +15,17 @@ func TestWriteFixtures(t *testing.T) {
 	for name, raw := range fixtures.All() {
 		t.Run(name, func(t *testing.T) {
 			c, err := contract.Decode(raw)
-			if err != nil {
-				t.Fatalf("decode: %v", err)
-			}
+			assert.NilError(t, err)
 
 			var buf bytes.Buffer
-			if err = Write(&buf, c); err != nil {
-				t.Fatalf("write: %v", err)
-			}
+			assert.NilError(t, Write(&buf, c))
 
 			f, err := excelize.OpenReader(&buf)
-			if err != nil {
-				t.Fatalf("reopen: %v", err)
-			}
+			assert.NilError(t, err)
 			defer f.Close()
 
 			rows, err := f.GetRows(sheet)
-			if err != nil {
-				t.Fatalf("rows: %v", err)
-			}
+			assert.NilError(t, err)
 
 			if got, want := len(rows), len(c.Tasks)+1; got != want {
 				t.Fatalf("got %d rows, want %d (header + tasks)", got, want)
@@ -47,9 +40,7 @@ func TestWriteFixtures(t *testing.T) {
 
 func TestWriteKeepsCyrillic(t *testing.T) {
 	c, err := contract.Decode(fixtures.All()["cyrillic.json"])
-	if err != nil {
-		t.Fatalf("decode: %v", err)
-	}
+	assert.NilError(t, err)
 
 	var buf bytes.Buffer
 	if err = Write(&buf, c); err != nil {
@@ -57,15 +48,11 @@ func TestWriteKeepsCyrillic(t *testing.T) {
 	}
 
 	f, err := excelize.OpenReader(&buf)
-	if err != nil {
-		t.Fatalf("reopen: %v", err)
-	}
+	assert.NilError(t, err)
 	defer f.Close()
 
 	rows, err := f.GetRows(sheet)
-	if err != nil {
-		t.Fatalf("rows: %v", err)
-	}
+	assert.NilError(t, err)
 
 	var joined strings.Builder
 	for _, row := range rows {
@@ -79,9 +66,7 @@ func TestWriteKeepsCyrillic(t *testing.T) {
 
 func TestWriteKeepsDatesAsDates(t *testing.T) {
 	c, err := contract.Decode(fixtures.All()["mpp14baseline.json"])
-	if err != nil {
-		t.Fatalf("decode: %v", err)
-	}
+	assert.NilError(t, err)
 
 	var buf bytes.Buffer
 	if err = Write(&buf, c); err != nil {
@@ -89,15 +74,11 @@ func TestWriteKeepsDatesAsDates(t *testing.T) {
 	}
 
 	f, err := excelize.OpenReader(&buf)
-	if err != nil {
-		t.Fatalf("reopen: %v", err)
-	}
+	assert.NilError(t, err)
 	defer f.Close()
 
 	got, err := f.GetCellValue(sheet, "C2")
-	if err != nil {
-		t.Fatalf("cell: %v", err)
-	}
+	assert.NilError(t, err)
 
 	if got == "" || strings.Contains(got, "T") {
 		t.Errorf("start cell is %q; expected a formatted date, not the raw ISO string", got)

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"server/internal/assert"
 	"testing"
 	"time"
 )
@@ -26,9 +27,7 @@ func TestCanShare(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := c.user.CanShare(c.shared); got != c.want {
-				t.Errorf("CanShare(%d) = %v, want %v", c.shared, got, c.want)
-			}
+			assert.Equal(t, c.user.CanShare(c.shared), c.want)
 		})
 	}
 }
@@ -57,9 +56,7 @@ func TestHasSubscriptionRespectsExpiry(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := c.user.HasSubscription(); got != c.want {
-				t.Errorf("HasSubscription() = %v, want %v", got, c.want)
-			}
+			assert.Equal(t, c.user.HasSubscription(), c.want)
 		})
 	}
 }

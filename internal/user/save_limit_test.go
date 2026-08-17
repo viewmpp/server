@@ -1,6 +1,7 @@
 package user
 
 import (
+	"server/internal/assert"
 	"testing"
 	"time"
 )
@@ -33,9 +34,7 @@ func TestCanSave(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := tc.user.CanSave(tc.saved); got != tc.want {
-				t.Errorf("CanSave(%d) = %v, want %v", tc.saved, got, tc.want)
-			}
+			assert.Equal(t, tc.user.CanSave(tc.saved), tc.want)
 		})
 	}
 }
