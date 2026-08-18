@@ -5,6 +5,7 @@
 
   var ui = {
     landing: document.getElementById('landing'),
+    foot: document.getElementById('foot'),
     app: document.getElementById('app'),
     drop: document.getElementById('drop'),
     file: document.getElementById('file'),
@@ -80,6 +81,7 @@
     ui.details.classList.add('is-hidden');
     ui.app.classList.add('is-hidden');
     ui.landing.classList.remove('is-hidden');
+    if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
   });
 
   window.MppUpload.bind({
@@ -138,6 +140,7 @@
       .catch(function (err) {
         ui.app.classList.add('is-hidden');
         ui.landing.classList.remove('is-hidden');
+    if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
         fail(err.message);
       });
   }
@@ -171,6 +174,7 @@
 
   function show(contract, fileName, refused) {
     ui.landing.classList.add('is-hidden');
+    if (ui.foot) { ui.foot.classList.add('is-hidden'); }
     ui.app.classList.remove('is-hidden');
 
     if (!started) {

@@ -3,6 +3,7 @@ package htmlutil
 import (
 	"fmt"
 	"html/template"
+	"server/internal/landing"
 	"server/ui"
 )
 
@@ -169,10 +170,13 @@ func NewEmails() (*Emails, error) {
 	}, nil
 }
 
+var funcs = template.FuncMap{"footerLinks": landing.Footer}
+
 func parsePage(name string) (*template.Template, error) {
-	return template.ParseFS(ui.Files,
+	return template.New(name).Funcs(funcs).ParseFS(ui.Files,
 		"templates/base.tmpl",
 		"templates/partials/viewer.tmpl",
+		"templates/partials/footer.tmpl",
 		fmt.Sprintf("templates/pages/%s", name))
 }
 

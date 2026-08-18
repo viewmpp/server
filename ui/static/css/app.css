@@ -711,7 +711,6 @@ code {
 .faq dt { margin-top: calc(var(--unit) * 2); font-weight: 600; }
 .faq dd { margin: 4px 0 0; color: var(--secondary); line-height: 1.7; }
 
-.related { display: flex; flex-wrap: wrap; gap: calc(var(--unit) * 2); margin-top: calc(var(--unit) * 5); font-size: 13px; }
 
 .saved-note { margin: 0 0 calc(var(--unit) * 2); color: var(--secondary); font-size: 12px; }
 
@@ -729,3 +728,16 @@ code {
 }
 .theme__btn:hover { color: var(--text); }
 .theme__btn.is-active { background: var(--bg); color: var(--text); box-shadow: var(--shadow-popup); }
+
+.foot {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: calc(var(--unit) * 4) calc(var(--unit) * 3) calc(var(--unit) * 6);
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+.foot__nav { display: flex; flex-wrap: wrap; gap: var(--unit) calc(var(--unit) * 2); }
+.foot__nav a { color: var(--text); }
+.foot__legal { margin: calc(var(--unit) * 2) 0 0; color: var(--secondary); }
+.foot__legal a { color: var(--secondary); }
+.foot__legal a:hover { color: var(--link); }

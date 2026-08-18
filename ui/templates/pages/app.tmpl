@@ -172,17 +172,10 @@
 
 </dl>
 
-<nav class="related" aria-label="Related pages">
-  <a href="/examples">Open a sample plan</a>
-  <a href="/open-mpp-file-without-ms-project">Open .mpp without MS Project</a>
-  <a href="/mpp-viewer-mac">Open .mpp on a Mac</a>
-</nav>
   </section>
-
-  <p class="legal-line">
-    <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
-  </p>
 </main>
+
+{{if not .ProjectID}}{{template "sitefooter" .}}{{end}}
 
 {{template "viewer" .}}
 {{end}}
@@ -192,3 +185,4 @@
 <script src="/static/js/app.js?v={{.Version}}"></script>
 <script src="/static/js/save.js?v={{.Version}}"></script>
 {{end}}
+
