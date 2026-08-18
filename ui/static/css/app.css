@@ -45,6 +45,8 @@
   --offtime-stripe: rgba(108, 112, 126, .09);
 
   --ease: .15s ease-out;
+
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
@@ -85,6 +87,8 @@
   --warning-bg-hover: #3d2f16;
   --progress-overlay: rgba(0, 0, 0, .25);
   --offtime-stripe: rgba(145, 152, 161, .12);
+
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -424,10 +428,21 @@ code {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
+  color: var(--text);
   font: inherit;
 }
 .field input:hover { border-color: var(--border-hover); }
 .field input:focus { outline: none; border-color: var(--main); box-shadow: 0 0 0 2px var(--bg-selected); }
+::placeholder { color: var(--disabled); opacity: 1; }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  caret-color: var(--text);
+}
+
 .field__error { display: block; margin: 0 0 4px; color: var(--error); font-size: 12px; }
 .field__hint { margin: 4px 0 0; color: var(--secondary); font-size: 12px; }
 
@@ -460,6 +475,8 @@ code {
   padding: 0 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
   font: inherit;
 }
 .protect__pass:focus { outline: none; border-color: var(--border-hover); }
@@ -505,6 +522,8 @@ code {
   padding: 0 var(--unit);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
   font: inherit;
 }
 .search:hover { border-color: var(--border-hover); }
