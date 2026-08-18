@@ -14,6 +14,12 @@
 {{if .Canonical}}<meta property="og:url" content="{{.Canonical}}">
 {{end}}<meta name="twitter:card" content="summary">
 {{end}}
+<script>
+(function(){try{var m=localStorage.getItem('mpp-theme');
+if(m!=='light'&&m!=='dark'){m=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+var r=document.documentElement;r.setAttribute('data-theme',m);
+r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
+</script>
 <link rel="stylesheet" href="/static/css/app.css?v={{.Version}}">
 {{block "head" .}}{{end}}
 </head>
@@ -83,12 +89,19 @@
         <a class="side__signin" href="/signin">Sign in</a>
       </div>
     {{end}}
+
+    <div class="theme" role="group" aria-label="Colour theme">
+      <button class="theme__btn" type="button" data-theme-set="light" aria-pressed="false">Light</button>
+      <button class="theme__btn" type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+      <button class="theme__btn" type="button" data-theme-set="system" aria-pressed="false">System</button>
+    </div>
   </div>
 </aside>
 
 <div class="main">
 {{template "main" .}}
 </div>
+<script src="/static/js/theme.js?v={{.Version}}"></script>
 <script src="/static/js/common.js?v={{.Version}}"></script>
 {{block "scripts" .}}{{end}}
 </body>
