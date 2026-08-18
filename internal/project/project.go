@@ -183,6 +183,25 @@ func (s *Store) ListByUserID(ctx context.Context, userID int64, limit int) ([]*P
 	return out, rows.Err()
 }
 
+func (s *Store) GetAccess(ctx context.Context, publicID string, userID int64) (string, error) {
+	query := `SELECT access FROM projects WHERE public_id = $1 AND user_id = $2`
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var access string
+
+	err := s.db.QueryRowContext(ctx, query, publicID, userID).Scan(&access)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrNotFound
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return access, nil
+}
+
 func (s *Store) SetAccess(ctx context.Context, publicID string, userID int64, access string, password []byte) error {
 	query := `UPDATE projects SET access = $1, password_hash = $2 WHERE public_id = $3 AND user_id = $4`
 

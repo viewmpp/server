@@ -13,27 +13,30 @@ import (
 )
 
 type Page struct {
-	Title        string
-	Description  string
-	Canonical    string
-	NoIndex      bool
-	Public       bool
-	MaxUpload    int64
-	Version      string
-	Flash        string
-	Form         any
-	Examples     []fixtures.Example
-	SavedNote    string
-	UserEmail    string
-	Verified     bool
-	Pro          bool
-	ProjectID    string
-	ExampleName  string
-	ExampleLabel string
-	FileName     string
-	Access       string
-	IsOwner      bool
-	CanShare     bool
+	Title             string
+	Description       string
+	Canonical         string
+	NoIndex           bool
+	Public            bool
+	MaxUpload         int64
+	Version           string
+	Flash             string
+	Form              any
+	Examples          []fixtures.Example
+	SavedNote         string
+	UserEmail         string
+	Verified          bool
+	Pro               bool
+	ProjectID         string
+	ExampleName       string
+	ExampleLabel      string
+	FileName          string
+	Access            string
+	IsOwner           bool
+	CanShare          bool
+	MaxPublicFree     int
+	MinPasswordLength int
+	MaxPasswordLength int
 
 	sess *session.Session
 }

@@ -73,29 +73,70 @@
         {{end}}
 
         {{if .IsOwner}}
-          {{if eq .Access "private"}}
-            {{if .CanShare}}
-              <form action="/p/{{.ProjectID}}/access" method="POST">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <input type="hidden" name="access" value="public">
-                <button class="btn btn--sm" type="submit">
-                  <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M8 11a3 3 0 0 0 4.24 0l2.5-2.5a3 3 0 1 0-4.24-4.24l-.7.7"/>
-                    <path d="M12 9a3 3 0 0 0-4.24 0l-2.5 2.5a3 3 0 1 0 4.24 4.24l.7-.7"/>
-                  </svg>
-                  Share
-                </button>
-              </form>
-            {{end}}
-          {{else}}
-            <button class="btn btn--sm" id="copy-link" data-link="/p/{{.ProjectID}}">
+          <div class="menu menu--wide" data-menu>
+            <button class="btn btn--sm{{if ne .Access "private"}} is-active{{end}}" type="button" data-menu-toggle
+                    aria-haspopup="true" aria-expanded="false">
               <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
-                <rect x="7" y="7" width="9.5" height="9.5" rx="1.5"/>
-                <path d="M13 7V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v6.5A1.5 1.5 0 0 0 5 13h2"/>
+                <path d="M8 11a3 3 0 0 0 4.24 0l2.5-2.5a3 3 0 1 0-4.24-4.24l-.7.7"/>
+                <path d="M12 9a3 3 0 0 0-4.24 0l-2.5 2.5a3 3 0 1 0 4.24 4.24l.7-.7"/>
               </svg>
-              <span data-label>Copy link</span>
+              {{if eq .Access "private"}}Share{{else}}Shared{{end}}
             </button>
-          {{end}}
+
+            <div class="menu__panel share is-hidden" data-menu-panel>
+              <p class="share__title">
+                {{if eq .Access "private"}}Create a link to this plan{{else if eq .Access "protected"}}Anyone with the link and password can open it{{else}}Anyone with the link can open it{{end}}
+              </p>
+
+              {{if ne .Access "private"}}
+                <div class="share__link">
+                  <input class="share__url" type="text" readonly value="/p/{{.ProjectID}}" data-share-url aria-label="Share link">
+                  <button class="btn btn--sm" type="button" id="copy-link" data-link="/p/{{.ProjectID}}"><span data-label>Copy</span></button>
+                </div>
+              {{end}}
+
+              {{if and (eq .Access "private") (not .CanShare)}}
+                <p class="share__note">
+                  {{if not .Verified}}
+                    <a href="/verify">Confirm your email address</a> to share a link.
+                  {{else}}
+                    Free accounts share {{.MaxPublicFree}} plans at a time. <a href="/projects">Stop sharing one</a>, or go Pro.
+                  {{end}}
+                </p>
+              {{else}}
+                <form action="/p/{{.ProjectID}}/access" method="POST" class="share__form" data-share-form>
+                  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                  <input type="hidden" name="access" value="{{if eq .Access "protected"}}protected{{else}}public{{end}}" data-share-access>
+
+                  <label class="switch">
+                    <input type="checkbox" data-share-protect {{if eq .Access "protected"}}checked{{end}}>
+                    <span class="switch__track"></span>
+                    Require a password
+                  </label>
+
+                  <div class="share__pass{{if ne .Access "protected"}} is-hidden{{end}}" data-share-pass>
+                    <input class="share__input" type="password" name="password"
+                           placeholder="Password" autocomplete="new-password"
+                           minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
+                    <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                  </div>
+
+                  <button class="btn btn--sm btn--primary btn--inline" type="submit">
+                    {{if eq .Access "private"}}Create link{{else}}Save changes{{end}}
+                  </button>
+                </form>
+              {{end}}
+
+              {{if ne .Access "private"}}
+                <div class="menu__sep"></div>
+                <form action="/p/{{.ProjectID}}/access" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                  <input type="hidden" name="access" value="private">
+                  <button class="menu__item menu__item--danger" type="submit">Stop sharing</button>
+                </form>
+              {{end}}
+            </div>
+          </div>
         {{end}}
 
         <button class="btn btn--sm" id="reset" type="button">Another file</button>
@@ -112,26 +153,6 @@
             </button>
 
             <div class="menu__panel is-hidden" data-menu-panel>
-              {{if eq .Access "private"}}
-                {{if .CanShare}}
-                  <form action="/p/{{.ProjectID}}/access" method="POST" class="menu__field protect">
-                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <input type="hidden" name="access" value="protected">
-                    <input class="protect__pass" type="password" name="password"
-                           placeholder="password" autocomplete="off" minlength="4" required>
-                    <button class="btn btn--sm" type="submit">Share</button>
-                  </form>
-                {{end}}
-              {{else}}
-                <form action="/p/{{.ProjectID}}/access" method="POST">
-                  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                  <input type="hidden" name="access" value="private">
-                  <button class="menu__item" type="submit">Stop sharing</button>
-                </form>
-              {{end}}
-
-              <div class="menu__sep"></div>
-
               <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button class="menu__item menu__item--danger" type="submit">Delete plan</button>
@@ -147,6 +168,13 @@
 
   <div class="workspace">
     <div id="gantt-here"></div>
+
+    {{with .Flash}}
+      <div class="toast toast--flash" id="viewer-flash">
+        <span class="toast__text">{{.}}</span>
+        <button class="toast__close" type="button" data-toast-close aria-label="Dismiss">&times;</button>
+      </div>
+    {{end}}
 
     <aside id="details" class="details is-hidden">
       <button class="details__close" id="details-close" aria-label="Close">&times;</button>

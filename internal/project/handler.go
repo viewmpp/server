@@ -73,6 +73,9 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	page.Access = p.Access
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID
 	page.CanShare = u.CanShare(shared)
+	page.MaxPublicFree = user.MaxPublicFree
+	page.MinPasswordLength = MinPasswordLength
+	page.MaxPasswordLength = MaxPasswordLength
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
 }
@@ -136,9 +139,19 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 
 	back := fmt.Sprintf("/p/%s", publicID)
 
+	current, err := h.store.GetAccess(r.Context(), publicID, u.ID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			htmlutil.NotFoundPage(w, r, h.logger)
+			return
+		}
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
 	var password []byte
 
-	if access != AccessPrivate {
+	if opensNewShare(current, access) {
 		shared, err := h.store.CountShared(r.Context(), u.ID)
 		if err != nil {
 			htmlutil.ServerErrorResponse(w, r, err, h.logger)

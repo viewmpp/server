@@ -14,6 +14,10 @@ func unlocked(r *http.Request, publicID string) bool {
 	return session.FromContext(r).Get(unlockKey(publicID)) != ""
 }
 
+func opensNewShare(current, next string) bool {
+	return next != AccessPrivate && current == AccessPrivate
+}
+
 func owns(u *user.User, p *Project) bool {
 	return !u.IsAnonymous() && u.ID == p.UserID
 }
