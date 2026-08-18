@@ -14,12 +14,12 @@
 
   <ul class="cards">
     {{range .Form}}
-      <li class="card">
-        <a class="card__name" href="/example/{{.Name}}">{{.Label}}</a>
-        <div class="card__meta">
-          <span>{{.Note}}</span>
-          <code>{{.FileName}}</code>
+      <li class="card card--stack">
+        <div class="card__main">
+          <a class="card__name" href="/example/{{.Name}}">{{.Label}}</a>
+          <span class="card__note">{{.Note}}</span>
         </div>
+        <code>{{.FileName}}</code>
       </li>
     {{end}}
   </ul>

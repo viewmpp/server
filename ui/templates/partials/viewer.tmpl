@@ -1,88 +1,145 @@
 {{define "viewer"}}
 <div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}">
   <header class="bar">
-    <div class="bar__title">
-      <span id="project-name" class="muted"></span>
-    </div>
-
-    <div class="bar__group">
-      <input type="search" id="search" class="search" placeholder="search tasks" autocomplete="off">
-    </div>
-
-    <div class="bar__group">
-      <span class="label">Scale</span>
-      <button class="btn btn--scale is-active" data-scale="day">Day</button>
-      <button class="btn btn--scale" data-scale="week">Week</button>
-      <button class="btn btn--scale" data-scale="month">Month</button>
-      <button class="btn btn--scale" data-scale="quarter">Quarter</button>
-    </div>
-
-    <div class="bar__group">
-      <button class="btn" id="collapse-all">Collapse all</button>
-      <button class="btn" id="expand-all">Expand all</button>
-    </div>
-
-    <div class="bar__group">
-      <label class="check"><input type="checkbox" id="toggle-critical" checked> critical path</label>
-      <label class="check"><input type="checkbox" id="toggle-grid" checked> grid</label>
-    </div>
-
-    <div class="bar__group">
-      {{if .ProjectID}}
-        <a class="btn" href="/p/{{.ProjectID}}/xlsx">Export to Excel</a>
-      {{else}}
-        <button class="btn" id="export-xlsx" type="button">Export to Excel</button>
-      {{end}}
-    </div>
-
-    {{if and (not .ProjectID) (not .ExampleName)}}
-      <div class="bar__group offer is-hidden" id="save-cta" data-signed-in="{{if .UserEmail}}1{{else}}0{{end}}">
-        <span class="offer__text" id="save-cta-text"></span>
-        <a class="btn btn--primary is-hidden" id="save-cta-signup" href="/signup" target="_blank" rel="noopener">Create a free account</a>
-        <button class="btn btn--primary is-hidden" id="save-cta-save" type="button">Save this plan</button>
-        <a class="btn is-hidden" id="save-cta-manage" href="/projects">Manage plans</a>
-      </div>
-    {{end}}
-
-    {{if .IsOwner}}
-      <div class="bar__group">
-        {{if eq .Access "private"}}
-          {{if .CanShare}}
-            <form action="/p/{{.ProjectID}}/access" method="POST">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-              <input type="hidden" name="access" value="public">
-              <button class="btn" type="submit">Share</button>
-            </form>
-
-            <form action="/p/{{.ProjectID}}/access" method="POST" class="protect">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-              <input type="hidden" name="access" value="protected">
-              <input class="protect__pass" type="password" name="password"
-                     placeholder="password" autocomplete="off" minlength="4" required>
-              <button class="btn" type="submit">Share with password</button>
-            </form>
-          {{else}}
-            <span class="label">Private</span>
-          {{end}}
-        {{else}}
+    <div class="bar__row">
+      <div class="bar__title">
+        <span id="project-name" class="bar__name"></span>
+        {{if and .IsOwner (ne .Access "private")}}
           <span class="tag tag--{{.Access}}">{{.Access}}</span>
-          <button class="btn" id="copy-link" data-link="/p/{{.ProjectID}}">Copy link</button>
-          <form action="/p/{{.ProjectID}}/access" method="POST">
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <input type="hidden" name="access" value="private">
-            <button class="btn" type="submit">Stop sharing</button>
-          </form>
+        {{else if and .IsOwner (not .CanShare)}}
+          <span class="tag tag--private">Private</span>
+        {{end}}
+      </div>
+
+      <div class="bar__sep"></div>
+
+      <input type="search" id="search" class="search" placeholder="Search tasks" autocomplete="off">
+
+      <div class="seg" role="group" aria-label="Time scale">
+        <button class="seg__btn is-active" type="button" data-scale="day">Day</button>
+        <button class="seg__btn" type="button" data-scale="week">Week</button>
+        <button class="seg__btn" type="button" data-scale="month">Month</button>
+        <button class="seg__btn" type="button" data-scale="quarter">Quarter</button>
+      </div>
+
+      <div class="bar__group">
+        <button class="btn btn--sm btn--icon btn--ghost" id="collapse-all" type="button"
+                aria-label="Collapse all" title="Collapse all">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M6.5 8 10 4.5 13.5 8"/>
+            <path d="M6.5 15.5 10 12l3.5 3.5"/>
+          </svg>
+        </button>
+        <button class="btn btn--sm btn--icon btn--ghost" id="expand-all" type="button"
+                aria-label="Expand all" title="Expand all">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M6.5 4.5 10 8l3.5-3.5"/>
+            <path d="M6.5 12 10 15.5l3.5-3.5"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="bar__sep"></div>
+
+      <div class="bar__group">
+        <label class="switch">
+          <input type="checkbox" id="toggle-critical" checked>
+          <span class="switch__track"></span>
+          critical path
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-grid" checked>
+          <span class="switch__track"></span>
+          grid
+        </label>
+      </div>
+      <div class="bar__actions">
+        {{if .ProjectID}}
+          <a class="btn btn--sm" href="/p/{{.ProjectID}}/xlsx">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
+              <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
+            </svg>
+            Export to Excel
+          </a>
+        {{else}}
+          <button class="btn btn--sm" id="export-xlsx" type="button">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
+              <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
+            </svg>
+            Export to Excel
+          </button>
         {{end}}
 
-        <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
-          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <button class="btn btn--danger" type="submit">Delete</button>
-        </form>
-      </div>
-    {{end}}
+        {{if .IsOwner}}
+          {{if eq .Access "private"}}
+            {{if .CanShare}}
+              <form action="/p/{{.ProjectID}}/access" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="access" value="public">
+                <button class="btn btn--sm" type="submit">
+                  <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M8 11a3 3 0 0 0 4.24 0l2.5-2.5a3 3 0 1 0-4.24-4.24l-.7.7"/>
+                    <path d="M12 9a3 3 0 0 0-4.24 0l-2.5 2.5a3 3 0 1 0 4.24 4.24l.7-.7"/>
+                  </svg>
+                  Share
+                </button>
+              </form>
+            {{end}}
+          {{else}}
+            <button class="btn btn--sm" id="copy-link" data-link="/p/{{.ProjectID}}">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="7" y="7" width="9.5" height="9.5" rx="1.5"/>
+                <path d="M13 7V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v6.5A1.5 1.5 0 0 0 5 13h2"/>
+              </svg>
+              <span data-label>Copy link</span>
+            </button>
+          {{end}}
+        {{end}}
 
-    <div class="bar__group">
-      <button class="btn" id="reset">Another file</button>
+        <button class="btn btn--sm" id="reset" type="button">Another file</button>
+
+        {{if .IsOwner}}
+          <div class="menu" data-menu>
+            <button class="btn btn--sm btn--icon" type="button" data-menu-toggle
+                    aria-haspopup="true" aria-expanded="false" aria-label="More actions" title="More actions">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+                <circle cx="4.5" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+              </svg>
+            </button>
+
+            <div class="menu__panel is-hidden" data-menu-panel>
+              {{if eq .Access "private"}}
+                {{if .CanShare}}
+                  <form action="/p/{{.ProjectID}}/access" method="POST" class="menu__field protect">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input type="hidden" name="access" value="protected">
+                    <input class="protect__pass" type="password" name="password"
+                           placeholder="password" autocomplete="off" minlength="4" required>
+                    <button class="btn btn--sm" type="submit">Share</button>
+                  </form>
+                {{end}}
+              {{else}}
+                <form action="/p/{{.ProjectID}}/access" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                  <input type="hidden" name="access" value="private">
+                  <button class="menu__item" type="submit">Stop sharing</button>
+                </form>
+              {{end}}
+
+              <div class="menu__sep"></div>
+
+              <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <button class="menu__item menu__item--danger" type="submit">Delete plan</button>
+              </form>
+            </div>
+          </div>
+        {{end}}
+      </div>
     </div>
   </header>
 
@@ -95,6 +152,16 @@
       <button class="details__close" id="details-close" aria-label="Close">&times;</button>
       <div id="details-body"></div>
     </aside>
+
+    {{if and (not .ProjectID) (not .ExampleName)}}
+      <div class="toast is-hidden" id="save-cta" data-signed-in="{{if .UserEmail}}1{{else}}0{{end}}">
+        <span class="offer__text" id="save-cta-text"></span>
+        <a class="btn btn--sm btn--primary btn--inline is-hidden" id="save-cta-signup" href="/signup" target="_blank" rel="noopener">Create a free account</a>
+        <button class="btn btn--sm btn--primary btn--inline is-hidden" id="save-cta-save" type="button">Save this plan</button>
+        <a class="btn btn--sm is-hidden" id="save-cta-manage" href="/projects">Manage plans</a>
+        <button class="toast__close" type="button" id="save-cta-close" aria-label="Dismiss">&times;</button>
+      </div>
+    {{end}}
   </div>
 
   <footer class="statusbar">

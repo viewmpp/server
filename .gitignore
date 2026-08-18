@@ -8,3 +8,8 @@
 
 /docs/settings.md
 /docs/landing-strategy.md
+
+node_modules
+.mcp.json
+package-lock.json
+package.json

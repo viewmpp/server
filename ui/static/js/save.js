@@ -9,7 +9,13 @@
   var save = document.getElementById('save-cta-save');
   var manage = document.getElementById('save-cta-manage');
 
+  var close = document.getElementById('save-cta-close');
+
   var signedIn = box.dataset.signedIn === '1';
+
+  if (close) {
+    close.addEventListener('click', function () { box.classList.add('is-hidden'); });
+  }
 
   var loaded = null;
   var loadedName = '';
@@ -74,19 +80,8 @@
   }
 
   function saved(result) {
-    box.textContent = '';
-
-    var done = document.createElement('span');
-    done.className = 'offer__text';
-    done.textContent = 'Saved to your projects.';
-
-    var open = document.createElement('a');
-    open.className = 'btn';
-    open.href = '/p/' + result.id;
-    open.textContent = 'Open it';
-
-    box.appendChild(done);
-    box.appendChild(open);
-    box.classList.remove('is-hidden');
+    manage.href = '/p/' + result.id;
+    manage.textContent = 'Open it';
+    only(manage, 'Saved to your projects.');
   }
 })();

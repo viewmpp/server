@@ -1,10 +1,12 @@
 {{define "sitefooter"}}
-<footer class="foot centered" id="foot">
-  <nav class="foot__nav" aria-label="More pages">
-    {{range footerLinks}}<a href="{{.Slug}}">{{.Label}}</a>{{end}}
-  </nav>
-  <p class="foot__legal">
-    <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
-  </p>
+<footer class="foot" id="foot">
+  <div class="foot__inner centered">
+    <nav class="foot__nav" aria-label="More pages">
+      {{range footerLinks}}<a href="{{.Slug}}">{{.Label}}</a>{{end}}
+    </nav>
+    <p class="foot__legal">
+      <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+    </p>
+  </div>
 </footer>
 {{end}}

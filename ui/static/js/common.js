@@ -121,12 +121,42 @@
     if (!button) { return; }
 
     var link = location.origin + button.getAttribute('data-link');
+    var label = button.querySelector('[data-label]') || button;
 
     navigator.clipboard.writeText(link).then(function () {
-      button.textContent = 'Link copied';
-      setTimeout(function () { button.textContent = 'Copy link'; }, 2000);
+      label.textContent = 'Link copied';
+      setTimeout(function () { label.textContent = 'Copy link'; }, 2000);
     }, function () {
       window.prompt('Copy link', link);
     });
+  });
+
+  function closeMenus(except) {
+    document.querySelectorAll('[data-menu]').forEach(function (menu) {
+      if (menu === except) { return; }
+      menu.querySelector('[data-menu-panel]').classList.add('is-hidden');
+      menu.querySelector('[data-menu-toggle]').setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var toggle = event.target.closest('[data-menu-toggle]');
+
+    if (!toggle) {
+      if (!event.target.closest('[data-menu-panel]')) { closeMenus(null); }
+      return;
+    }
+
+    var menu = toggle.closest('[data-menu]');
+    var panel = menu.querySelector('[data-menu-panel]');
+    var open = panel.classList.contains('is-hidden');
+
+    closeMenus(menu);
+    panel.classList.toggle('is-hidden', !open);
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { closeMenus(null); }
   });
 })();
