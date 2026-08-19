@@ -51,6 +51,8 @@
   --offtime-stripe: rgba(115, 115, 115, .07);
 
   --ease: .15s cubic-bezier(.4, 0, .2, 1);
+  --ease-press: .08s cubic-bezier(.4, 0, .2, 1);
+  --ease-spring: .28s cubic-bezier(.34, 1.56, .64, 1);
 
   color-scheme: light;
 }
@@ -100,6 +102,8 @@
 
   color-scheme: dark;
 }
+
+@view-transition { navigation: auto; }
 
 * { box-sizing: border-box; }
 
@@ -455,8 +459,7 @@ code {
 .share__url:focus { outline: none; border-color: var(--main); box-shadow: 0 0 0 3px var(--ring); }
 
 .share__form { display: flex; flex-direction: column; gap: 10px; }
-.share__pass { display: flex; flex-direction: column; gap: 4px; }
-.share__pass.is-hidden { display: none !important; }
+.share__pass__inner { display: flex; flex-direction: column; gap: 4px; }
 .share__input {
   width: 100%;
   height: 32px;
@@ -911,8 +914,87 @@ input:-webkit-autofill:focus {
   to { opacity: 1; transform: none; }
 }
 
+
+::view-transition-old(root) { animation: fade-out .14s ease-out both; }
+::view-transition-new(root) { animation: rise-in .24s cubic-bezier(.4, 0, .2, 1) both; }
+
+.side { view-transition-name: side; }
+
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes fade-in { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing > *, .page > *, .auth > * {
+    animation: rise-in .34s cubic-bezier(.4, 0, .2, 1) both;
+  }
+  .landing > *:nth-child(2), .page > *:nth-child(2), .auth > *:nth-child(2) { animation-delay: .05s; }
+  .landing > *:nth-child(3), .page > *:nth-child(3), .auth > *:nth-child(3) { animation-delay: .1s; }
+  .landing > *:nth-child(4), .page > *:nth-child(4), .auth > *:nth-child(4) { animation-delay: .15s; }
+  .landing > *:nth-child(n+5), .page > *:nth-child(n+5), .auth > *:nth-child(n+5) { animation-delay: .2s; }
+}
+
+.menu__panel {
+  transform-origin: top right;
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition:
+    opacity .16s ease-out,
+    transform .18s cubic-bezier(.34, 1.4, .64, 1),
+    visibility 0s;
+}
+.menu__panel.is-hidden {
+  display: flex !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(.96);
+  transition:
+    opacity .12s ease-in,
+    transform .12s cubic-bezier(.4, 0, .2, 1),
+    visibility 0s .12s;
+}
+.menu--up .menu__panel { transform-origin: bottom left; }
+.menu--up .menu__panel.is-hidden { transform: translateY(8px) scale(.96); }
+
+.card-block__body[data-reveal-body],
+.share__pass {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows .28s cubic-bezier(.4, 0, .2, 1),
+    padding .28s cubic-bezier(.4, 0, .2, 1),
+    transform .28s cubic-bezier(.4, 0, .2, 1),
+    opacity .18s ease-out;
+}
+.card-block__body[data-reveal-body] > *,
+.share__pass > * { min-height: 0; overflow: hidden; }
+
+.card-block__body[data-reveal-body].is-collapsed,
+.share__pass.is-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.card-block__body[data-reveal-body].is-collapsed { padding-top: 0; padding-bottom: 0; }
+
+.btn:active, .seg__btn:active, .theme__btn:active, .menu__item:active, .account:active, .sample:active {
+  transform: scale(.97);
+}
+.btn, .seg__btn, .theme__btn, .menu__item, .account { transition-property: background, border-color, color, box-shadow, transform; }
+.btn:active, .seg__btn:active, .theme__btn:active, .menu__item:active, .account:active { transition-duration: var(--ease-press); }
+
+.switch__track::after { transition: transform var(--ease-spring); }
+.theme__btn .ico { transition: transform var(--ease-spring); }
+.theme__btn:hover .ico { transform: rotate(-12deg); }
+.theme__btn.is-active .ico { transform: none; }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .btn:active, .seg__btn:active, .theme__btn:active, .menu__item:active, .account:active, .sample:active { transform: none; }
+  .theme__btn:hover .ico { transform: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 .gantt_container { font: inherit !important; border: 0 !important; background: var(--bg) !important; }

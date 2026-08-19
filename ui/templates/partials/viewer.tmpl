@@ -114,11 +114,13 @@
                     Require a password
                   </label>
 
-                  <div class="share__pass{{if ne .Access "protected"}} is-hidden{{end}}" data-share-pass>
-                    <input class="share__input" type="password" name="password"
-                           placeholder="Password" autocomplete="new-password"
-                           minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
-                    <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                  <div class="share__pass{{if ne .Access "protected"}} is-collapsed{{end}}" data-share-pass>
+                    <div class="share__pass__inner">
+                      <input class="share__input" type="password" name="password"
+                             placeholder="Password" autocomplete="new-password"
+                             minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
+                      <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                    </div>
                   </div>
 
                   <button class="btn btn--sm btn--primary btn--inline" type="submit">

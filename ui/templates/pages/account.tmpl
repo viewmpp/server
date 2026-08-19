@@ -95,7 +95,7 @@
     <form action="/account/delete" method="POST" novalidate data-reveal>
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-      <div class="card-block__body{{if not $confirmError}} is-hidden{{end}}" data-reveal-body>
+      <div class="card-block__body{{if not $confirmError}} is-collapsed{{end}}" data-reveal-body>
         <div class="field">
           <label for="confirm">Your password</label>
           {{with $confirmError}}<span class="field__error">{{.}}</span>{{end}}

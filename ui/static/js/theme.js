@@ -40,10 +40,24 @@
         localStorage.setItem(KEY, mode);
       } catch (e) { /* private mode: the choice lasts for this page only */ }
 
-      paint(mode);
-      mark(mode);
+      apply(mode);
     }
   };
+
+  function apply(mode) {
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!document.startViewTransition || still) {
+      paint(mode);
+      mark(mode);
+      return;
+    }
+
+    document.startViewTransition(function () {
+      paint(mode);
+      mark(mode);
+    });
+  }
 
   function mark(mode) {
     var buttons = document.querySelectorAll('[data-theme-set]');

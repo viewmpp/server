@@ -169,7 +169,8 @@
     function sync() {
       var on = protect.checked;
 
-      box.classList.toggle('is-hidden', !on);
+      box.classList.toggle('is-collapsed', !on);
+      box.inert = !on;
       access.value = on ? 'protected' : 'public';
 
       if (on) {
@@ -182,6 +183,7 @@
 
     protect.addEventListener('change', sync);
 
+    box.inert = !protect.checked;
     if (protect.checked) { field.setAttribute('required', 'required'); }
   });
 
@@ -203,7 +205,8 @@
     var submit = form.querySelector('[data-reveal-submit]');
 
     function open(on) {
-      body.classList.toggle('is-hidden', !on);
+      body.classList.toggle('is-collapsed', !on);
+      body.inert = !on;
       toggle.classList.toggle('is-hidden', on);
       cancel.classList.toggle('is-hidden', !on);
       submit.classList.toggle('is-hidden', !on);
@@ -219,5 +222,7 @@
 
     toggle.addEventListener('click', function () { open(true); });
     cancel.addEventListener('click', function () { open(false); });
+
+    body.inert = body.classList.contains('is-collapsed');
   });
 })();
