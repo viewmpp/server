@@ -89,6 +89,8 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
             <div class="menu__sep"></div>
           {{end}}
 
+          <a class="menu__item" href="/account">Account</a>
+
           <form action="/signout" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <button class="menu__item" type="submit">Sign out</button>

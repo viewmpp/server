@@ -194,4 +194,30 @@
     var close = event.target.closest('[data-toast-close]');
     if (close) { close.parentNode.classList.add('is-hidden'); }
   });
+
+  document.querySelectorAll('[data-reveal]').forEach(function (form) {
+    var body = form.querySelector('[data-reveal-body]');
+    var field = body.querySelector('input');
+    var toggle = form.querySelector('[data-reveal-toggle]');
+    var cancel = form.querySelector('[data-reveal-cancel]');
+    var submit = form.querySelector('[data-reveal-submit]');
+
+    function open(on) {
+      body.classList.toggle('is-hidden', !on);
+      toggle.classList.toggle('is-hidden', on);
+      cancel.classList.toggle('is-hidden', !on);
+      submit.classList.toggle('is-hidden', !on);
+
+      if (on) {
+        field.setAttribute('required', 'required');
+        field.focus();
+      } else {
+        field.removeAttribute('required');
+        field.value = '';
+      }
+    }
+
+    toggle.addEventListener('click', function () { open(true); });
+    cancel.addEventListener('click', function () { open(false); });
+  });
 })();

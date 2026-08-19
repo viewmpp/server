@@ -55,6 +55,10 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /signin", s.userHandler.Signin)
 	mux.HandleFunc("POST /signout", s.userHandler.Signout)
 
+	mux.HandleFunc("GET /account", s.userHandler.AccountPage)
+	mux.HandleFunc("POST /account/password", s.userHandler.ChangePassword)
+	mux.HandleFunc("POST /account/delete", s.userHandler.DeleteAccount)
+
 	mux.HandleFunc("POST /subscribe", s.userHandler.Subscribe)
 
 	mux.HandleFunc("/", s.notFound)

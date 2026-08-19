@@ -725,9 +725,9 @@ input:-webkit-autofill:focus {
   font-weight: 500;
   white-space: nowrap;
 }
-.tag--private { background: var(--bg-tag); border: 1px solid var(--line); color: var(--secondary); }
-.tag--protected { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning); }
-.tag--public { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+.tag--private, .tag--muted { background: var(--bg-tag); border: 1px solid var(--line); color: var(--secondary); }
+.tag--protected, .tag--warn { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning); }
+.tag--public, .tag--ok { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
 
 .protect { display: flex; gap: 6px; }
 .protect__pass {
@@ -1143,3 +1143,44 @@ input:-webkit-autofill:focus {
 }
 .foot__legal a { color: var(--secondary); }
 .foot__legal a:hover { color: var(--text); }
+
+.card-block {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: calc(var(--unit) * 3);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.card-block__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 6px calc(var(--unit) * 2);
+  padding: calc(var(--unit) * 3);
+}
+.card-block__head h2 { grid-column: 1; font-size: 16px; }
+.card-block__action { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
+.card-block__value { grid-column: 1; margin: 0; font-size: 14px; font-weight: 500; }
+.card-block__note { grid-column: 1; margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.6; }
+
+.card-block__body { padding: 0 calc(var(--unit) * 3) calc(var(--unit) * 3); }
+.card-block__body .field:last-child { margin-bottom: 0; }
+
+.card-block__foot {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--unit) * 2);
+  padding: calc(var(--unit) * 2) calc(var(--unit) * 3);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--line);
+}
+.card-block__hint { flex: 1; margin: 0; color: var(--secondary); font-size: 12px; line-height: 1.45; }
+.card-block__foot .btn { flex: none; }
+
+.card-block--danger { border-color: var(--error-border); }
+.card-block--danger .card-block__head h2 { color: var(--error); }
+.card-block--danger .card-block__foot { background: var(--error-bg); border-top-color: var(--error-border); }

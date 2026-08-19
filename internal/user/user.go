@@ -178,6 +178,27 @@ func (s *Store) Update(ctx context.Context, user *User) error {
 	return nil
 }
 
+func (s *Store) Delete(ctx context.Context, id int64) error {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
 func (s *Store) CountSubscribers(ctx context.Context) (int, error) {
 	query := `SELECT count(*) FROM users WHERE subscription = $1`
 

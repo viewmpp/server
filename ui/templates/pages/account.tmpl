@@ -1,0 +1,119 @@
+{{define "title"}}Your account - MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="page page--text centered">
+  <div class="page__head">
+    <h1>Your account</h1>
+  </div>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <section class="card-block">
+    <div class="card-block__head">
+      <h2>Email</h2>
+      {{if .Verified}}
+        <span class="tag tag--ok card-block__action">Confirmed</span>
+      {{else}}
+        <span class="tag tag--warn card-block__action">Not confirmed</span>
+      {{end}}
+      <p class="card-block__value">{{.UserEmail}}</p>
+    </div>
+
+    {{if not .Verified}}
+      <div class="card-block__foot">
+        <p class="card-block__hint">
+          Not confirmed yet, so a forgotten password cannot be recovered and sharing stays off.
+        </p>
+        <a class="btn btn--sm btn--primary btn--inline" href="/verify">Confirm it now</a>
+      </div>
+    {{end}}
+  </section>
+
+  <section class="card-block">
+    <div class="card-block__head">
+      <h2>Plan</h2>
+      {{if .Pro}}
+        <span class="tag tag--ok card-block__action">Pro</span>
+        <p class="card-block__note">Unlimited share links, unlimited saved plans, uploads up to 50 MB.</p>
+      {{else}}
+        <span class="tag tag--muted card-block__action">Free</span>
+        <p class="card-block__note">2 share links at a time, up to 20 saved plans, uploads up to 10 MB.</p>
+      {{end}}
+    </div>
+
+    {{if not .Pro}}
+      <form action="/subscribe" method="POST">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <div class="card-block__foot">
+          <p class="card-block__hint">Early users pay nothing.</p>
+          <button class="btn btn--sm btn--primary btn--inline" type="submit">Get Pro - free for early users</button>
+        </div>
+      </form>
+    {{end}}
+  </section>
+
+  <section class="card-block">
+    <div class="card-block__head">
+      <h2>Change password</h2>
+      <p class="card-block__note">Signing in elsewhere will be required again.</p>
+    </div>
+
+    <form action="/account/password" method="POST" novalidate>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <div class="card-block__body">
+        <div class="field">
+          <label for="current">Current password</label>
+          {{with index .Form.FieldErrors "current"}}<span class="field__error">{{.}}</span>{{end}}
+          <input id="current" type="password" name="current" autocomplete="current-password" required>
+        </div>
+
+        <div class="field">
+          <label for="password">New password</label>
+          {{with index .Form.FieldErrors "password"}}<span class="field__error">{{.}}</span>{{end}}
+          <input id="password" type="password" name="password" autocomplete="new-password" required>
+        </div>
+      </div>
+
+      <div class="card-block__foot">
+        <p class="card-block__hint">At least 8 characters.</p>
+        <button class="btn btn--sm btn--primary btn--inline" type="submit">Change password</button>
+      </div>
+    </form>
+  </section>
+
+  {{$confirmError := index .Form.FieldErrors "confirm"}}
+  <section class="card-block card-block--danger">
+    <div class="card-block__head">
+      <h2>Delete account</h2>
+      <p class="card-block__note">
+        This removes the account, every saved plan and every share link. Links you have sent to
+        other people stop working. It cannot be undone.
+      </p>
+    </div>
+
+    <form action="/account/delete" method="POST" novalidate data-reveal>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <div class="card-block__body{{if not $confirmError}} is-hidden{{end}}" data-reveal-body>
+        <div class="field">
+          <label for="confirm">Your password</label>
+          {{with $confirmError}}<span class="field__error">{{.}}</span>{{end}}
+          <input id="confirm" type="password" name="confirm" autocomplete="current-password"
+                 {{if $confirmError}}required{{end}}>
+        </div>
+      </div>
+
+      <div class="card-block__foot">
+        <p class="card-block__hint">This cannot be undone.</p>
+        <button class="btn btn--sm btn--danger btn--inline{{if $confirmError}} is-hidden{{end}}"
+                type="button" data-reveal-toggle>Delete account</button>
+        <button class="btn btn--sm btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                type="button" data-reveal-cancel>Cancel</button>
+        <button class="btn btn--sm btn--danger btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                type="submit" data-reveal-submit>Delete account</button>
+      </div>
+    </form>
+  </section>
+</main>
+{{end}}
