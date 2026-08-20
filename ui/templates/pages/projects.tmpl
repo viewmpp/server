@@ -9,7 +9,7 @@
 
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
-  {{with .SavedNote}}<p class="saved-note">{{.}}</p>{{end}}
+  {{with .SavedNote}}<p class="saved-note">{{.}}{{if not $.Pro}} <a href="/pricing">See what Pro adds</a>{{end}}</p>{{end}}
 
   {{if .Form}}
     <ul class="cards">

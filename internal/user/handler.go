@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"log/slog"
 	"server/internal/htmlutil"
 	"server/internal/mailer"
@@ -11,8 +12,14 @@ import (
 	"time"
 )
 
+type projectCounts interface {
+	CountByUserID(ctx context.Context, userID int64) (int, error)
+	CountShared(ctx context.Context, userID int64) (int, error)
+}
+
 type Handler struct {
 	store            *Store
+	projects         projectCounts
 	token            *token.Store
 	sessions         *session.Store
 	limiter          *ratelimit.Limiter
@@ -29,6 +36,7 @@ type Handler struct {
 
 func NewHandler(
 	store *Store,
+	projects projectCounts,
 	token *token.Store,
 	sessions *session.Store,
 	limiter *ratelimit.Limiter,
@@ -44,6 +52,7 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		store:            store,
+		projects:         projects,
 		token:            token,
 		sessions:         sessions,
 		limiter:          limiter,

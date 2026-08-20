@@ -24,6 +24,8 @@ type Page struct {
 	Form              any
 	Examples          []fixtures.Example
 	SavedNote         string
+	SavedCount        int
+	SharedCount       int
 	UserEmail         string
 	Verified          bool
 	Pro               bool

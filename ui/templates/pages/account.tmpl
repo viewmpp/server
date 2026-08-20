@@ -34,10 +34,15 @@
       <h2>Plan</h2>
       {{if .Pro}}
         <span class="tag tag--ok card-block__action">Pro</span>
-        <p class="card-block__note">Unlimited share links, unlimited saved plans, uploads up to 50 MB.</p>
+        <p class="card-block__note">
+          {{.SavedCount}} plans saved, {{.SharedCount}} share links live. No limit on either, uploads up to 50 MB.
+        </p>
       {{else}}
         <span class="tag tag--muted card-block__action">Free</span>
-        <p class="card-block__note">2 share links at a time, up to 20 saved plans, uploads up to 10 MB.</p>
+        <p class="card-block__note">
+          {{.SavedCount}} of 20 saved plans used, {{.SharedCount}} of 2 share links live, uploads up to 10 MB.
+          <a href="/pricing">See what Pro adds</a>
+        </p>
       {{end}}
     </div>
 

@@ -19,8 +19,22 @@ func (h *Handler) AccountPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	saved, err := h.projects.CountByUserID(r.Context(), u.ID)
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
+	shared, err := h.projects.CountShared(r.Context(), u.ID)
+	if err != nil {
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
 	page := NewPage(r, AccountForm{})
 	page.NoIndex = true
+	page.SavedCount = saved
+	page.SharedCount = shared
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Account, page, h.logger)
 }
