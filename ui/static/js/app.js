@@ -200,8 +200,8 @@
     gantt.config.readonly = true;
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
-    gantt.config.row_height = 36;
-    gantt.config.bar_height = 20;
+    gantt.config.row_height = 41;
+    gantt.config.bar_height = 23;
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 88, resize: true,
@@ -349,7 +349,7 @@
         { unit: 'quarter', step: 1, format: quarterLabel }
       ];
     }
-    gantt.config.scale_height = 52;
+    gantt.config.scale_height = 59;
     gantt.render();
   }
 
