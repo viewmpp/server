@@ -27,6 +27,12 @@
   <p class="aside-link">
     Want to look at the schedule instead? <a href="/">Open it as a Gantt chart</a>
   </p>
+  {{if not .UserEmail}}
+    <p class="saved__lead">
+      With an account, plans stay here - convert again or share by link.
+      <a href="/signup">Create a free account</a>
+    </p>
+  {{end}}
 
   <div class="saved">
     {{if .UserEmail}}
@@ -45,11 +51,6 @@
       {{else}}
         <p class="saved__lead">Plans you save will show up here, ready to convert in one click.</p>
       {{end}}
-    {{else}}
-      <p class="saved__lead">
-        With an account, converted plans stay here - ready to convert again or share by link.
-        <a href="/signup">Create a free account</a>
-      </p>
     {{end}}
   </div>
 

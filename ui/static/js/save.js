@@ -49,11 +49,13 @@
     if (!loaded) { return; }
 
     save.disabled = true;
+    save.setAttribute('aria-busy', 'true');
 
     window.MppExport.save(loaded, loadedName)
       .then(saved)
       .catch(function (err) {
         save.disabled = false;
+        save.removeAttribute('aria-busy');
 
         if (err.status === 401) {
           only(signup, AGAIN);
