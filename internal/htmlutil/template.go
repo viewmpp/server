@@ -27,6 +27,7 @@ type Pages struct {
 	Terms          *template.Template
 	WithoutProject *template.Template
 	Account        *template.Template
+	Pricing        *template.Template
 	Mac            *template.Template
 }
 
@@ -135,6 +136,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	pricing, err := parsePage("pricing.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Pages{
 		App:            app,
 		Signin:         signin,
@@ -151,6 +157,7 @@ func NewPages() (*Pages, error) {
 		WithoutProject: withoutProject,
 		Mac:            mac,
 		Account:        account,
+		Pricing:        pricing,
 	}, nil
 }
 

@@ -1,0 +1,98 @@
+{{define "title"}}Pricing - MPP Viewer{{end}}
+
+{{define "main"}}
+<main class="page page--text centered">
+  <div class="page__head">
+    <h1>Pricing</h1>
+  </div>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <p class="lead">
+    Opening a plan is free and always will be. What is paid for is the second party - the
+    colleague who opens your schedule through a link without installing anything.
+  </p>
+
+  <div class="plans__wrap">
+    <table class="plans">
+      <thead>
+        <tr>
+          <th></th>
+          <th>No account</th>
+          <th>Free account</th>
+          <th class="plans__best">Pro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Open and read a plan</td>
+          <td class="plans__yes"><span class="sr-only">Yes</span></td>
+          <td class="plans__yes"><span class="sr-only">Yes</span></td>
+          <td class="plans__yes plans__best"><span class="sr-only">Yes</span></td>
+        </tr>
+        <tr>
+          <td>Export to Excel</td>
+          <td class="plans__yes"><span class="sr-only">Yes</span></td>
+          <td class="plans__yes"><span class="sr-only">Yes</span></td>
+          <td class="plans__yes plans__best"><span class="sr-only">Yes</span></td>
+        </tr>
+        <tr>
+          <td>Keep plans to come back to</td>
+          <td class="plans__none"><span class="sr-only">-</span></td>
+          <td>20 plans</td>
+          <td class="plans__best">Unlimited</td>
+        </tr>
+        <tr>
+          <td>Share a read-only link</td>
+          <td class="plans__none"><span class="sr-only">-</span></td>
+          <td>2 at a time</td>
+          <td class="plans__best">Unlimited</td>
+        </tr>
+        <tr>
+          <td>Upload size</td>
+          <td>10 MB</td>
+          <td>10 MB</td>
+          <td class="plans__best">50 MB</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="plans__note">
+    Sharing needs a confirmed email address on any plan. A link sent from an unproven mailbox is
+    a reputation problem, so the address is checked once before the first link goes out.
+  </p>
+
+  <h2>Pro is free right now</h2>
+
+  <p>
+    The first accounts to ask get Pro at no cost, and <strong>keep it</strong> - it does not
+    expire and turns into nothing later. That is a deliberate trade: at this stage the product
+    needs people using it and telling us what breaks far more than it needs the money.
+  </p>
+
+  <p>
+    There is no price yet, and inventing one to fill this page would be dishonest. When Pro
+    starts costing something, the amount and the billing terms will appear here and in the terms
+    of use, and early accounts keep what they were given.
+  </p>
+
+  <h2>Common questions</h2>
+
+  <dl class="faq">
+    <dt>Do I have to pay to read a file someone sent me?</dt>
+    <dd>No, and you do not need an account either. Drop the file, read the chart, download the spreadsheet if you want one. Nothing is stored and nothing is charged.</dd>
+
+    <dt>What happens when early access ends?</dt>
+    <dd>Accounts that already have Pro keep it. New accounts will see a price here. Nothing you saved is taken away and no plan stops opening.</dd>
+
+    <dt>What happens to my plans if I stay on the free tier?</dt>
+    <dd>They stay. The free tier keeps up to 20 saved plans and 2 live share links; going over the cap stops new saves, it never deletes an old one.</dd>
+
+    <dt>Is there anything to cancel?</dt>
+    <dd>Not today - there is no payment and no billing cycle to end. You can delete your account from the account page at any time, which removes every plan and link with it.</dd>
+  </dl>
+</main>
+
+{{template "sitefooter" .}}
+{{end}}

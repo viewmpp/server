@@ -21,6 +21,11 @@ var pages = []Page{
 		Description: "Convert an MS Project .mpp file to an Excel .xlsx spreadsheet in your browser - tasks, dates, durations and predecessors, with no install and no signup.",
 	},
 	{
+		Slug:        "/pricing",
+		Label:       "Pricing",
+		Description: "What the free tier gives you, what Pro adds, and why Pro costs nothing during early access. Reading and converting a plan is free and needs no account.",
+	},
+	{
 		Slug:        "/open-mpp-file-without-ms-project",
 		Label:       "Open .mpp without MS Project",
 		Description: "Someone sent you an .mpp file and you have no Microsoft Project. Here is what is inside that file, why a text editor cannot show it, and how to read it in a browser instead.",
