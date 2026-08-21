@@ -46,6 +46,9 @@
   --shadow-popup: var(--shadow-md);
 
   --on-main: #ffffff;
+  --solid: rgba(37, 99, 235, .1);
+  --solid-hover: rgba(37, 99, 235, .17);
+  --on-solid: #1d4ed8;
   --flash-bg: #eff6ff;
   --progress-overlay: rgba(255, 255, 255, .3);
   --offtime-stripe: rgba(115, 115, 115, .07);
@@ -96,6 +99,9 @@
   --shadow-lg: 0 11.4px 17.1px -3.42px rgba(0, 0, 0, .6), 0 4.56px 6.84px -4.56px rgba(0, 0, 0, .4);
 
   --on-main: #ffffff;
+  --solid: rgba(96, 165, 250, .16);
+  --solid-hover: rgba(96, 165, 250, .26);
+  --on-solid: #93c5fd;
   --flash-bg: #17233d;
   --progress-overlay: rgba(0, 0, 0, .28);
   --offtime-stripe: rgba(255, 255, 255, .05);
@@ -333,11 +339,21 @@ code {
 }
 .btn--lg .ico { width: 19.38px; height: 19.38px; }
 
-.btn--primary { width: 100%; color: var(--link); }
-.btn--primary .ico { stroke: var(--main); transition: transform var(--ease); }
-.btn--primary:hover { background: var(--bg-selected); border-color: var(--main); color: var(--link); }
+.btn--primary {
+  width: 100%;
+  background: var(--solid);
+  border-color: transparent;
+  color: var(--on-solid);
+  box-shadow: none;
+}
+.btn--primary .ico { stroke: currentColor; transition: transform var(--ease); }
+.btn--primary:hover {
+  background: var(--solid-hover);
+  border-color: transparent;
+  color: var(--on-solid);
+}
 .btn--primary:hover .ico { transform: translateX(3.42px); }
-.btn--primary:active { background: var(--pale-control); }
+.btn--primary:active { filter: brightness(.94); }
 
 .btn--ghost { background: none; border-color: transparent; box-shadow: none; color: var(--secondary); }
 .btn--ghost:hover { background: var(--bg-hover); border-color: transparent; color: var(--text); }
