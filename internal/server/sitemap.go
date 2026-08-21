@@ -31,7 +31,7 @@ func sitemapPaths() []string {
 		paths = append(paths, "/example/"+e.Name)
 	}
 
-	return append(paths, "/privacy", "/terms")
+	return paths
 }
 
 func (s *Server) sitemap(w http.ResponseWriter, r *http.Request) {

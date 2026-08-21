@@ -33,6 +33,10 @@ func main() {
 func run() error {
 	cfg := config.Load()
 
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+
 	var wg sync.WaitGroup
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))

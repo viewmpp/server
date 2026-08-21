@@ -21,7 +21,7 @@ var groupOrder = []Group{GroupConvert, GroupView, GroupFormat, GroupProduct}
 var pages = []Page{
 	{
 		Slug:        "/",
-		Description: "Open an MS Project .mpp or .xml file in your browser and read the Gantt chart straight away - tasks, dates, dependencies and the critical path, with no install and no signup.",
+		Description: "Open an .mpp or Project .xml file in your browser and read the Gantt chart at once - tasks, dates, dependencies, critical path. No install, no signup.",
 	},
 	{
 		Slug:        "/examples",
@@ -45,13 +45,13 @@ var pages = []Page{
 		Slug:        "/open-mpp-file-without-ms-project",
 		Group:       GroupView,
 		Label:       "Open .mpp without MS Project",
-		Description: "Someone sent you an .mpp file and you have no Microsoft Project. Here is what is inside that file, why a text editor cannot show it, and how to read it in a browser instead.",
+		Description: "Sent an .mpp file and have no Microsoft Project? What is inside that file, why a text editor cannot show it, and how to read it in your browser.",
 	},
 	{
 		Slug:        "/mpp-viewer-mac",
 		Group:       GroupView,
 		Label:       "Open .mpp on a Mac",
-		Description: "Microsoft Project has no macOS version at all. Here is what that leaves you with, what a virtual machine really costs, and how to read an .mpp file on a Mac in the browser instead.",
+		Description: "Microsoft Project has no macOS version at all. What that leaves you with, what a virtual machine really costs, and how to read .mpp on a Mac instead.",
 	},
 }
 

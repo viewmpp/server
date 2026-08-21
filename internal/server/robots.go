@@ -11,6 +11,7 @@ func (s *Server) robots(w http.ResponseWriter, r *http.Request) {
 
 	b.WriteString("User-agent: *\n")
 	b.WriteString("Disallow: /p/\n")
+	b.WriteString("Disallow: /reset/\n")
 	b.WriteString("\n")
 	_, _ = fmt.Fprintf(&b, "Sitemap: %s/sitemap.xml\n", strings.TrimSuffix(s.cfg.BaseURL, "/"))
 

@@ -84,6 +84,14 @@ func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.
 	_, _ = buf.WriteTo(w)
 }
 
+func (p Page) Robots() string {
+	if p.NoIndex || !p.Public {
+		return "noindex"
+	}
+
+	return ""
+}
+
 func (p Page) MaxUploadLabel() string {
 	return strconv.FormatInt(p.MaxUpload>>20, 10) + " MB"
 }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {{if .Description}}<meta name="description" content="{{.Description}}">{{else}}<meta name="description" content="Open an MS Project (.mpp) file in your browser and see the Gantt chart straight away - no install, no signup.">{{end}}
-{{if .NoIndex}}<meta name="robots" content="noindex">
+{{with .Robots}}<meta name="robots" content="{{.}}">
 {{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}">
 {{end}}<title>{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}</title>
 {{if .Description}}<meta property="og:type" content="website">

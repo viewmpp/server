@@ -35,17 +35,19 @@ func TestCacheControl(t *testing.T) {
 func TestZeroPageKeepsCurrentHead(t *testing.T) {
 	head := render(t, Page{})
 
-	for _, unwanted := range []string{`name="robots"`, `rel="canonical"`} {
-		if strings.Contains(head, unwanted) {
-			t.Errorf("zero Page emitted %s", unwanted)
-		}
+	if strings.Contains(head, `rel="canonical"`) {
+		t.Error("zero Page emitted rel=\"canonical\"")
+	}
+
+	if !strings.Contains(head, `name="robots" content="noindex"`) {
+		t.Error("a page that is not marked public must carry noindex: indexing follows Public, not a separate flag")
 	}
 
 	if !strings.Contains(head, "Open an MS Project (.mpp) file in your browser") {
 		t.Error("default description is gone")
 	}
 
-	if !strings.Contains(head, "<title>MPP Viewer - open an MS Project plan without installing anything</title>") {
+	if !strings.Contains(head, "<title>MPP viewer - open an .mpp file in your browser</title>") {
 		t.Error("title from the page template is gone")
 	}
 }
