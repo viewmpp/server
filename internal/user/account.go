@@ -36,6 +36,10 @@ func (h *Handler) AccountPage(w http.ResponseWriter, r *http.Request) {
 	page.SavedCount = saved
 	page.SharedCount = shared
 
+	if u.SubscriptionUntil != nil {
+		page.ProUntil = u.SubscriptionUntil.Format("2 Jan 2006")
+	}
+
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Account, page, h.logger)
 }
 

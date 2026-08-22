@@ -105,6 +105,10 @@ func (h *Handler) MacPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/mpp-viewer-mac", h.templates.Mac)
 }
 
+func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/share-a-project-plan", h.templates.Share)
+}
+
 func (h *Handler) PricingPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/pricing", h.templates.Pricing)
 }

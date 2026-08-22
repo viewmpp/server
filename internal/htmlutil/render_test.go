@@ -51,6 +51,7 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 	templates := map[string]*template.Template{
 		"app": pages.App, "convert": pages.Convert, "examples": pages.Examples,
 		"projects": pages.Projects, "account": pages.Account, "pricing": pages.Pricing,
+		"share":   pages.Share,
 		"privacy": pages.Privacy, "terms": pages.Terms, "signin": pages.Signin,
 		"signup": pages.Signup, "verify": pages.Verify, "forgot": pages.Forgot,
 		"reset": pages.Reset, "unlock": pages.Unlock, "mac": pages.Mac,

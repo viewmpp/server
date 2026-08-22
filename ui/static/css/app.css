@@ -48,6 +48,7 @@
   --on-main: #ffffff;
   --solid: rgba(37, 99, 235, .1);
   --solid-hover: rgba(37, 99, 235, .17);
+  --solid-edge: rgba(37, 99, 235, .72);
   --on-solid: #1d4ed8;
   --flash-bg: #eff6ff;
   --progress-overlay: rgba(255, 255, 255, .3);
@@ -101,6 +102,7 @@
   --on-main: #ffffff;
   --solid: rgba(96, 165, 250, .16);
   --solid-hover: rgba(96, 165, 250, .26);
+  --solid-edge: rgba(96, 165, 250, .58);
   --on-solid: #93c5fd;
   --flash-bg: #17233d;
   --progress-overlay: rgba(0, 0, 0, .28);
@@ -342,18 +344,23 @@ code {
 .btn--primary {
   width: 100%;
   background: var(--solid);
-  border-color: transparent;
+  border-color: var(--solid-edge);
   color: var(--on-solid);
   box-shadow: none;
 }
 .btn--primary .ico { stroke: currentColor; transition: transform var(--ease); }
 .btn--primary:hover {
   background: var(--solid-hover);
-  border-color: transparent;
+  border-color: var(--solid-edge);
   color: var(--on-solid);
 }
 .btn--primary:hover .ico { transform: translateX(3.42px); }
 .btn--primary:active { filter: brightness(.94); }
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3.42px var(--ring);
+  border-color: var(--main);
+}
 
 .btn--ghost { background: none; border-color: transparent; box-shadow: none; color: var(--secondary); }
 .btn--ghost:hover { background: var(--bg-hover); border-color: transparent; color: var(--text); }
@@ -361,6 +368,11 @@ code {
 .btn--inline { width: auto; padding: 0 18.24px; }
 
 .btn--icon { width: 41.04px; padding: 0; }
+
+@media (pointer: coarse) {
+  .btn, .btn--sm, .btn--icon { min-height: 44px; }
+  .btn--icon { min-width: 44px; }
+}
 .btn--icon.btn--sm { width: 36.48px; }
 
 .linkish {

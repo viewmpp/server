@@ -232,6 +232,7 @@
 
     gantt.attachEvent('onTaskClick', function (id) {
       showDetails(gantt.getTask(id).$contract);
+      document.dispatchEvent(new CustomEvent('mpp:task'));
       return true;
     });
   }

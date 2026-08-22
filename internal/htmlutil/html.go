@@ -26,6 +26,7 @@ type Page struct {
 	SavedNote         string
 	SavedCount        int
 	SharedCount       int
+	ProUntil          string
 	UserEmail         string
 	Verified          bool
 	Pro               bool

@@ -31,6 +31,7 @@ func indexable(t *testing.T) map[string]*template.Template {
 		"/examples":                         pages.Examples,
 		"/mpp-to-excel":                     pages.Convert,
 		"/pricing":                          pages.Pricing,
+		"/share-a-project-plan":             pages.Share,
 		"/open-mpp-file-without-ms-project": pages.WithoutProject,
 		"/mpp-viewer-mac":                   pages.Mac,
 	}

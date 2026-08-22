@@ -1,0 +1,104 @@
+{{define "title"}}Share a project plan with people who have no MS Project{{end}}
+
+{{define "main"}}
+<main class="page page--text centered">
+  <div class="page__head">
+    <h1>Share a plan with people who cannot open it</h1>
+  </div>
+
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <p class="lead">
+    You keep the schedule. They keep asking what it says. A link works in their browser - no
+    licence, no install, nothing for them to figure out.
+  </p>
+
+  <section class="prose">
+    <h2>The routine this replaces</h2>
+
+    <p>
+      If you plan work for a living, one part of the job has nothing to do with planning. The
+      schedule updates on Friday, and then you spend twenty minutes making it readable for people
+      who do not own Microsoft Project: export to PDF, crop the timeline so it fits, attach it to
+      an email, and answer the three replies asking what changed since last week.
+    </p>
+
+    <p>
+      The PDF is the compromise everyone has settled for, and it is a bad one. It is a photograph
+      of a schedule. Nobody can collapse the phases they do not own, change the scale from days to
+      quarters to see the shape of the year, click a task to find out what it waits for, or search
+      for their own name. Every one of those questions comes back to you as a message, which is
+      why the twenty minutes is never really twenty minutes.
+    </p>
+
+    <h2>What a link gives them instead</h2>
+
+    <p>
+      Open your <code>.mpp</code> here, save it, and share the link. What lands in their browser is
+      the plan itself, not a picture of it: the task hierarchy with phases they can fold away,
+      dependency arrows, the critical path, non-working days shaded from your project calendar, and
+      full detail on any task they click - dates, progress, predecessors, resources, notes.
+    </p>
+
+    <p>
+      They need no account and install nothing. It works the same on Windows, macOS and Linux,
+      which matters more than it sounds: Microsoft Project has no macOS version at all, so the
+      person on a Mac has never been able to open your attachments.
+    </p>
+
+    <h2>What they cannot do</h2>
+
+    <p>
+      Read it. That is the whole list. Nobody can move a bar, change a date, reschedule anything or
+      alter the file you hold - this is a viewer, deliberately, and there is no edit mode to find.
+      The plan you sent is the plan they see, and the copy on your machine stays the only one that
+      can change.
+    </p>
+
+    <p>
+      Sharing is revocable. Switch a plan back to private and the link stops working the same
+      second, for everyone who has it. You can also put a password on a link, so forwarding it does
+      not widen the audience by accident.
+    </p>
+
+    <h2>What it costs</h2>
+
+    <p>
+      Reading is free for them, always, with no account and no quota - that is the point of the
+      whole thing. On your side a free account keeps 20 plans and 2 live links at a time, which is
+      enough to try it on a real project. Pro removes both limits and raises the upload size to
+      50 MB, and during early access Pro costs nothing.
+    </p>
+
+    <p class="plans__cta">
+      {{if .UserEmail}}
+        <a class="btn btn--primary" href="/">Open a plan to share</a>
+      {{else}}
+        <a class="btn btn--primary" href="/signup">Create a free account</a>
+      {{end}}
+      <a href="/pricing">See the plans</a>
+    </p>
+
+    <h2>Common questions</h2>
+
+    <dl class="faq">
+      <dt>Does the recipient need an account?</dt>
+      <dd>No. They open the link and read the plan. They need an account only if they want to save plans of their own.</dd>
+
+      <dt>Can they change my schedule?</dt>
+      <dd>No. There is no editing anywhere in the product, for anyone. The file you uploaded is never modified and cannot be written back to.</dd>
+
+      <dt>What if I send the wrong plan?</dt>
+      <dd>Make it private again and the link dies immediately, including for people who already have it. Access is checked on every request, not baked into the link.</dd>
+
+      <dt>Can I stop the link spreading?</dt>
+      <dd>Put a password on it. The link then asks for the password before it shows anything, so forwarding it alone is not enough.</dd>
+
+      <dt>Will they see the same dates I see?</dt>
+      <dd>Yes. Everything is read out of your file rather than recalculated - the same hierarchy, dates, durations, dependencies, critical tasks and calendar. Only the styling is ours.</dd>
+    </dl>
+  </section>
+</main>
+
+{{template "sitefooter" .}}
+{{end}}

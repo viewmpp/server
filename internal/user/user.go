@@ -200,7 +200,10 @@ func (s *Store) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *Store) CountSubscribers(ctx context.Context) (int, error) {
-	query := `SELECT count(*) FROM users WHERE subscription = $1`
+	query := `
+		SELECT count(*) FROM users
+		WHERE subscription = $1
+		  AND (subscription_until IS NULL OR subscription_until > now())`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -217,7 +220,8 @@ func (s *Store) GrantSubscription(ctx context.Context, userID int64, until *time
 	query := `
 		UPDATE users
 		SET subscription = $1, subscription_until = $2, version = version + 1
-		WHERE id = $3 AND verified = TRUE AND subscription = $4`
+		WHERE id = $3 AND verified = TRUE
+		  AND (subscription = $4 OR subscription_until <= now())`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

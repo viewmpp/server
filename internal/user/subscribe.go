@@ -3,6 +3,7 @@ package user
 import (
 	"net/http"
 	"server/internal/htmlutil"
+	"time"
 )
 
 func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
@@ -45,14 +46,16 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.store.GrantSubscription(r.Context(), u.ID, nil); err != nil {
+	until := time.Now().Add(h.earlyAccessPeriod)
+
+	if err = h.store.GrantSubscription(r.Context(), u.ID, &until); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
 	h.logger.Info("early access granted", "user_id", u.ID, "seat", taken+1, "of", h.earlyAccessSeats)
 
-	sess.Put("flash", MsgEarlyAccessGranted(taken+1))
+	sess.Put("flash", MsgEarlyAccessGranted(taken+1, until))
 
 	http.Redirect(w, r, back, http.StatusSeeOther)
 }

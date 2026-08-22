@@ -85,7 +85,7 @@ func run() error {
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
 	exportHandler := export.NewHandler(uploadLimiter, logger)
 	projectHandler := project.NewHandler(s.Projects, cfg.BaseURL, projectLimiter, cfg.LenListLimit, templates, logger)
-	userHandler := user.NewHandler(s.Users, s.Projects, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, templates, &wg, logger)
+	userHandler := user.NewHandler(s.Users, s.Projects, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, cfg.EarlyAccessPeriod, templates, &wg, logger)
 
 	return server.New(cfg, resolver, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

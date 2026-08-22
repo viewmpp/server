@@ -1,6 +1,9 @@
 package user
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	MsgEmailRequired = "Enter your email address"
@@ -25,8 +28,9 @@ const (
 	MsgVerifyLater          = "Confirm your email - without it you cannot get back in if you forget your password"
 )
 
-func MsgEarlyAccessGranted(seat int) string {
-	return fmt.Sprintf("Pro is on - you are early user #%d. It stays free for you.", seat)
+func MsgEarlyAccessGranted(seat int, until time.Time) string {
+	return fmt.Sprintf("Pro is on - you are early user #%d. Free until %s, renew it from your account.",
+		seat, until.Format("2 Jan 2006"))
 }
 
 func MsgResetSent(email string) string {

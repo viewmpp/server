@@ -36,6 +36,7 @@
         <span class="tag tag--ok card-block__action">Pro</span>
         <p class="card-block__note">
           {{.SavedCount}} plans saved, {{.SharedCount}} share links live. No limit on either, uploads up to 50 MB.
+          {{with .ProUntil}}<br>Free early access until <strong>{{.}}</strong>, then it lapses to the free tier unless you renew.{{end}}
         </p>
       {{else}}
         <span class="tag tag--muted card-block__action">Free</span>
@@ -50,8 +51,13 @@
       <form action="/subscribe" method="POST">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <div class="card-block__foot">
-          <p class="card-block__hint">Early users pay nothing.</p>
-          <button class="btn btn--sm btn--primary btn--inline" type="submit">Get Pro - free for early users</button>
+          <p class="card-block__hint">
+            {{if .ProUntil}}Your free month ended on {{.ProUntil}}. Renewing costs nothing while early access is open.
+            {{else}}Free for a month, renewed here with one click.{{end}}
+          </p>
+          <button class="btn btn--sm btn--primary btn--inline" type="submit">
+            {{if .ProUntil}}Renew Pro - still free{{else}}Get Pro - free for early users{{end}}
+          </button>
         </div>
       </form>
     {{end}}

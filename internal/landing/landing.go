@@ -42,6 +42,12 @@ var pages = []Page{
 		Description: "What the free tier gives you, what Pro adds, and why Pro costs nothing during early access. Reading and converting a plan is free and needs no account.",
 	},
 	{
+		Slug:        "/share-a-project-plan",
+		Group:       GroupProduct,
+		Label:       "Share a plan",
+		Description: "Your team has no Microsoft Project licences and a PDF freezes the schedule. Send a link instead - the plan stays readable, foldable and searchable.",
+	},
+	{
 		Slug:        "/open-mpp-file-without-ms-project",
 		Group:       GroupView,
 		Label:       "Open .mpp without MS Project",

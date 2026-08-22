@@ -183,6 +183,14 @@
       <div id="details-body"></div>
     </aside>
 
+    {{if and .ProjectID (not .IsOwner)}}
+      <div class="toast is-hidden" id="send-cta">
+        <span class="offer__text">Send plans yourself? Colleagues can read them without MS Project.</span>
+        <a class="btn btn--sm btn--primary btn--inline" href="/share-a-project-plan">How sharing works</a>
+        <button class="toast__close" type="button" id="send-cta-close" aria-label="Dismiss">&times;</button>
+      </div>
+    {{end}}
+
     {{if and (not .ProjectID) (not .ExampleName)}}
       <div class="toast is-hidden" id="save-cta" data-signed-in="{{if .UserEmail}}1{{else}}0{{end}}">
         <span class="offer__text" id="save-cta-text"></span>
