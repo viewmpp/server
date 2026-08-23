@@ -38,7 +38,7 @@
 
       try {
         localStorage.setItem(KEY, mode);
-      } catch (e) { /* private mode: the choice lasts for this page only */ }
+      } catch (e) {}
 
       apply(mode);
     }

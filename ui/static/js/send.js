@@ -9,7 +9,7 @@
 
   try {
     if (localStorage.getItem(KEY) === '1') { return; }
-  } catch (e) { /* private mode: the prompt simply reappears */ }
+  } catch (e) {}
 
   var shown = false;
 
@@ -26,7 +26,7 @@
 
     try {
       localStorage.setItem(KEY, '1');
-    } catch (e) { /* nothing to remember it in */ }
+    } catch (e) {}
   }
 
   document.getElementById('send-cta-close').addEventListener('click', dismiss);
