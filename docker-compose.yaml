@@ -9,8 +9,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
-    ports:
-      - '127.0.0.1:5432:5432'
     volumes:
       - server-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -48,8 +46,6 @@ services:
     mem_limit: 1536m
     environment:
       ENV: ${ENV:-dev}
-    ports:
-      - '127.0.0.1:8080:8080'
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthcheck" ]
       interval: 30s
@@ -63,18 +59,12 @@ services:
     image: server:local
     container_name: server
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      ENV: ${ENV:-dev}
       PORT: '4000'
-      BASE_URL: ${BASE_URL:-http://localhost:4000}
-      PROXIES: ${PROXIES:-0}
       DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@server-db:5432/${POSTGRES_DB}?sslmode=disable
       PARSER_URL: http://parser:8080/parse
-      RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY in .env}
-      RESEND_SENDER: ${RESEND_SENDER:?set RESEND_SENDER in .env}
-      EARLY_ACCESS_SEATS: ${EARLY_ACCESS_SEATS:-100}
-    ports:
-      - '127.0.0.1:4000:4000'
     stop_grace_period: 40s
     depends_on:
       server-db:

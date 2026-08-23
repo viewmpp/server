@@ -14,8 +14,8 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 		{"prod refuses localhost", "prod", "http://localhost:4000", true},
 		{"prod refuses loopback", "prod", "http://127.0.0.1:4000", true},
 		{"prod refuses empty", "prod", "", true},
-		{"prod refuses plain http", "prod", "http://mppviewer.com", true},
-		{"prod accepts https", "prod", "https://mppviewer.com", false},
+		{"prod refuses plain http", "prod", "http://viewmpp.com", true},
+		{"prod accepts https", "prod", "https://viewmpp.com", false},
 	}
 
 	for _, tc := range cases {

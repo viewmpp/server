@@ -1,105 +1,104 @@
 Deploy
 ======
 
-One Ubuntu VPS. The Go binary and the parser jar run as systemd services, Caddy
-terminates TLS, Postgres runs on the box. Deploys are `rsync` over SSH from your
-machine - no registry, no CI, no Docker in production.
+One Ubuntu VPS running Docker Compose. Caddy terminates TLS and is the only
+container that publishes ports. Deploys are `git pull` plus `docker compose up`
+on the host - no registry, no CI, no artifacts shipped from your machine.
 
 Shape
 -----
 
 ```
-internet ──► caddy :443 ──► api :4000 ──► parser 127.0.0.1:8080
-             (systemd)      (systemd)     (systemd, loopback only)
-                                │
-                                └──► postgresql :5432
+internet ──► caddy :80/:443 ──► server:4000 ──► parser:8080
+             (published)        (internal)      (internal)
+                                     │
+                                     └──► server-db:5432 (internal)
 ```
 
-Three unprivileged accounts, not one:
+Only Caddy is reachable from outside. Everything else lives on the compose
+network and has no `ports:` entry at all, so there is nothing to reach even
+from the host's own loopback.
 
-- `mppviewer` owns the binary, reads `/etc/mppviewer.env`, and is the account you
-  SSH in as.
-- `parser` runs the sidecar. No shell, no sudo, no SSH key, and no access to the
-  environment file. It is the only process that opens untrusted binary input, so
-  it is the one that gets nothing worth stealing.
-- `postgres` as installed.
-
-Repository layout
------------------
+Files
+-----
 
 ```
-remote/
-├── production/
-│   ├── api.service      systemd unit for the Go binary
-│   ├── parser.service   systemd unit for the Java sidecar
-│   └── Caddyfile        production reverse proxy config
-└── setup/
-    └── 01.sh            one-time provisioning of a fresh server
+docker-compose.yaml         base: postgres, migrate, parser, server
+docker-compose.dev.yaml     override: loopback ports for host development
+docker-compose.prod.yaml    override: caddy
+remote/production/Caddyfile mounted read-only into the caddy container
+remote/setup/01.sh          one-time provisioning of a fresh server
+.env.example                template for the .env that lives on the host
 ```
 
-Everything is driven from the Makefile. `make help` lists the targets.
+Production is the base file plus the prod override. There is no parallel
+definition to keep in sync.
+
+Why the dev override exists
+---------------------------
+
+Compose **appends** `ports` when it merges an override; it cannot remove them.
+Putting loopback ports in the base file would mean production published them
+too. So the base file carries none, and `docker-compose.dev.yaml` adds them back
+for local work.
+
+The practical consequence: **plain `docker compose up` gives you a stack you
+cannot reach.** Local commands need both files.
 
 Prerequisites
 -------------
 
-- An Ubuntu 24.04 VPS with **4 GB RAM minimum** - the parser is capped at 1536 MB
-  and the JVM plus Postgres plus Caddy needs headroom above that.
-- Both repositories cloned side by side. `make build/parser` builds `../parser`:
-
-  ```
-  mpp-viewer/
-    server/     <- you deploy from here
-    parser/
-  ```
-
-- Java 25 and Go 1.26 on **your** machine (the jar and the binary are both built
-  locally and shipped as artifacts; the server compiles nothing).
+- An Ubuntu 24.04 VPS, **4 GB RAM minimum**. The parser is capped at 1536 MB and
+  its image builds Gradle during `docker compose build`.
 - A domain with an **A record already pointing at the VPS**. Caddy requests a
-  certificate the first time it loads the Caddyfile; if DNS has not propagated,
-  ACME fails.
+  certificate as soon as it starts; if DNS has not propagated, ACME fails.
+- Ports 80 and 443 reachable. Nothing else needs to be.
 
 First deploy
 ------------
 
-**1. Provision the server.** Copy the script up as root and run it:
+**1. Provision.** Copy the script up as root and run it:
 
 ```bash
 rsync -P ./remote/setup/01.sh root@<host-ip>:~
 ssh -t root@<host-ip> 'bash 01.sh'
 ```
 
-It prompts for the domain, a Postgres password, and the Resend key and sender.
-It then creates both service accounts, configures ufw (22/80/443 only) and
-fail2ban, installs the `migrate` CLI, Postgres 17 from PGDG, Temurin 25, and
-Caddy, writes `/etc/mppviewer.env`, and reboots.
+It installs Docker and the Compose plugin, creates the `deploy` user in the
+`docker` group, and clones both repositories to `~/mpp-viewer/server` and
+`~/mpp-viewer/parser`. The parser build context is `../parser`, so that layout
+is required, not cosmetic.
 
 **2. Set a password for the deploy user.** The script deletes it and forces a
 change on first login:
 
 ```bash
-ssh mppviewer@<host-ip>
+ssh deploy@<host-ip>
 ```
 
-**3. Point the local config at the box.** Two edits:
-
-- `production_host_ip` at the top of the [Makefile](../Makefile)
-- the domain on the first line of [remote/production/Caddyfile](../remote/production/Caddyfile)
-
-**4. Ship it.**
+**3. Write the environment file.** It lives only on the host and is never
+committed:
 
 ```bash
-make production/deploy/all
+cd ~/mpp-viewer/server
+cp .env.example .env
+nano .env
 ```
 
-That builds both artifacts, rsyncs them up, runs migrations, installs and starts
-both units, and reloads Caddy. The order matters and the target encodes it:
-parser first, because `api.service` declares `Requires=parser.service` and will
-refuse to start without it.
+Fill in `RESEND_API_KEY` and replace `POSTGRES_PASSWORD`. The rest of the
+template is already production-shaped. URL-encode the password if it contains
+`@ : / ? # &` - compose interpolates it into the DSN as a string.
+
+**4. Bring it up.**
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
+```
 
 **5. Verify.**
 
 ```bash
-curl -fsS https://your-domain.com/api/v1/healthcheck
+curl -fsS https://viewmpp.com/api/v1/healthcheck
 # {"status":"OK","env":"prod","version":"<sha>"}
 ```
 
@@ -107,76 +106,101 @@ Deploying an update
 -------------------
 
 ```bash
-make production/deploy/api      # Go changed
-make production/deploy/parser   # Java changed
-make production/deploy/caddy    # Caddyfile changed
-make production/deploy/all      # all three
+ssh deploy@<host-ip>
+cd ~/mpp-viewer/server && git pull
+cd ../parser && git pull
+cd ../server
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 ```
 
-`production/deploy/api` runs `migrate up` before restarting the unit, so schema
-changes ride along with the code that needs them.
+Compose rebuilds and recreates only what changed. Migrations run automatically:
+the `migrate` service is gated on a healthy database, and `server` waits for it
+to exit 0.
 
-Deploys are not zero-downtime. `systemctl restart` stops the old process and
-starts the new one; the gap is a second or two. `TimeoutStopSec=40` in
-[api.service](../remote/production/api.service) gives the old process room to
-drain its 30-second shutdown context and finish any background email send before
-systemd escalates to SIGKILL.
+Deploys are not zero-downtime. `stop_grace_period: 40s` gives the old container
+room to drain its 30-second shutdown context and finish any in-flight
+verification email before Docker escalates to SIGKILL.
+
+Local development
+-----------------
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d
+```
+
+That publishes Postgres on `127.0.0.1:5432`, the parser on `127.0.0.1:8080` and
+the server on `127.0.0.1:4000`.
+
+To iterate on Go without rebuilding an image, start only the backing services
+and run the binary on the host - `PARSER_URL` already defaults to
+`http://localhost:8080/parse`:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d server-db migrate parser
+go run ./cmd/web
+```
+
+Set `COMPOSE_FILE=docker-compose.yaml:docker-compose.dev.yaml` in `.envrc` and
+plain `docker compose up` picks both files up.
 
 Environment
 -----------
 
-Production configuration lives in `/etc/mppviewer.env`, owned `root:mppviewer`
-with mode `0640`, loaded by `EnvironmentFile=` in the unit.
+`.env` on the host feeds two things: compose interpolation, and the `server`
+container via `env_file`.
 
-This deviates from the book, which puts the DSN in `/etc/environment`. That file
-is world-readable, and this project has a Resend API key to protect, not just a
-database password. Any account on the box could read it there.
+The `parser` container has no `env_file` and receives only `ENV`. It never sees
+the database credentials or the Resend key - it is the one process that opens
+untrusted binary input, so it is the one that gets nothing worth stealing.
 
-Every setting in `internal/config` is a flag with an env fallback, so nothing
-needs to be passed on the `ExecStart` line - the unit just runs the binary.
-
-| Variable | Set by `01.sh` | Notes |
+| Variable | Value in production | Notes |
 |---|---|---|
 | `ENV` | `prod` | Turns on the `Secure` cookie flag and the `BASE_URL` guard |
-| `BASE_URL` | `https://<domain>` | **Must be https and not localhost.** The process refuses to start otherwise |
+| `BASE_URL` | `https://viewmpp.com` | **Must be https and not localhost.** The process refuses to start otherwise |
 | `PROXIES` | `1` | One hop: Caddy. See the trap below |
-| `PORT` | `4000` | Change it and the Caddyfile upstream changes too |
-| `DB_DSN` | assembled | Local socket, `sslmode=disable` - the traffic never leaves the box |
-| `PARSER_URL` | `http://127.0.0.1:8080/parse` | |
-| `RESEND_API_KEY` | prompted | No key means no verification or reset email |
-| `RESEND_SENDER` | prompted | The domain must be verified in Resend first |
+| `DOMAIN` | `viewmpp.com` | Read by the Caddyfile as `{$DOMAIN}` |
+| `ACME_EMAIL` | your address | Let's Encrypt account and expiry notices |
+| `POSTGRES_USER` / `_PASSWORD` / `_DB` | | Compose assembles `DB_DSN` from these |
+| `RESEND_API_KEY` | | No key means no verification or reset email |
+| `RESEND_SENDER` | `noreply@viewmpp.com` | The domain must be verified in Resend first |
 | `EARLY_ACCESS_SEATS` | `100` | `0` closes early access |
 
-To change one: edit the file as root, then `sudo systemctl restart api`.
+`PORT`, `DB_DSN` and `PARSER_URL` are set in `docker-compose.yaml` and override
+anything in `.env` - they point at compose service names and must not be edited
+per-host.
+
+After changing `.env`:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+```
 
 Migrations
 ----------
 
-Run automatically by `make production/deploy/api`. To run one by hand:
+Run on every `up`. To run one by hand:
 
 ```bash
-make production/connect
-source /etc/mppviewer.env
-migrate -path ~/migrations -database "$DB_DSN" up
+docker compose run --rm migrate \
+  -path /migrations \
+  -database "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@server-db:5432/$POSTGRES_DB?sslmode=disable" \
+  down 1
 ```
 
-Roll one back with `down 1`. If a migration fails halfway, `migrate` marks the
-schema dirty and refuses to run again until the version is forced:
-
-```bash
-migrate -path ~/migrations -database "$DB_DSN" force <version>
-```
+If a migration fails halfway, `migrate` marks the schema dirty and refuses to
+run again until the version is forced with `force <version>`.
 
 Rollback
 --------
 
 ```bash
+cd ~/mpp-viewer/server
 git checkout <previous-sha>
-make production/deploy/api
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 ```
 
 If the rolled-back code predates a migration that already ran, roll the
-migration back **first**. `migrate up` runs before the restart, so a
+migration back **first**. `migrate` runs before the server starts, so a
 forward-only schema paired with backward code fails at query time, not at boot,
 which is the harder failure to read.
 
@@ -188,68 +212,51 @@ regenerated - the uploaded `.mpp` is deleted immediately after parsing, so for a
 signed-in user the row in Postgres is the only remaining copy.
 
 ```bash
-make production/backup      # writes ./backups/backup-<date>.sql.gz
+docker compose exec -T server-db \
+  pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > backup-$(date +%F).sql.gz
 ```
 
 Restore:
 
 ```bash
-gunzip -c ./backups/backup-2026-01-01-1200.sql.gz | \
-  ssh mppviewer@<host-ip> 'psql -U mppviewer mppviewer'
+gunzip -c backup-2026-01-01.sql.gz | \
+  docker compose exec -T server-db psql -U "$POSTGRES_USER" "$POSTGRES_DB"
 ```
 
-This is a manual target, not a schedule. Wire it into cron on the box or into a
-scheduled job on your machine before you have users worth losing.
+This is manual. Put it in cron on the host before you have users worth losing.
 
 Logs
 ----
 
 ```bash
-make production/logs/api
-make production/logs/parser
-ssh mppviewer@<host-ip> 'sudo journalctl -u caddy -f'
+docker compose logs -f server
+docker compose logs -f parser
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs -f caddy
 ```
 
 The server logs `r.URL.Path`, never the query string - share tokens travel in
-URLs and must not reach the journal. If a change ever starts logging
-`RequestURI`, that is a leak, not a formatting choice.
-
-Local development
------------------
-
-Production has no Docker, but `docker-compose.yaml` is still the fastest way to
-get Postgres and the parser running locally:
-
-```bash
-make up      # postgres + migrations + parser in containers
-make run     # the Go server on the host, against those
-make down
-```
-
-`.env` feeds compose only. `.envrc` feeds `make run` via direnv. Neither is read
-by anything in production.
+URLs and must not reach the logs. If a change ever starts logging `RequestURI`,
+that is a leak, not a formatting choice.
 
 Traps
 -----
 
+**Caddy's volumes are load-bearing.** `caddy-data` holds the issued
+certificates and the ACME account key. Without it Caddy re-issues on every
+restart and hits the Let's Encrypt rate limit - 5 duplicate certificates per
+week - after which the site serves TLS errors until the window rolls.
+
 **`PROXIES` must match the number of proxies.** The resolver uses a
 rightmost-trusted-count strategy over `X-Forwarded-For`. At `0` behind Caddy,
 every request resolves to Caddy's address and all three rate limiters collapse
-into one shared bucket for the entire internet. Set higher than the real hop
-count, a client can spoof its own IP by sending its own header. One Caddy, one
-hop, `PROXIES=1`.
+into one bucket for the entire internet. Set higher than the real hop count, a
+client can spoof its own address by sending its own header. One Caddy, one hop,
+`PROXIES=1`.
 
-**The parser must bind to loopback.** Spring defaults to `0.0.0.0`. Under Docker
-a network namespace hid that; on bare metal it means the sidecar listens on the
-public interface, and only ufw stands between it and the internet. The unit sets
-`BIND_ADDRESS=127.0.0.1` and `application.yaml` reads it. Do not remove either
-half.
-
-**`IPAddressDeny=any` is load-bearing.** The architecture doc requires the
-sidecar to have no internet access. That line in
-[parser.service](../remote/production/parser.service) is what enforces it - the
-process may talk to loopback and nothing else, so a malicious `.mpp` that
-reaches code execution has nowhere to call out to. It is not decoration.
+**Never add `ports:` to server, parser or server-db in the base file.** It is
+what keeps them off the public interface. Docker publishes ports by writing
+iptables rules that bypass ufw, so a host firewall will not save you from a
+stray entry here.
 
 **Upload limits live in two repositories.** Go caps free uploads at 10 MB and Pro
 at 50 MB (`internal/user/user.go`); the sidecar's `parser.max-body-bytes` is
@@ -257,11 +264,6 @@ at 50 MB (`internal/user/user.go`); the sidecar's `parser.max-body-bytes` is
 with no useful message. The Caddyfile sets `max_size 64MB` deliberately *above*
 both, so an oversized upload gets the application's own JSON 413 rather than a
 truncated stream.
-
-**Postgres password and `source`.** `make production/deploy/api` sources
-`/etc/mppviewer.env` in a shell to read `$DB_DSN`. The values are single-quoted
-so ordinary punctuation is safe, but a password containing a single quote will
-break both that and the DSN itself. Generate one without.
 
 **`RESEND_SENDER` on an unverified domain silently fails.**
 `onboarding@resend.dev` works for testing only and cannot send to arbitrary
