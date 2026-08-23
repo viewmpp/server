@@ -1,0 +1,44 @@
+[Unit]
+Description=MPP Viewer parser sidecar (MPXJ)
+
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=parser
+Group=parser
+
+Environment=ENV=prod
+Environment=BIND_ADDRESS=127.0.0.1
+
+WorkingDirectory=/home/parser
+ExecStart=/usr/bin/java -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -jar /home/parser/parser.jar
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+MemoryMax=1536M
+
+IPAddressDeny=any
+IPAddressAllow=localhost
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
