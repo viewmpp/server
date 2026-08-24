@@ -41,6 +41,10 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	for _, warning := range cfg.Warnings() {
+		logger.Warn(warning)
+	}
+
 	client := &parser.Client{
 		URL:  cfg.ParserURL,
 		HTTP: &http.Client{Timeout: cfg.ClientTimeout},

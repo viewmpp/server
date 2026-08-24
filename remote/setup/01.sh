@@ -36,4 +36,42 @@ sudo -u "${USERNAME}" git clone "${PARSER_REPO}" "${PROJECT_DIR}/parser"
 docker --version
 docker compose version
 
-echo "Setup complete. Write ${PROJECT_DIR}/server/.env, then bring the stack up."
+install -m 0644 "${PROJECT_DIR}/server/remote/production/mpp-backup.service" /etc/systemd/system/
+install -m 0644 "${PROJECT_DIR}/server/remote/production/mpp-backup.timer" /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now mpp-backup.timer
+
+cat <<MSG
+
+Setup complete. Two steps left.
+
+1. Write ${PROJECT_DIR}/server/.env with at least:
+
+     ENV=prod
+     BASE_URL=https://<your domain>
+     DOMAIN=<your domain>
+     ACME_EMAIL=<address for Let's Encrypt>
+     POSTGRES_USER=... POSTGRES_PASSWORD=... POSTGRES_DB=...
+     RESEND_API_KEY=... RESEND_SENDER=noreply@<your domain>
+
+2. Bring the stack up with both compose files:
+
+     cd ${PROJECT_DIR}/server
+     docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
+
+   The base file alone publishes no ports - Caddy lives in the prod file and is the
+   only way in. To update later, git pull in both repos and repeat the same command.
+
+3. Take the first backup by hand and restore it into a scratch database. A backup
+   nobody has restored is not yet a backup:
+
+     systemctl start mpp-backup.service
+     journalctl -u mpp-backup.service -n 20
+
+     docker compose -f docker-compose.yaml -f docker-compose.prod.yaml exec -T server-db \\
+       pg_restore -U "\$POSTGRES_USER" -d "\$POSTGRES_DB" --clean --if-exists < ../backups/<file>.dump
+
+   Dumps land in ${PROJECT_DIR}/backups, 14 days are kept, the timer runs nightly at
+   03:30 UTC. They sit on the same disk as the database - set BACKUP_REMOTE in the
+   unit to mirror them off the machine.
+MSG

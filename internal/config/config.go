@@ -39,6 +39,17 @@ func Load() Config {
 	return cfg
 }
 
+func (cfg Config) Warnings() []string {
+	var out []string
+
+	if cfg.Env == "prod" && cfg.Proxies == 0 {
+		out = append(out, "PROXIES is 0 in prod: if anything proxies this server, every visitor "+
+			"resolves to the proxy address and one rate limit is shared by the whole site")
+	}
+
+	return out
+}
+
 func (cfg Config) Validate() error {
 	if cfg.Env != "prod" {
 		return nil

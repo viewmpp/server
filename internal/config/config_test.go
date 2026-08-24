@@ -35,3 +35,30 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 		})
 	}
 }
+
+func TestWarnsAboutProxiesInProduction(t *testing.T) {
+	cases := []struct {
+		name    string
+		env     string
+		proxies int
+		want    bool
+	}{
+		{"prod without a proxy count", "prod", 0, true},
+		{"prod behind one proxy", "prod", 1, false},
+		{"dev without a proxy count", "dev", 0, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var cfg Config
+			cfg.Env = tc.env
+			cfg.Proxies = tc.proxies
+
+			got := len(cfg.Warnings()) > 0
+
+			if got != tc.want {
+				t.Fatalf("Warnings() produced %v, want %v: a shared rate-limit bucket must not pass unremarked", got, tc.want)
+			}
+		})
+	}
+}
