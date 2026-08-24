@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 	"server/internal/validator"
 	"strconv"
 )
@@ -61,7 +62,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {
-		h.logger.Warn("password change throttled", "key", key)
+		h.logger.Warn("password change throttled", "limit", safelog.Key(key))
 		h.accountError(w, r, "current", MsgTooManyTries, http.StatusTooManyRequests)
 		return
 	}
@@ -134,7 +135,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {
-		h.logger.Warn("account deletion throttled", "key", key)
+		h.logger.Warn("account deletion throttled", "limit", safelog.Key(key))
 		h.accountError(w, r, "confirm", MsgTooManyTries, http.StatusTooManyRequests)
 		return
 	}
