@@ -9,6 +9,7 @@ import (
 	"server/internal/jsonutil"
 	"server/internal/parser"
 	"server/internal/ratelimit"
+	"server/internal/safelog"
 	"server/internal/user"
 	"strconv"
 )
@@ -104,7 +105,7 @@ func (h *Handler) allow(r *http.Request, u *user.User) bool {
 
 	key, allowed := h.limiter.TakeAll(keys)
 	if !allowed {
-		h.logger.Warn("upload throttled", "key", key)
+		h.logger.Warn("upload throttled", "limit", safelog.Key(key))
 		return false
 	}
 
