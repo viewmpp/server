@@ -7,6 +7,7 @@ import (
 	"server/internal/background"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 	"server/internal/session"
 	"server/internal/token"
 	"server/internal/validator"
@@ -36,7 +37,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	keys := []string{"signup:" + form.Email, "signup-ip:" + clientip.From(r)}
 
 	if key, ok := h.limiter.TakeAll(keys); !ok {
-		h.logger.Warn("signup throttled", "key", key)
+		h.logger.Warn("signup throttled", "limit", safelog.Key(key))
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
 		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Signup, NewPage(r, form), h.logger)
 		return
