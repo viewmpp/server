@@ -32,6 +32,8 @@ func indexable(t *testing.T) map[string]*template.Template {
 		"/mpp-to-excel":                     pages.Convert,
 		"/pricing":                          pages.Pricing,
 		"/share-a-project-plan":             pages.Share,
+		"/privacy":                          pages.Privacy,
+		"/terms":                            pages.Terms,
 		"/open-mpp-file-without-ms-project": pages.WithoutProject,
 		"/mpp-viewer-mac":                   pages.Mac,
 	}
@@ -78,7 +80,6 @@ func TestOnlyPublicPagesAreIndexable(t *testing.T) {
 		"signin": pages.Signin, "signup": pages.Signup, "verify": pages.Verify,
 		"forgot": pages.Forgot, "reset": pages.Reset, "unlock": pages.Unlock,
 		"projects": pages.Projects, "account": pages.Account,
-		"privacy": pages.Privacy, "terms": pages.Terms,
 	}
 
 	for name, tmpl := range private {
