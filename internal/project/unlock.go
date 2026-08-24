@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 	"server/internal/user"
 )
 
@@ -45,7 +46,7 @@ func (h *Handler) Unlock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {
-		h.logger.Warn("unlock throttled", "key", key)
+		h.logger.Warn("unlock throttled", "limit", safelog.Key(key))
 		h.unlockPage(w, r, p, MsgTooManyTries)
 		return
 	}
