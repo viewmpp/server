@@ -6,6 +6,7 @@ import (
 	"server/internal/background"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 	"server/internal/token"
 	"server/internal/validator"
 )
@@ -44,7 +45,7 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 	keys := []string{"reset:" + form.Email, "reset-ip:" + clientip.From(r)}
 
 	if key, allowed := h.limiter.TakeAll(keys); !allowed {
-		h.logger.Warn("reset throttled", "key", key)
+		h.logger.Warn("reset throttled", "limit", safelog.Key(key))
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
 		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Forgot, NewPage(r, form), h.logger)
 		return
