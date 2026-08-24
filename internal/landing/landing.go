@@ -59,6 +59,14 @@ var pages = []Page{
 		Label:       "Open .mpp on a Mac",
 		Description: "Microsoft Project has no macOS version at all. What that leaves you with, what a virtual machine really costs, and how to read .mpp on a Mac instead.",
 	},
+	{
+		Slug:        "/privacy",
+		Description: "What MPP Viewer stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
+	},
+	{
+		Slug:        "/terms",
+		Description: "The terms for using MPP Viewer: what the service does, what you may upload, how sharing works and what the limits are.",
+	},
 }
 
 func All() []Page {
