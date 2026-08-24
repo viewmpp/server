@@ -18,3 +18,23 @@ func TestURI(t *testing.T) {
 		}
 	}
 }
+
+func TestKey(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"signin:a@b.c", "signin"},
+		{"signup:someone@example.com", "signup"},
+		{"reset:person@corp.co.uk", "reset"},
+		{"unlock:ZPSSGoGtjnlbTkjN", "unlock"},
+		{"unlock-ip:203.0.113.5", "unlock-ip"},
+		{"upload-user:4217", "upload-user"},
+		{"export-ip:2001:db8::1", "export-ip"},
+		{"plain", "plain"},
+		{"", ""},
+	}
+
+	for _, c := range cases {
+		if got := Key(c.in); got != c.want {
+			t.Errorf("Key(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}

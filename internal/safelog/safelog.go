@@ -15,3 +15,11 @@ func URI(uri string) string {
 
 	return uri
 }
+
+func Key(key string) string {
+	if i := strings.Index(key, ":"); i >= 0 {
+		return key[:i]
+	}
+
+	return key
+}
