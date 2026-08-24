@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -35,7 +36,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 	keys := []string{"signin:" + form.Email, "signin-ip:" + clientip.From(r)}
 
 	if key, ok := h.limiter.AllowAll(keys); !ok {
-		h.logger.Warn("signin throttled", "key", key)
+		h.logger.Warn("signin throttled", "limit", safelog.Key(key))
 		form.FieldErrors = map[string]string{"email": MsgTooManyTries}
 		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Signin, NewPage(r, form), h.logger)
 		return
