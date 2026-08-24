@@ -81,18 +81,18 @@ func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) PrivacyPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, nil)
-	page.Description = "What MPP Viewer stores, what it does not, and how long anything is kept. Uploaded files are never written to disk."
+	page.Description = landing.BySlug("/privacy").Description
 	page.Canonical = h.baseURL + "/privacy"
-	page.NoIndex = true
+	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Privacy, page, h.logger)
 }
 
 func (h *Handler) TermsPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, nil)
-	page.Description = "The terms for using MPP Viewer: what the service does, what you may upload, how sharing works and what the limits are."
+	page.Description = landing.BySlug("/terms").Description
 	page.Canonical = h.baseURL + "/terms"
-	page.NoIndex = true
+	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Terms, page, h.logger)
 }
