@@ -73,6 +73,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	page.Access = p.Access
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID
 	page.CanShare = u.CanShare(shared)
+	page.CanProtect = u.CanProtect()
 	page.MaxPublicFree = user.MaxPublicFree
 	page.MinPasswordLength = MinPasswordLength
 	page.MaxPasswordLength = MaxPasswordLength
@@ -163,6 +164,12 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, back, http.StatusSeeOther)
 			return
 		}
+	}
+
+	if access == AccessProtected && !u.CanProtect() {
+		sess.Put("flash", protectRefusal(u))
+		http.Redirect(w, r, back, http.StatusSeeOther)
+		return
 	}
 
 	if access == AccessProtected {

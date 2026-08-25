@@ -108,20 +108,26 @@
                   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                   <input type="hidden" name="access" value="{{if eq .Access "protected"}}protected{{else}}public{{end}}" data-share-access>
 
-                  <label class="switch">
-                    <input type="checkbox" data-share-protect {{if eq .Access "protected"}}checked{{end}}>
-                    <span class="switch__track"></span>
-                    Require a password
-                  </label>
+                  {{if .CanProtect}}
+                    <label class="switch">
+                      <input type="checkbox" data-share-protect {{if eq .Access "protected"}}checked{{end}}>
+                      <span class="switch__track"></span>
+                      Require a password
+                    </label>
 
-                  <div class="share__pass{{if ne .Access "protected"}} is-collapsed{{end}}" data-share-pass>
-                    <div class="share__pass__inner">
-                      <input class="share__input" type="password" name="password"
-                             placeholder="Password" autocomplete="new-password"
-                             minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
-                      <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                    <div class="share__pass{{if ne .Access "protected"}} is-collapsed{{end}}" data-share-pass>
+                      <div class="share__pass__inner">
+                        <input class="share__input" type="password" name="password"
+                               placeholder="Password" autocomplete="new-password"
+                               minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
+                        <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                      </div>
                     </div>
-                  </div>
+                  {{else}}
+                    <p class="share__hint">
+                      Need a password on this link? <a href="/pricing">Pro adds that</a>. Public links stay free.
+                    </p>
+                  {{end}}
 
                   <button class="btn btn--sm btn--primary btn--inline" type="submit">
                     {{if eq .Access "private"}}Create link{{else}}Save changes{{end}}

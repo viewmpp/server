@@ -37,6 +37,7 @@ type Page struct {
 	Access            string
 	IsOwner           bool
 	CanShare          bool
+	CanProtect        bool
 	MaxPublicFree     int
 	MinPasswordLength int
 	MaxPasswordLength int

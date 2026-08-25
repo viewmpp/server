@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"server/internal/assert"
 	"server/internal/landing"
+	"strings"
 	"testing"
 )
 
@@ -106,5 +107,36 @@ func TestOnlyPublicPagesAreIndexable(t *testing.T) {
 				t.Fatalf("%s carries noindex while being a public landing page", slug)
 			}
 		})
+	}
+}
+
+func TestPasswordSharingIsHiddenWithoutPro(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	owner := Page{
+		UserEmail: "a@b.c",
+		Verified:  true,
+		ProjectID: "abc123",
+		IsOwner:   true,
+		Access:    "private",
+		CanShare:  true,
+		Form:      []stubProject{},
+	}
+
+	free := renderPage(t, pages.App, owner)
+
+	if strings.Contains(free, "data-share-protect") {
+		t.Error("the password toggle is rendered for an account that cannot use it")
+	}
+	if !strings.Contains(free, `href="/pricing"`) {
+		t.Error("no route to the pricing page from the place the limit is met")
+	}
+
+	owner.CanProtect = true
+	pro := renderPage(t, pages.App, owner)
+
+	if !strings.Contains(pro, "data-share-protect") {
+		t.Error("the password toggle is missing for a subscriber")
 	}
 }

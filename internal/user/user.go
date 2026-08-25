@@ -76,6 +76,10 @@ func (u *User) CanSave(saved int) bool {
 	return saved < MaxSavedFree
 }
 
+func (u *User) CanProtect() bool {
+	return u.Verified && u.HasSubscription()
+}
+
 func (u *User) MaxUploadBytes() int64 {
 	if u.HasSubscription() {
 		return MaxUploadPro
