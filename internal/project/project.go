@@ -68,6 +68,23 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
+func (s *Store) DemoteExpiredProtected(ctx context.Context) (int64, error) {
+	query := `
+		UPDATE projects SET access = $1, password_hash = NULL
+		WHERE access = $2
+		  AND user_id IN (
+		      SELECT id FROM users
+		      WHERE subscription_until IS NOT NULL AND subscription_until <= now()
+		  )`
+
+	res, err := s.db.ExecContext(ctx, query, AccessPrivate, AccessProtected)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.RowsAffected()
+}
+
 func (s *Store) CountShared(ctx context.Context, userID int64) (int, error) {
 	query := `SELECT count(*) FROM projects WHERE user_id = $1 AND access IN ($2, $3)`
 
@@ -203,12 +220,26 @@ func (s *Store) GetAccess(ctx context.Context, publicID string, userID int64) (s
 }
 
 func (s *Store) SetAccess(ctx context.Context, publicID string, userID int64, access string, password []byte) error {
+	return s.setAccess(ctx, publicID, userID, access, password, false)
+}
+
+func (s *Store) SetAccessKeepingPassword(ctx context.Context, publicID string, userID int64, access string) error {
+	return s.setAccess(ctx, publicID, userID, access, nil, true)
+}
+
+func (s *Store) setAccess(ctx context.Context, publicID string, userID int64, access string, password []byte, keep bool) error {
 	query := `UPDATE projects SET access = $1, password_hash = $2 WHERE public_id = $3 AND user_id = $4`
+	args := []any{access, password, publicID, userID}
+
+	if keep {
+		query = `UPDATE projects SET access = $1 WHERE public_id = $2 AND user_id = $3`
+		args = []any{access, publicID, userID}
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.db.ExecContext(ctx, query, access, password, publicID, userID)
+	res, err := s.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}

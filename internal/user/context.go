@@ -31,6 +31,7 @@ func NewPage(r *http.Request, form any) htmlutil.Page {
 		page.UserEmail = u.Email
 		page.Verified = u.Verified
 		page.Pro = u.HasSubscription()
+		page.ProWarning = proWarning(u)
 	}
 
 	return page

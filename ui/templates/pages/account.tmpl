@@ -36,7 +36,7 @@
         <span class="tag tag--ok card-block__action">Pro</span>
         <p class="card-block__note">
           {{.SavedCount}} plans saved, {{.SharedCount}} share links live. No limit on either, uploads up to 50 MB.
-          {{with .ProUntil}}<br>Free early access until <strong>{{.}}</strong>, then it lapses to the free tier unless you renew.{{end}}
+          {{with .ProUntil}}<br>Free early access until <strong>{{.}}</strong>.{{end}}{{with .ProWarning}} Password-protected links turn private then, and renewing is one click.{{end}}
         </p>
       {{else}}
         <span class="tag tag--muted card-block__action">Free</span>

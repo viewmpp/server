@@ -172,24 +172,37 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	keepPassword := false
+
 	if access == AccessProtected {
 		plaintext := r.PostFormValue("password")
 
-		if n := utf8.RuneCountInString(plaintext); n < MinPasswordLength || n > MaxPasswordLength {
-			sess.Put("flash", MsgPasswordLength(MinPasswordLength))
-			http.Redirect(w, r, back, http.StatusSeeOther)
-			return
-		}
+		if plaintext == "" && current == AccessProtected {
+			keepPassword = true
+		} else {
+			if n := utf8.RuneCountInString(plaintext); n < MinPasswordLength || n > MaxPasswordLength {
+				sess.Put("flash", MsgPasswordLength(MinPasswordLength))
+				http.Redirect(w, r, back, http.StatusSeeOther)
+				return
+			}
 
-		hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), 12)
-		if err != nil {
-			htmlutil.ServerErrorResponse(w, r, err, h.logger)
-			return
+			hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), 12)
+			if err != nil {
+				htmlutil.ServerErrorResponse(w, r, err, h.logger)
+				return
+			}
+			password = hash
 		}
-		password = hash
 	}
 
-	if err := h.store.SetAccess(r.Context(), publicID, u.ID, access, password); err != nil {
+	save := func() error {
+		if keepPassword {
+			return h.store.SetAccessKeepingPassword(r.Context(), publicID, u.ID, access)
+		}
+		return h.store.SetAccess(r.Context(), publicID, u.ID, access, password)
+	}
+
+	if err := save(); err != nil {
 		if errors.Is(err, ErrNotFound) {
 			htmlutil.NotFoundPage(w, r, h.logger)
 			return

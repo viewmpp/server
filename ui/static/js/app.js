@@ -238,8 +238,10 @@
   }
 
   function describe(contract, fileName) {
-    ui.projectName.textContent =
-      fileName || (contract.project && contract.project.name) || TEXT.noName;
+    var name = fileName || (contract.project && contract.project.name) || TEXT.noName;
+
+    ui.projectName.textContent = name;
+    ui.projectName.title = name;
 
     summarise(contract);
 

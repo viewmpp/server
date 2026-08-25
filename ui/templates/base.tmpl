@@ -67,8 +67,10 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
           </span>
           <span class="account__id">
             <span class="account__mail">{{.UserEmail}}</span>
-            <span class="account__plan{{if not .Verified}} account__plan--warn{{end}}">
-              {{if not .Verified}}Email not confirmed{{else if .Pro}}Pro{{else}}Free{{end}}
+            <span class="account__plan{{if or (not .Verified) .ProWarning}} account__plan--warn{{end}}">
+              {{if not .Verified}}Email not confirmed
+              {{else if .Pro}}Pro{{with .ProWarning}} - {{.}}{{end}}
+              {{else}}Free{{end}}
             </span>
           </span>
           <svg class="ico account__chev" viewBox="0 0 20 20" aria-hidden="true">

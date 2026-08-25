@@ -27,6 +27,7 @@ type Page struct {
 	SavedCount        int
 	SharedCount       int
 	ProUntil          string
+	ProWarning        string
 	UserEmail         string
 	Verified          bool
 	Pro               bool

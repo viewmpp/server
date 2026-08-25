@@ -19,7 +19,7 @@ func Sweep(stop <-chan struct{}, logger *slog.Logger, name string, repetition, t
 			return
 		}
 		if n > 0 {
-			logger.Info("expired rows removed", "name", name, "count", n)
+			logger.Info("sweep changed rows", "name", name, "count", n)
 		}
 	}
 

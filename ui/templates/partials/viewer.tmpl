@@ -53,6 +53,8 @@
           grid
         </label>
       </div>
+      <div class="bar__spacer"></div>
+
       <div class="bar__actions">
         {{if .ProjectID}}
           <a class="btn btn--sm" href="/p/{{.ProjectID}}/xlsx">
@@ -118,9 +120,18 @@
                     <div class="share__pass{{if ne .Access "protected"}} is-collapsed{{end}}" data-share-pass>
                       <div class="share__pass__inner">
                         <input class="share__input" type="password" name="password"
-                               placeholder="Password" autocomplete="new-password"
-                               minlength="{{.MinPasswordLength}}" maxlength="{{.MaxPasswordLength}}">
-                        <p class="share__hint">At least {{.MinPasswordLength}} characters. Replaces the current password.</p>
+                               placeholder="{{if eq .Access "protected"}}Unchanged{{else}}Password{{end}}"
+                               autocomplete="new-password"
+                               {{if ne .Access "protected"}}minlength="{{.MinPasswordLength}}"{{end}}
+                               maxlength="{{.MaxPasswordLength}}">
+                        <p class="share__hint">
+                          {{if eq .Access "protected"}}
+                            A password is already set. Leave this empty to keep it, or type a new one
+                            to replace it - at least {{.MinPasswordLength}} characters.
+                          {{else}}
+                            At least {{.MinPasswordLength}} characters.
+                          {{end}}
+                        </p>
                       </div>
                     </div>
                   {{else}}
@@ -128,6 +139,7 @@
                       Need a password on this link? <a href="/pricing">Pro adds that</a>. Public links stay free.
                     </p>
                   {{end}}
+
 
                   <button class="btn btn--sm btn--primary btn--inline" type="submit">
                     {{if eq .Access "private"}}Create link{{else}}Save changes{{end}}

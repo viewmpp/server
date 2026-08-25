@@ -837,7 +837,7 @@ input:-webkit-autofill:focus {
 
 .bar__row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--unit) 13.68px;
   padding: 11.4px calc(var(--unit) * 2);
@@ -845,7 +845,7 @@ input:-webkit-autofill:focus {
 
 .bar__title { display: flex; align-items: center; gap: 11.4px; min-width: 0; flex: 0 1 auto; }
 .bar__name {
-  max-width: 34ch;
+  min-width: 3ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -855,9 +855,11 @@ input:-webkit-autofill:focus {
 }
 .bar__name:empty::before { content: "Untitled plan"; color: var(--disabled); }
 
-.bar__actions { display: flex; align-items: center; gap: var(--unit); flex-wrap: wrap; margin-left: auto; }
-.bar__group { display: flex; align-items: center; gap: 6.84px; }
-.bar__sep { width: 1.14px; height: 22.8px; background: var(--line); }
+.bar__actions { display: flex; align-items: center; gap: var(--unit); flex: none; }
+.bar__spacer { flex: 1 1 0; min-width: 0; }
+.bar__group { display: flex; align-items: center; gap: 6.84px; flex: none; }
+.bar__sep { width: 1.14px; height: 22.8px; background: var(--line); flex: none; }
+.bar__row > .search, .bar__row > .seg { flex: none; }
 
 .label { color: var(--secondary); font-size: 13.68px; font-weight: 500; }
 .muted { max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--secondary); }
@@ -1123,6 +1125,9 @@ input:-webkit-autofill:focus {
 .summary b { color: var(--text); font-weight: 600; }
 
 @media (max-width: 820.8px) {
+  .bar__row { flex-wrap: wrap; }
+  .bar__spacer { display: none; }
+
   body { flex-direction: column; }
   .side {
     overflow: visible;
@@ -1386,3 +1391,4 @@ input:-webkit-autofill:focus {
   white-space: nowrap;
   border: 0;
 }
+

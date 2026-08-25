@@ -82,6 +82,7 @@ func run() error {
 
 	background.Sweep(stop, logger, "sessions", cfg.SweepRepetition, cfg.SweepTimeout, s.Sessions.DeleteExpired)
 	background.Sweep(stop, logger, "tokens", cfg.SweepRepetition, cfg.SweepTimeout, s.Tokens.DeleteExpired)
+	background.Sweep(stop, logger, "protected links", cfg.SweepRepetition, cfg.SweepTimeout, s.Projects.DemoteExpiredProtected)
 
 	mail := mailer.New(cfg.Resend, templates, logger)
 

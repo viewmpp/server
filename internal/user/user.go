@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"server/internal/token"
@@ -74,6 +75,30 @@ func (u *User) CanSave(saved int) bool {
 		return true
 	}
 	return saved < MaxSavedFree
+}
+
+const proWarningWindow = 7 * 24 * time.Hour
+
+func proWarning(u *User) string {
+	if !u.HasSubscription() || u.SubscriptionUntil == nil {
+		return ""
+	}
+
+	if time.Until(*u.SubscriptionUntil) > proWarningWindow {
+		return ""
+	}
+
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	last := u.SubscriptionUntil.UTC().Truncate(24 * time.Hour)
+
+	switch days := int(last.Sub(today).Hours() / 24); {
+	case days <= 0:
+		return "ends today"
+	case days == 1:
+		return "ends tomorrow"
+	default:
+		return fmt.Sprintf("ends in %d days", days)
+	}
 }
 
 func (u *User) CanProtect() bool {
