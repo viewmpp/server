@@ -61,6 +61,8 @@ func run() error {
 	}
 	defer db.Close()
 
+	htmlutil.SetBaseURL(cfg.BaseURL)
+
 	resolver, err := clientip.NewResolver(cfg.Proxies)
 	if err != nil {
 		return err

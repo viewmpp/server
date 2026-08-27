@@ -10,7 +10,14 @@ import (
 	"server/internal/session"
 	"server/internal/vcs"
 	"strconv"
+	"strings"
 )
+
+var baseURL string
+
+func SetBaseURL(u string) {
+	baseURL = strings.TrimRight(u, "/")
+}
 
 type Page struct {
 	Title             string
@@ -85,6 +92,14 @@ func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.
 	w.Header().Set("Cache-Control", cacheControl(page, sess))
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
+}
+
+func (p Page) OGImage() string {
+	if baseURL == "" {
+		return ""
+	}
+
+	return baseURL + "/static/icons/og.png?v=" + p.Version
 }
 
 func (p Page) Robots() string {

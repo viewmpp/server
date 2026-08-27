@@ -15,6 +15,9 @@ func (s *Server) mux() *http.ServeMux {
 
 	mux.HandleFunc("GET /{$}", s.viewerHandler.Landing)
 
+	mux.HandleFunc("GET /favicon.ico", s.icon("favicon.ico"))
+	mux.HandleFunc("GET /apple-touch-icon.png", s.icon("apple-touch-icon.png"))
+
 	mux.HandleFunc("GET /robots.txt", s.robots)
 	mux.HandleFunc("GET /sitemap.xml", s.sitemap)
 

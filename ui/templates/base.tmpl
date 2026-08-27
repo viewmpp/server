@@ -12,7 +12,10 @@
 <meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}">
 <meta property="og:description" content="{{.Description}}">
 {{if .Canonical}}<meta property="og:url" content="{{.Canonical}}">
-{{end}}<meta name="twitter:card" content="summary">
+{{end}}{{with .OGImage}}<meta property="og:image" content="{{.}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+{{end}}<meta name="twitter:card" content="summary_large_image">
 {{end}}
 <script>
 (function(){try{var m=localStorage.getItem('mpp-theme');
@@ -20,6 +23,9 @@ if(m!=='light'&&m!=='dark'){m=matchMedia('(prefers-color-scheme: dark)').matches
 var r=document.documentElement;r.setAttribute('data-theme',m);
 r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
 </script>
+<link rel="icon" href="/static/icons/favicon.ico?v={{.Version}}" sizes="any">
+<link rel="icon" type="image/png" href="/static/icons/icon-192.png?v={{.Version}}">
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png?v={{.Version}}">
 <link rel="stylesheet" href="/static/css/app.css?v={{.Version}}">
 {{block "head" .}}{{end}}
 </head>

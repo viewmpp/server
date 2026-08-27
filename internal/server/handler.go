@@ -42,6 +42,14 @@ func (s *Server) static() http.Handler {
 	})
 }
 
+func (s *Server) icon(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=604800")
+
+		http.ServeFileFS(w, r, ui.Files, "static/icons/"+name)
+	}
+}
+
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.URL.Path, "/api/") {
 		jsonutil.NotFoundResponse(w)
