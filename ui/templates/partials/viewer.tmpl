@@ -106,7 +106,7 @@
                   {{end}}
                 </p>
               {{else}}
-                <form action="/p/{{.ProjectID}}/access" method="POST" class="share__form" data-share-form>
+                <form action="/p/{{.ProjectID}}/access" method="POST" class="share__form" data-share-form data-share-current="{{.Access}}">
                   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                   <input type="hidden" name="access" value="{{if eq .Access "protected"}}protected{{else}}public{{end}}" data-share-access>
 
@@ -157,7 +157,7 @@
                   {{end}}
 
 
-                  <button class="btn btn--sm btn--primary btn--inline" type="submit">
+                  <button class="btn btn--sm btn--primary btn--inline" type="submit" data-share-submit>
                     {{if eq .Access "private"}}Create link{{else}}Save changes{{end}}
                   </button>
                 </form>

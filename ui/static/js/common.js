@@ -161,17 +161,31 @@
   });
 
   document.querySelectorAll('[data-share-form]').forEach(function (form) {
+    var saved = form.getAttribute('data-share-current') || 'private';
+    var access = form.querySelector('[data-share-access]');
+    var submit = form.querySelector('[data-share-submit]');
+
     var protect = form.querySelector('[data-share-protect]');
     var box = form.querySelector('[data-share-pass]');
-    var edit = box.querySelector('[data-share-edit]');
-    var field = edit.querySelector('input');
-    var access = form.querySelector('[data-share-access]');
-
-    var change = box.querySelector('[data-share-change]');
-    var cancel = box.querySelector('[data-share-cancel]');
+    var edit = box && box.querySelector('[data-share-edit]');
+    var field = edit && edit.querySelector('input');
+    var change = box && box.querySelector('[data-share-change]');
+    var cancel = box && box.querySelector('[data-share-cancel]');
     var changeRow = change && (change.closest('.item') || change);
 
+    function changed() {
+      if (saved === 'private') { return true; }
+      if (access && access.value !== saved) { return true; }
+      return !!(field && field.value);
+    }
+
+    function refresh() {
+      if (submit) { submit.classList.toggle('is-hidden', !changed()); }
+    }
+
     function editing(on, focus) {
+      if (!edit || !field) { return; }
+
       edit.classList.toggle('is-collapsed', !on);
       edit.inert = !on;
 
@@ -187,19 +201,22 @@
     }
 
     function sync(focus) {
-      var on = protect.checked;
+      if (protect && box) {
+        var on = protect.checked;
 
-      box.classList.toggle('is-collapsed', !on);
-      box.inert = !on;
-      access.value = on ? 'protected' : 'public';
+        box.classList.toggle('is-collapsed', !on);
+        box.inert = !on;
+        if (access) { access.value = on ? 'protected' : 'public'; }
 
-      editing(on && !change, focus);
+        editing(on && !change, focus);
+      }
+      refresh();
     }
 
-    protect.addEventListener('change', function () { sync(true); });
-
-    if (change) { change.addEventListener('click', function () { editing(true, true); }); }
-    if (cancel) { cancel.addEventListener('click', function () { editing(false, false); }); }
+    if (protect) { protect.addEventListener('change', function () { sync(true); }); }
+    if (change) { change.addEventListener('click', function () { editing(true, true); refresh(); }); }
+    if (cancel) { cancel.addEventListener('click', function () { editing(false, false); refresh(); }); }
+    if (field) { field.addEventListener('input', refresh); }
 
     sync(false);
   });
