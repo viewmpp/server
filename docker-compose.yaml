@@ -9,6 +9,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    networks:
+      - internal
     volumes:
       - server-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -25,6 +27,8 @@ services:
     container_name: parser
     restart: unless-stopped
     read_only: true
+    networks:
+      - internal
     tmpfs:
       - /tmp
     mem_limit: 1536m
@@ -43,6 +47,8 @@ services:
     image: migrate/migrate:v4.19.1
     container_name: migrate
     restart: "no"
+    networks:
+      - internal
     volumes:
       - ./migrations:/migrations
     command:
@@ -60,6 +66,9 @@ services:
     image: server:local
     container_name: server
     restart: unless-stopped
+    networks:
+      - internal
+      - edge
     env_file:
       - .env
     environment:
@@ -74,6 +83,11 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+
+networks:
+  internal:
+    internal: true
+  edge:
 
 volumes:
   server-db-data:

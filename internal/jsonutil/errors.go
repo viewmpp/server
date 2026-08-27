@@ -31,8 +31,8 @@ func SaveLimitResponse(w http.ResponseWriter, message string) {
 	errorResponse(w, http.StatusConflict, message)
 }
 
-func TooManyRequestsResponse(w http.ResponseWriter) {
-	errorResponse(w, http.StatusTooManyRequests, "too many uploads, try again shortly")
+func TooManyRequestsResponse(w http.ResponseWriter, message string) {
+	errorResponse(w, http.StatusTooManyRequests, message)
 }
 
 func UnauthorizedResponse(w http.ResponseWriter) {

@@ -163,28 +163,45 @@
   document.querySelectorAll('[data-share-form]').forEach(function (form) {
     var protect = form.querySelector('[data-share-protect]');
     var box = form.querySelector('[data-share-pass]');
-    var field = box.querySelector('input');
+    var edit = box.querySelector('[data-share-edit]');
+    var field = edit.querySelector('input');
     var access = form.querySelector('[data-share-access]');
 
-    function sync() {
+    var change = box.querySelector('[data-share-change]');
+    var cancel = box.querySelector('[data-share-cancel]');
+    var changeRow = change && (change.closest('.item') || change);
+
+    function editing(on, focus) {
+      edit.classList.toggle('is-collapsed', !on);
+      edit.inert = !on;
+
+      if (changeRow) { changeRow.classList.toggle('is-hidden', on); }
+
+      if (on) {
+        field.setAttribute('required', 'required');
+        if (focus) { field.focus(); }
+      } else {
+        field.removeAttribute('required');
+        field.value = '';
+      }
+    }
+
+    function sync(focus) {
       var on = protect.checked;
 
       box.classList.toggle('is-collapsed', !on);
       box.inert = !on;
       access.value = on ? 'protected' : 'public';
 
-      if (on) {
-        field.setAttribute('required', 'required');
-        field.focus();
-      } else {
-        field.removeAttribute('required');
-      }
+      editing(on && !change, focus);
     }
 
-    protect.addEventListener('change', sync);
+    protect.addEventListener('change', function () { sync(true); });
 
-    box.inert = !protect.checked;
-    if (protect.checked) { field.setAttribute('required', 'required'); }
+    if (change) { change.addEventListener('click', function () { editing(true, true); }); }
+    if (cancel) { cancel.addEventListener('click', function () { editing(false, false); }); }
+
+    sync(false);
   });
 
   document.querySelectorAll('[data-share-url]').forEach(function (input) {

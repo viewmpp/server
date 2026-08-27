@@ -108,6 +108,10 @@ func (l *Limiter) ResetAll(keys []string) {
 	}
 }
 
+func (l *Limiter) Window() time.Duration {
+	return l.window
+}
+
 func (l *Limiter) Close() {
 	close(l.stopped)
 }

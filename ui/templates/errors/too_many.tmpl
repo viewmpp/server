@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Too many requests - MPP Viewer</title>
+<script>
+(function(){try{var m=localStorage.getItem('mpp-theme');
+if(m!=='light'&&m!=='dark'){m=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+document.documentElement.setAttribute('data-theme',m);}catch(e){}})();
+</script>
+<style>
+  :root {
+    --text: #0a0a0a;
+    --secondary: #737373;
+    --disabled: #a1a1a1;
+    --line: #e5e5e5;
+    --border: #e5e5e5;
+    --main: #2563eb;
+    --main-hover: #1d4ed8;
+    --link: #2563eb;
+    --bg: #ffffff;
+    --bg-secondary: #fafafa;
+    --radius: 9.12px;
+    --shadow-xs: 0 1.14px 2.28px 0 rgba(0, 0, 0, .05);
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    --text: #fafafa;
+    --secondary: #a1a1a1;
+    --disabled: #737373;
+    --line: rgba(255, 255, 255, .09);
+    --border: rgba(255, 255, 255, .12);
+    --main: #3b82f6;
+    --main-hover: #60a5fa;
+    --link: #60a5fa;
+    --bg: #0a0a0a;
+    --bg-secondary: #141414;
+    --shadow-xs: 0 1.14px 2.28px 0 rgba(0, 0, 0, .4);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 27.36px;
+    color: var(--text);
+    background: var(--bg);
+    font: 15.96px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums slashed-zero;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .box { width: 100%; max-width: 501.6px; text-align: center; }
+
+  .code {
+    margin: 0 0 13.68px;
+    color: var(--disabled);
+    font-size: 72.96px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -.04em;
+  }
+
+  h1 { margin: 0 0 9.12px; font-size: 27.36px; line-height: 1.25; font-weight: 600; letter-spacing: -.02em; }
+
+  p { margin: 0 0 27.36px; color: var(--secondary); line-height: 1.6; }
+
+  .hint { font-size: 14.82px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 41.04px;
+    padding: 0 18.24px;
+    background: var(--main);
+    border: 1px solid var(--main);
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 15.96px;
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: var(--shadow-xs);
+    transition: background .15s cubic-bezier(.4, 0, .2, 1);
+  }
+  .btn:hover { background: var(--main-hover); border-color: var(--main-hover); }
+
+  .brand {
+    margin-top: 45.6px;
+    padding-top: 18.24px;
+    border-top: 1px solid var(--line);
+    color: var(--disabled);
+    font-size: 13.68px;
+  }
+  .brand a { color: var(--secondary); text-decoration: none; }
+  .brand a:hover { color: var(--link); text-decoration: underline; }
+</style>
+</head>
+<body>
+  <main class="box">
+    <p class="code">429</p>
+    <h1>Too many requests from this address</h1>
+    <p class="hint">Nothing is broken and nothing was lost.</p>
+    <p>This address opened more plans in a short time than the limit allows. Wait a minute and reload.</p>
+    <p class="brand"><a href="/">MPP Viewer</a> - MS Project plans in the browser</p>
+  </main>
+</body>
+</html>

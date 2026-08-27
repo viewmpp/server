@@ -15,6 +15,8 @@ var badRequest = template.Must(template.ParseFS(ui.Files, "templates/errors/bad_
 
 var notFound = template.Must(template.ParseFS(ui.Files, "templates/errors/not_found.tmpl"))
 
+var tooMany = template.Must(template.ParseFS(ui.Files, "templates/errors/too_many.tmpl"))
+
 func errorResponse(w http.ResponseWriter, status int) {
 	buf := new(bytes.Buffer)
 	var err error
@@ -23,6 +25,8 @@ func errorResponse(w http.ResponseWriter, status int) {
 		err = badRequest.Execute(buf, nil)
 	case http.StatusNotFound:
 		err = notFound.Execute(buf, nil)
+	case http.StatusTooManyRequests:
+		err = tooMany.Execute(buf, nil)
 	default:
 		err = serverError.Execute(buf, nil)
 	}
@@ -44,6 +48,10 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logg
 func BadRequestPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
 	logger.Warn("request rejected", "method", r.Method, "path", safelog.URI(r.URL.Path))
 	errorResponse(w, http.StatusBadRequest)
+}
+
+func TooManyRequestsPage(w http.ResponseWriter) {
+	errorResponse(w, http.StatusTooManyRequests)
 }
 
 func NotFoundPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {

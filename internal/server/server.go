@@ -13,6 +13,7 @@ import (
 	"server/internal/config"
 	"server/internal/export"
 	"server/internal/project"
+	"server/internal/ratelimit"
 	"server/internal/store"
 	"server/internal/upload"
 	"server/internal/user"
@@ -25,6 +26,8 @@ import (
 type Server struct {
 	cfg            config.Config
 	resolver       *clientip.Resolver
+	readLimiter    *ratelimit.Limiter
+	exportLimiter  *ratelimit.Limiter
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
 	exportHandler  *export.Handler
@@ -38,6 +41,8 @@ type Server struct {
 func New(
 	cfg config.Config,
 	resolver *clientip.Resolver,
+	readLimiter *ratelimit.Limiter,
+	exportLimiter *ratelimit.Limiter,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
 	exportHandler *export.Handler,
@@ -50,6 +55,8 @@ func New(
 	return &Server{
 		cfg:            cfg,
 		resolver:       resolver,
+		readLimiter:    readLimiter,
+		exportLimiter:  exportLimiter,
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
 		exportHandler:  exportHandler,

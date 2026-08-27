@@ -10,6 +10,7 @@ type Config struct {
 	Application
 	Upload
 	Project
+	Read
 	User
 	Parser
 	DB
@@ -26,6 +27,7 @@ func Load() Config {
 	cfg.loadApplication()
 	cfg.loadUpload()
 	cfg.loadProject()
+	cfg.loadRead()
 	cfg.loadUser()
 	cfg.loadParser()
 	cfg.loadDB()

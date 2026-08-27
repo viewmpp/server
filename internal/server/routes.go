@@ -5,6 +5,10 @@ import (
 )
 
 func (s *Server) routes() http.Handler {
+	return s.recoverPanic(s.logRequest(s.noStore(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
+}
+
+func (s *Server) mux() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /static/", s.static())
@@ -18,9 +22,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
 	mux.HandleFunc("POST /api/v1/xlsx", s.exportHandler.XLSX)
 	mux.HandleFunc("POST /api/v1/projects", s.projectHandler.Create)
-	mux.HandleFunc("GET /api/v1/projects/{id}", s.projectHandler.Contract)
+	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimiter, "read-ip:", s.projectHandler.Contract))
 
-	mux.HandleFunc("GET /api/v1/examples/{name}", s.viewerHandler.ExampleContract)
+	mux.HandleFunc("GET /api/v1/examples/{name}", s.throttle(s.readLimiter, "read-ip:", s.viewerHandler.ExampleContract))
 
 	mux.HandleFunc("GET /mpp-to-excel", s.projectHandler.ConvertPage)
 	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
@@ -35,8 +39,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
 
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
-	mux.HandleFunc("GET /p/{id}", s.projectHandler.Page)
-	mux.HandleFunc("GET /p/{id}/xlsx", s.projectHandler.Export)
+	mux.HandleFunc("GET /p/{id}", s.throttle(s.readLimiter, "read-ip:", s.projectHandler.Page))
+	mux.HandleFunc("GET /p/{id}/xlsx", s.throttle(s.exportLimiter, "export-ip:", s.projectHandler.Export))
 	mux.HandleFunc("POST /p/{id}/unlock", s.projectHandler.Unlock)
 	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
 	mux.HandleFunc("POST /p/{id}/delete", s.projectHandler.Delete)
@@ -65,5 +69,5 @@ func (s *Server) routes() http.Handler {
 
 	mux.HandleFunc("/", s.notFound)
 
-	return s.recoverPanic(s.logRequest(s.noStore(s.clientIP(s.withSession(s.authenticate(mux))))))
+	return mux
 }

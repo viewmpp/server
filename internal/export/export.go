@@ -33,7 +33,7 @@ func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 
 	if !h.limiter.Take(key) {
 		h.logger.Warn("export throttled", "limit", safelog.Key(key))
-		jsonutil.TooManyRequestsResponse(w)
+		jsonutil.TooManyRequestsResponse(w, "too many uploads, try again shortly")
 		return
 	}
 

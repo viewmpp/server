@@ -1,11 +1,10 @@
 services:
   server-db:
+    networks:
+      - internal
+      - edge
     ports:
       - '127.0.0.1:5432:5432'
-
-  parser:
-    ports:
-      - '127.0.0.1:8080:8080'
 
   server:
     ports:

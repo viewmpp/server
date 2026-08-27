@@ -9,9 +9,11 @@ import (
 	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/ratelimit"
 	"server/internal/safelog"
 	"server/internal/session"
 	"server/internal/user"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -92,6 +94,31 @@ func (s *Server) noStore(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(&noStoreWriter{ResponseWriter: w}, r)
 	})
+}
+
+func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		key := prefix + clientip.From(r)
+
+		if !limiter.Take(key) {
+			s.logger.Warn("read throttled", "limit", safelog.Key(key))
+			s.tooManyRequests(w, r, limiter.Window())
+			return
+		}
+
+		next(w, r)
+	}
+}
+
+func (s *Server) tooManyRequests(w http.ResponseWriter, r *http.Request, window time.Duration) {
+	w.Header().Set("Retry-After", strconv.Itoa(int(window.Seconds())))
+
+	if strings.HasPrefix(r.URL.Path, "/api/") {
+		jsonutil.TooManyRequestsResponse(w, "too many requests from this address, try again shortly")
+		return
+	}
+
+	htmlutil.TooManyRequestsPage(w)
 }
 
 func (s *Server) clientIP(next http.Handler) http.Handler {

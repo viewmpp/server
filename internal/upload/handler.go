@@ -44,7 +44,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
 
 	if !h.allow(r, u) {
-		jsonutil.TooManyRequestsResponse(w)
+		jsonutil.TooManyRequestsResponse(w, "too many uploads, try again shortly")
 		return
 	}
 

@@ -72,6 +72,12 @@ func run() error {
 	projectLimiter := ratelimit.New(cfg.ProjectLimit, cfg.ProjectWindow)
 	defer projectLimiter.Close()
 
+	readLimiter := ratelimit.New(cfg.ReadLimit, cfg.ReadWindow)
+	defer readLimiter.Close()
+
+	exportLimiter := ratelimit.New(cfg.ExportLimit, cfg.ExportWindow)
+	defer exportLimiter.Close()
+
 	userLimiter := ratelimit.New(cfg.UserLimit, cfg.UserWindow)
 	defer userLimiter.Close()
 
@@ -92,5 +98,5 @@ func run() error {
 	projectHandler := project.NewHandler(s.Projects, cfg.BaseURL, projectLimiter, cfg.LenListLimit, templates, logger)
 	userHandler := user.NewHandler(s.Users, s.Projects, s.Tokens, s.Sessions, userLimiter, mail, cfg.VerificationTTL, cfg.VerificationRC, cfg.ResetTTL, cfg.BaseURL, cfg.EarlyAccessSeats, cfg.EarlyAccessPeriod, templates, &wg, logger)
 
-	return server.New(cfg, resolver, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
+	return server.New(cfg, resolver, readLimiter, exportLimiter, viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

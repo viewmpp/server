@@ -119,19 +119,35 @@
 
                     <div class="share__pass{{if ne .Access "protected"}} is-collapsed{{end}}" data-share-pass>
                       <div class="share__pass__inner">
-                        <input class="share__input" type="password" name="password"
-                               placeholder="{{if eq .Access "protected"}}Unchanged{{else}}Password{{end}}"
-                               autocomplete="new-password"
-                               {{if ne .Access "protected"}}minlength="{{.MinPasswordLength}}"{{end}}
-                               maxlength="{{.MaxPasswordLength}}">
-                        <p class="share__hint">
-                          {{if eq .Access "protected"}}
-                            A password is already set. Leave this empty to keep it, or type a new one
-                            to replace it - at least {{.MinPasswordLength}} characters.
-                          {{else}}
-                            At least {{.MinPasswordLength}} characters.
-                          {{end}}
-                        </p>
+                        {{if eq .Access "protected"}}
+                          <div class="item item--muted">
+                            <div class="item__content">
+                              <span class="item__title">Password set</span>
+                              <span class="item__desc">Anyone opening the link must enter it</span>
+                            </div>
+                            <div class="item__actions">
+                              <button class="btn btn--sm btn--ghost" type="button" data-share-change>Change</button>
+                            </div>
+                          </div>
+                        {{end}}
+
+                        <div class="share__edit{{if eq .Access "protected"}} is-collapsed{{end}}" data-share-edit>
+                          <div class="share__pass__inner">
+                            <input class="share__input" type="password" name="password"
+                                   placeholder="{{if eq .Access "protected"}}New password{{else}}Password{{end}}"
+                                   aria-label="{{if eq .Access "protected"}}New link password{{else}}Link password{{end}}"
+                                   autocomplete="new-password"
+                                   minlength="{{.MinPasswordLength}}"
+                                   maxlength="{{.MaxPasswordLength}}">
+                            <p class="share__hint">At least {{.MinPasswordLength}} characters.</p>
+
+                            {{if eq .Access "protected"}}
+                              <button class="btn btn--sm btn--ghost btn--inline" type="button" data-share-cancel>
+                                Cancel
+                              </button>
+                            {{end}}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   {{else}}
