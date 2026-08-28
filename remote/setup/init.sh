@@ -4,8 +4,6 @@ set -eu
 USERNAME=dzenthai
 PROJECT_DIR=/opt/viewmpp
 
-SSH_DIR=/home/${USERNAME}/.ssh
-
 read -rsp "Enter password for ${USERNAME}: " PASSWORD
 echo
 
@@ -17,7 +15,9 @@ echo "${USERNAME}:${PASSWORD}" | chpasswd
 
 usermod --append --groups sudo "${USERNAME}"
 
-curl -fsSL https://get.docker.com | sh
+if ! command -v docker >/dev/null 2>&1; then
+    curl -fsSL https://get.docker.com | sh
+fi
 
 if getent group docker > /dev/null; then
     usermod --append --groups docker "${USERNAME}"
