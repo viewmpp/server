@@ -4,6 +4,7 @@
 .claude
 
 .env
+.env.*
 .envrc
 
 /docs/settings.md
@@ -16,3 +17,4 @@ package.json
 skills-lock.json
 /bin
 /backups
+.agents
