@@ -983,8 +983,11 @@ input:-webkit-autofill:focus {
   font-size: 13.68px;
 }
 .legend { display: flex; align-items: center; gap: 15.96px; }
+.legend__item { display: inline-flex; align-items: center; }
 .sw { display: inline-block; width: 20.52px; height: 6.84px; border-radius: 1138.86px; vertical-align: middle; margin-right: 6.84px; }
+.sw--today { background: var(--text); }
 .sw--crit { background: var(--error); }
+.sw--late { background: var(--warning); }
 .sw--off { background: var(--bg-tag); border: 1px solid var(--border); }
 
 .toast {
@@ -1141,11 +1144,16 @@ input:-webkit-autofill:focus {
   box-shadow: var(--shadow-xs);
 }
 .gantt_task_line .gantt_task_progress { background: var(--progress-overlay); border-radius: var(--radius-sm); }
+.gantt_task_line.gantt_milestone { border-radius: 3.42px; background: var(--main); }
+.gantt_task_line.is-late { background: var(--warning); }
 .gantt_task_line.is-critical { background: var(--error); }
 .gantt_task_line.is-summary { background: var(--secondary); border-radius: 3.42px; box-shadow: none; }
-.gantt_task_line.gantt_milestone { border-radius: 3.42px; background: var(--main); }
+.gantt_task_line.is-summary.is-late { background: var(--warning); }
+.gantt_task_line.is-late:not(.is-critical) .gantt_task_content,
+.gantt_task_line.is-summary.is-late .gantt_task_content { color: var(--bg); }
 
 .gantt_grid_data .gantt_row.is-summary-row .gantt_cell:nth-child(2) { font-weight: 600; }
+.gantt_grid_data .gantt_row.is-late-row { box-shadow: inset 2.28px 0 0 var(--warning); }
 
 .gantt_task_cell.is-nonworking {
   background: repeating-linear-gradient(
@@ -1162,6 +1170,31 @@ input:-webkit-autofill:focus {
 
 #gantt-here.no-grid .gantt_task_cell,
 #gantt-here.no-grid .gantt_task_row { border-right-color: transparent !important; }
+
+.today {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 0;
+  border-left: 2.28px solid var(--text);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.today__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateX(-50%);
+  padding: 1.14px 6.84px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 11.4px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
 
 .summary {
   flex: none;

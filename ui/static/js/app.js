@@ -16,14 +16,22 @@
     details: document.getElementById('details'),
     detailsBody: document.getElementById('details-body'),
     search: document.getElementById('search'),
-    summary: document.getElementById('summary')
+    summary: document.getElementById('summary'),
+    toggleCritical: document.getElementById('toggle-critical'),
+    toggleLate: document.getElementById('toggle-late'),
+    legendToday: document.getElementById('legend-today'),
+    legendCritical: document.getElementById('legend-critical'),
+    legendLate: document.getElementById('legend-late')
   };
 
   var model = null;
   var loaded = null;
   var loadedName = '';
-  var showCritical = true;
+  var showCritical = ui.toggleCritical.checked;
+  var showLate = ui.toggleLate.checked;
   var started = false;
+  var todayLine = null;
+  var todayISO = '';
 
   var UNITS = {
     MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
@@ -58,6 +66,12 @@
     predecessors: 'Predecessors',
     successors:   'Successors',
     notes:        'Notes',
+    late:         'Late',
+    lateTask:     'late task',
+    lateTasks:    'late tasks',
+    overdue:      'overdue',
+    day:          'day',
+    days:         'days',
     yes:          'yes',
     projStart:    'Start',
     projFinish:   'Finish',
@@ -184,6 +198,9 @@
 
     loaded = contract;
     loadedName = fileName || '';
+    todayISO = toISO(new Date());
+
+    syncLegend();
 
     model = window.MppMapper.toModel(contract);
     gantt.clearAll();
@@ -217,6 +234,7 @@
       var classes = [];
       if (task.$contract.is_summary) { classes.push('is-summary'); }
       if (showCritical && task.$contract.is_critical) { classes.push('is-critical'); }
+      if (showLate && isLate(task.$contract)) { classes.push('is-late'); }
       return classes.join(' ');
     };
 
@@ -225,10 +243,15 @@
     };
 
     gantt.templates.grid_row_class = function (start, end, task) {
-      return task.$contract.is_summary ? 'is-summary-row' : '';
+      var classes = [];
+      if (task.$contract.is_summary) { classes.push('is-summary-row'); }
+      if (showLate && isLate(task.$contract)) { classes.push('is-late-row'); }
+      return classes.join(' ');
     };
 
     gantt.init(ui.chart);
+
+    gantt.attachEvent('onGanttRender', placeToday);
 
     gantt.attachEvent('onTaskClick', function (id) {
       showDetails(gantt.getTask(id).$contract);
@@ -246,11 +269,19 @@
     summarise(contract);
 
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
-    ui.stats.textContent =
-      contract.tasks.length + ' ' + TEXT.tasks + ' · ' +
-      contract.relations.length + ' ' + TEXT.links + ' · ' +
-      critical + ' ' + TEXT.onCritical + ' · ' +
-      TEXT.calendar + ': ' + (model.calendar.name || TEXT.defaultCal);
+    var late = contract.tasks.filter(function (t) { return !t.is_summary && isLate(t); }).length;
+
+    var parts = [
+      contract.tasks.length + ' ' + TEXT.tasks,
+      contract.relations.length + ' ' + TEXT.links,
+      critical + ' ' + TEXT.onCritical
+    ];
+
+    if (late) { parts.push(late + ' ' + (late === 1 ? TEXT.lateTask : TEXT.lateTasks)); }
+
+    parts.push(TEXT.calendar + ': ' + (model.calendar.name || TEXT.defaultCal));
+
+    ui.stats.textContent = parts.join(' · ');
   }
 
   function summarise(contract) {
@@ -292,6 +323,7 @@
       [TEXT.complete, Math.round(task.percent_complete) + '%']
     ];
 
+    if (isLate(task)) { rows.push([TEXT.late, lateLabel(task)]); }
     if (task.is_critical) { rows.push([TEXT.critical, TEXT.yes]); }
     if (task.is_milestone) { rows.push([TEXT.milestone, TEXT.yes]); }
     if (task.baseline) {
@@ -380,14 +412,22 @@
     });
   });
 
-  document.getElementById('toggle-critical').addEventListener('change', function (e) {
+  ui.toggleCritical.addEventListener('change', function (e) {
     showCritical = e.target.checked;
+    syncLegend();
     gantt.render();
   });
 
-  document.getElementById('toggle-grid').addEventListener('change', function (e) {
-    ui.chart.classList.toggle('no-grid', !e.target.checked);
+  ui.toggleLate.addEventListener('change', function (e) {
+    showLate = e.target.checked;
+    syncLegend();
+    gantt.render();
   });
+
+  function syncLegend() {
+    ui.legendCritical.classList.toggle('is-hidden', !showCritical);
+    ui.legendLate.classList.toggle('is-hidden', !showLate);
+  }
 
   ui.search.addEventListener('input', function (e) {
     var needle = e.target.value.trim().toLowerCase();
@@ -406,6 +446,48 @@
     });
     if (first) { gantt.showTask(first); }
   });
+
+  function isLate(task) {
+    if (!task || !task.finish || task.percent_complete >= 100) { return false; }
+    return task.finish.slice(0, 10) < todayISO;
+  }
+
+  function lateLabel(task) {
+    var behind = Math.round((new Date(todayISO) - new Date(task.finish.slice(0, 10))) / 86400000);
+    return behind + ' ' + (behind === 1 ? TEXT.day : TEXT.days) + ' ' + TEXT.overdue;
+  }
+
+  function ensureToday() {
+    if (!gantt || !gantt.$task_data) { return null; }
+
+    if (!todayLine || todayLine.parentNode !== gantt.$task_data) {
+      todayLine = document.createElement('div');
+      todayLine.className = 'today is-hidden';
+      todayLine.innerHTML = '<span class="today__label"></span>';
+      gantt.$task_data.appendChild(todayLine);
+    }
+
+    return todayLine;
+  }
+
+  function placeToday() {
+    var line = ensureToday();
+    if (!line) { return; }
+
+    var now = new Date();
+    var state = gantt.getState();
+
+    if (!state.min_date || !state.max_date || now < state.min_date || now > state.max_date) {
+      line.classList.add('is-hidden');
+      ui.legendToday.classList.add('is-hidden');
+      return;
+    }
+
+    line.style.left = gantt.posFromDate(now) + 'px';
+    line.firstChild.textContent = toISO(now);
+    line.classList.remove('is-hidden');
+    ui.legendToday.classList.remove('is-hidden');
+  }
 
   function duration(value) {
     if (!value) { return ''; }

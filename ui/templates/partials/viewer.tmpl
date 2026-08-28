@@ -48,9 +48,9 @@
           critical path
         </label>
         <label class="switch">
-          <input type="checkbox" id="toggle-grid" checked>
+          <input type="checkbox" id="toggle-late">
           <span class="switch__track"></span>
-          grid
+          late
         </label>
       </div>
       <div class="bar__spacer"></div>
@@ -239,8 +239,10 @@
   <footer class="statusbar">
     <span id="stats">-</span>
     <span class="legend">
-      <i class="sw sw--crit"></i> critical task
-      <i class="sw sw--off"></i> non-working day
+      <span class="legend__item is-hidden" id="legend-today"><i class="sw sw--today"></i> today</span>
+      <span class="legend__item" id="legend-critical"><i class="sw sw--crit"></i> critical task</span>
+      <span class="legend__item is-hidden" id="legend-late"><i class="sw sw--late"></i> late</span>
+      <span class="legend__item"><i class="sw sw--off"></i> non-working day</span>
     </span>
   </footer>
 </div>
