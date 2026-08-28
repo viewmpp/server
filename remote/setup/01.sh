@@ -29,6 +29,16 @@ ssh-keyscan github.com > "${SSH_DIR}/known_hosts" 2> /dev/null
 chown "${USERNAME}:${USERNAME}" "${SSH_DIR}/known_hosts"
 chmod 600 "${SSH_DIR}/known_hosts"
 
+if [ ! -f "${SSH_DIR}/id_ed25519" ]; then
+    sudo -u "${USERNAME}" -H ssh-keygen -q -t ed25519 -N "" -C "${USERNAME}@$(hostname)" -f "${SSH_DIR}/id_ed25519"
+fi
+
+echo
+cat "${SSH_DIR}/id_ed25519.pub"
+echo
+
+read -r -p "Add this key at GitHub, then press Enter: " _
+
 install -d -o "${USERNAME}" -g "${USERNAME}" "${PROJECT_DIR}"
 
 read -r -p "Enter the server repository URL: " SERVER_REPO
