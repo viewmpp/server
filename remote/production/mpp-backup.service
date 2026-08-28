@@ -5,6 +5,6 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-User=deploy
-Environment=PROJECT_DIR=/home/deploy/mpp-viewer
-ExecStart=/home/deploy/mpp-viewer/server/remote/production/backup.sh
+User=dzenthai
+Environment=PROJECT_DIR=/home/dzenthai/mpp-viewer
+ExecStart=/home/dzenthai/mpp-viewer/server/remote/production/backup.sh

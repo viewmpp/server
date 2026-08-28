@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PROJECT_DIR=${PROJECT_DIR:-/home/deploy/mpp-viewer}
+PROJECT_DIR=${PROJECT_DIR:-/home/dzenthai/mpp-viewer}
 SERVER_DIR=${SERVER_DIR:-${PROJECT_DIR}/server}
 BACKUP_DIR=${BACKUP_DIR:-${PROJECT_DIR}/backups}
 KEEP_DAYS=${KEEP_DAYS:-14}

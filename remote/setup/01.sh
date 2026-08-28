@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-USERNAME=deploy
+USERNAME=dzenthai
 PROJECT_DIR=/home/${USERNAME}/mpp-viewer
 
 read -p "Enter the server repository URL: " SERVER_REPO
@@ -24,10 +24,14 @@ apt --yes install docker-ce docker-ce-cli containerd.io docker-buildx-plugin doc
 
 systemctl enable --now docker
 
-useradd --create-home --shell "/bin/bash" --groups sudo,docker "${USERNAME}"
-passwd --delete "${USERNAME}"
-chage --lastday 0 "${USERNAME}"
-rsync --archive --chown=${USERNAME}:${USERNAME} /root/.ssh /home/${USERNAME}
+if id -u "${USERNAME}" > /dev/null 2>&1; then
+    usermod --append --groups sudo,docker "${USERNAME}"
+else
+    useradd --create-home --shell "/bin/bash" --groups sudo,docker "${USERNAME}"
+    passwd --delete "${USERNAME}"
+    chage --lastday 0 "${USERNAME}"
+    rsync --archive --chown=${USERNAME}:${USERNAME} /root/.ssh /home/${USERNAME}
+fi
 
 sudo -u "${USERNAME}" mkdir -p "${PROJECT_DIR}"
 sudo -u "${USERNAME}" git clone "${SERVER_REPO}" "${PROJECT_DIR}/server"
