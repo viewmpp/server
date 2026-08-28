@@ -2,80 +2,46 @@
 set -eu
 
 USERNAME=dzenthai
-PROJECT_DIR=/home/${USERNAME}/mpp-viewer
+PROJECT_DIR=/viewmpp
 
-read -p "Enter the server repository URL: " SERVER_REPO
-read -p "Enter the parser repository URL: " PARSER_REPO
+SSH_DIR=/home/${USERNAME}/.ssh
 
-export LC_ALL=en_US.UTF-8
+read -rsp "Enter password for ${USERNAME}: " PASSWORD
+echo
 
-apt update
-apt --yes install ca-certificates curl git rsync
-
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME}") stable" \
-    > /etc/apt/sources.list.d/docker.list
-
-apt update
-apt --yes install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-systemctl enable --now docker
-
-if id -u "${USERNAME}" > /dev/null 2>&1; then
-    usermod --append --groups sudo,docker "${USERNAME}"
-else
-    useradd --create-home --shell "/bin/bash" --groups sudo,docker "${USERNAME}"
-    passwd --delete "${USERNAME}"
-    chage --lastday 0 "${USERNAME}"
-    rsync --archive --chown=${USERNAME}:${USERNAME} /root/.ssh /home/${USERNAME}
+if ! id -u "${USERNAME}" > /dev/null 2>&1; then
+    useradd --create-home --shell /bin/bash "${USERNAME}"
 fi
 
-sudo -u "${USERNAME}" mkdir -p "${PROJECT_DIR}"
-sudo -u "${USERNAME}" git clone "${SERVER_REPO}" "${PROJECT_DIR}/server"
-sudo -u "${USERNAME}" git clone "${PARSER_REPO}" "${PROJECT_DIR}/parser"
+echo "${USERNAME}:${PASSWORD}" | chpasswd
 
-docker --version
-docker compose version
+usermod --append --groups sudo "${USERNAME}"
 
-install -m 0644 "${PROJECT_DIR}/server/remote/production/mpp-backup.service" /etc/systemd/system/
+curl -fsSL https://get.docker.com | sh
+
+if getent group docker > /dev/null; then
+    usermod --append --groups docker "${USERNAME}"
+fi
+
+install -d -m 700 -o "${USERNAME}" -g "${USERNAME}" "${SSH_DIR}"
+
+ssh-keyscan github.com > "${SSH_DIR}/known_hosts" 2> /dev/null
+chown "${USERNAME}:${USERNAME}" "${SSH_DIR}/known_hosts"
+chmod 600 "${SSH_DIR}/known_hosts"
+
+install -d -o "${USERNAME}" -g "${USERNAME}" "${PROJECT_DIR}"
+
+read -r -p "Enter the server repository URL: " SERVER_REPO
+read -r -p "Enter the parser repository URL: " PARSER_REPO
+
+sudo -u "${USERNAME}" -H git clone "${SERVER_REPO}" "${PROJECT_DIR}/server"
+sudo -u "${USERNAME}" -H git clone "${PARSER_REPO}" "${PROJECT_DIR}/parser"
+
+sed "s|/home/dzenthai/mpp-viewer|${PROJECT_DIR}|g; s|^User=.*|User=${USERNAME}|" \
+    "${PROJECT_DIR}/server/remote/production/mpp-backup.service" \
+    > /etc/systemd/system/mpp-backup.service
+chmod 0644 /etc/systemd/system/mpp-backup.service
+
 install -m 0644 "${PROJECT_DIR}/server/remote/production/mpp-backup.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now mpp-backup.timer
-
-cat <<MSG
-
-Setup complete. Two steps left.
-
-1. Write ${PROJECT_DIR}/server/.env with at least:
-
-     ENV=prod
-     BASE_URL=https://<your domain>
-     DOMAIN=<your domain>
-     ACME_EMAIL=<address for Let's Encrypt>
-     POSTGRES_USER=... POSTGRES_PASSWORD=... POSTGRES_DB=...
-     RESEND_API_KEY=... RESEND_SENDER=noreply@<your domain>
-
-2. Bring the stack up with both compose files:
-
-     cd ${PROJECT_DIR}/server
-     docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
-
-   The base file alone publishes no ports - Caddy lives in the prod file and is the
-   only way in. To update later, git pull in both repos and repeat the same command.
-
-3. Take the first backup by hand and restore it into a scratch database. A backup
-   nobody has restored is not yet a backup:
-
-     systemctl start mpp-backup.service
-     journalctl -u mpp-backup.service -n 20
-
-     docker compose -f docker-compose.yaml -f docker-compose.prod.yaml exec -T server-db \\
-       pg_restore -U "\$POSTGRES_USER" -d "\$POSTGRES_DB" --clean --if-exists < ../backups/<file>.dump
-
-   Dumps land in ${PROJECT_DIR}/backups, 14 days are kept, the timer runs nightly at
-   03:30 UTC. They sit on the same disk as the database - set BACKUP_REMOTE in the
-   unit to mirror them off the machine.
-MSG
