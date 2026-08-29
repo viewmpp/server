@@ -18,6 +18,9 @@
     search: document.getElementById('search'),
     searchBox: document.getElementById('searchbox'),
     searchCount: document.getElementById('search-count'),
+    filterToggle: document.getElementById('filter-toggle'),
+    filterLabel: document.getElementById('filter-label'),
+    filterItems: document.querySelectorAll('[data-filter]'),
     summary: document.getElementById('summary'),
     toggleCritical: document.getElementById('toggle-critical'),
     toggleOverdue: document.getElementById('toggle-overdue'),
@@ -42,6 +45,8 @@
   var needle = '';
   var searchTimer = null;
   var treeState = null;
+  var filter = 'all';
+  var visibleSet = null;
 
   var UNITS = {
     MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
@@ -49,6 +54,14 @@
     ELAPSED_MINUTES: 'min (elapsed)', ELAPSED_HOURS: 'h (elapsed)', ELAPSED_DAYS: 'd (elapsed)',
     ELAPSED_WEEKS: 'w (elapsed)', ELAPSED_MONTHS: 'mo (elapsed)', ELAPSED_YEARS: 'y (elapsed)',
     ELAPSED_PERCENT: '% (elapsed)'
+  };
+
+  var FILTER_LABEL = {
+    all: 'Filter',
+    critical: 'Critical path',
+    overdue: 'Overdue',
+    incomplete: 'Incomplete',
+    milestones: 'Milestones'
   };
 
   var LINK_LABEL = {
@@ -210,6 +223,7 @@
     todayISO = toISO(new Date());
 
     syncLegend();
+    resetFilter();
     resetSearch();
 
     model = window.MppMapper.toModel(contract);
@@ -283,6 +297,10 @@
     gantt.config.link_line_width = 1;
     gantt.config.link_radius = 6;
     gantt.config.link_arrow_size = 6;
+
+    gantt.attachEvent('onBeforeTaskDisplay', function (id) {
+      return !visibleSet || visibleSet[id] === true;
+    });
 
     gantt.attachEvent('onGanttRender', placeToday);
 
@@ -433,18 +451,6 @@
     });
   });
 
-  document.getElementById('collapse-all').addEventListener('click', function () {
-    gantt.batchUpdate(function () {
-      gantt.eachTask(function (task) { task.$open = false; });
-    });
-  });
-
-  document.getElementById('expand-all').addEventListener('click', function () {
-    gantt.batchUpdate(function () {
-      gantt.eachTask(function (task) { task.$open = true; });
-    });
-  });
-
   ui.toggleCritical.addEventListener('change', function (e) {
     showCritical = e.target.checked;
     syncLegend();
@@ -490,6 +496,12 @@
     return (task.wbs || task.outline_number || '').toLowerCase().indexOf(needle) >= 0;
   }
 
+  function expandAll() {
+    gantt.batchUpdate(function () {
+      gantt.eachTask(function (task) { task.$open = true; });
+    });
+  }
+
   function rememberTree() {
     if (treeState) { return; }
 
@@ -527,9 +539,7 @@
     if (next === needle) { return false; }
 
     needle = next;
-    matches = [];
-    matchSet = {};
-    matchIndex = -1;
+    collectMatches();
 
     if (!needle) {
       restoreTree();
@@ -539,20 +549,7 @@
     }
 
     rememberTree();
-
-    (loaded && loaded.tasks ? loaded.tasks : []).forEach(function (task) {
-      if (!matchesTask(task)) { return; }
-
-      var id = window.MppMapper.key(task.id);
-      matches.push(id);
-      matchSet[id] = true;
-    });
-
-    if (matches.length) { matchIndex = 0; }
-
-    gantt.batchUpdate(function () {
-      gantt.eachTask(function (task) { task.$open = true; });
-    });
+    expandAll();
 
     updateCount();
     gantt.refreshData();
@@ -570,6 +567,108 @@
     gantt.refreshData();
     focusMatch();
   }
+
+  function collectMatches() {
+    matches = [];
+    matchSet = {};
+    matchIndex = -1;
+
+    if (!needle) { return; }
+
+    (loaded && loaded.tasks ? loaded.tasks : []).forEach(function (task) {
+      if (!isVisibleTask(task) || !matchesTask(task)) { return; }
+
+      var id = window.MppMapper.key(task.id);
+      matches.push(id);
+      matchSet[id] = true;
+    });
+
+    if (matches.length) { matchIndex = 0; }
+  }
+
+  function passesFilter(task) {
+    switch (filter) {
+      case 'critical': return task.is_critical;
+      case 'overdue': return isOverdue(task);
+      case 'incomplete': return task.percent_complete < 100;
+      case 'milestones': return task.is_milestone;
+      default: return true;
+    }
+  }
+
+  function isVisibleTask(task) {
+    return !visibleSet || visibleSet[window.MppMapper.key(task.id)] === true;
+  }
+
+  function buildVisible() {
+    if (filter === 'all' || !loaded) {
+      visibleSet = null;
+      return;
+    }
+
+    var parents = {};
+    (loaded.tasks || []).forEach(function (task) { parents[task.id] = task.parent_id; });
+
+    visibleSet = {};
+
+    (loaded.tasks || []).forEach(function (task) {
+      if (!passesFilter(task)) { return; }
+
+      var id = task.id;
+
+      while (id !== null && id !== undefined) {
+        var key = window.MppMapper.key(id);
+        if (visibleSet[key]) { break; }
+
+        visibleSet[key] = true;
+        id = parents[id];
+      }
+    });
+  }
+
+  function syncFilterUI() {
+    ui.filterToggle.classList.toggle('is-active', filter !== 'all');
+    ui.filterLabel.textContent = FILTER_LABEL[filter];
+
+    ui.filterItems.forEach(function (item) {
+      item.classList.toggle('is-active', item.dataset.filter === filter);
+    });
+  }
+
+  function setFilter(next) {
+    if (filter === next) { return; }
+
+    filter = next;
+
+    if (filter === 'all') {
+      if (!needle) { restoreTree(); }
+    } else {
+      rememberTree();
+      expandAll();
+    }
+
+    buildVisible();
+    syncFilterUI();
+    collectMatches();
+    updateCount();
+    gantt.refreshData();
+    focusMatch();
+  }
+
+  function resetFilter() {
+    filter = 'all';
+    visibleSet = null;
+    syncFilterUI();
+  }
+
+  ui.filterItems.forEach(function (item) {
+    item.addEventListener('click', function () {
+      item.closest('[data-menu-panel]').classList.add('is-hidden');
+      ui.filterToggle.setAttribute('aria-expanded', 'false');
+
+      setFilter(item.dataset.filter);
+    });
+  });
 
   function resetSearch() {
     ui.search.value = '';

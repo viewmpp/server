@@ -25,21 +25,22 @@
         <button class="seg__btn" type="button" data-scale="quarter">Quarter</button>
       </div>
 
-      <div class="bar__group">
-        <button class="btn btn--sm btn--icon btn--ghost" id="collapse-all" type="button"
-                aria-label="Collapse all" title="Collapse all">
+      <div class="menu" data-menu>
+        <button class="btn btn--sm" type="button" id="filter-toggle" data-menu-toggle
+                aria-haspopup="true" aria-expanded="false">
           <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M6.5 8 10 4.5 13.5 8"/>
-            <path d="M6.5 15.5 10 12l3.5 3.5"/>
+            <path d="M3.5 5h13M6 10h8M8.5 15h3"/>
           </svg>
+          <span id="filter-label">Filter</span>
         </button>
-        <button class="btn btn--sm btn--icon btn--ghost" id="expand-all" type="button"
-                aria-label="Expand all" title="Expand all">
-          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M6.5 4.5 10 8l3.5-3.5"/>
-            <path d="M6.5 12 10 15.5l3.5-3.5"/>
-          </svg>
-        </button>
+
+        <div class="menu__panel is-hidden" data-menu-panel>
+          <button class="menu__item is-active" type="button" data-filter="all">All tasks</button>
+          <button class="menu__item" type="button" data-filter="critical">Critical path</button>
+          <button class="menu__item" type="button" data-filter="overdue">Overdue</button>
+          <button class="menu__item" type="button" data-filter="incomplete">Incomplete</button>
+          <button class="menu__item" type="button" data-filter="milestones">Milestones</button>
+        </div>
       </div>
 
       <div class="bar__sep"></div>
@@ -56,6 +57,7 @@
           overdue
         </label>
       </div>
+
       <div class="bar__spacer"></div>
 
       <div class="bar__actions">
