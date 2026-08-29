@@ -115,7 +115,7 @@ func (p Page) MaxUploadLabel() string {
 }
 
 func cacheControl(page Page, sess *session.Session) string {
-	if page.Public && sess.UserID == nil {
+	if page.Public && sess.UserID == nil && !sess.CSRFUsed() {
 		return "public, max-age=300"
 	}
 	return "no-store"

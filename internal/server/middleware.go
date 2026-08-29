@@ -142,7 +142,7 @@ func (s *Server) withSession(next http.Handler) http.Handler {
 
 		sess, err := s.store.Sessions.Find(r.Context(), w, r)
 		if errors.Is(err, session.ErrNotFound) {
-			sess, err = s.store.Sessions.New(w)
+			sess, err = s.store.Sessions.New(w, r)
 		}
 		if err != nil {
 			htmlutil.ServerErrorResponse(w, r, err, s.logger)

@@ -13,7 +13,11 @@ import (
 	"time"
 )
 
-const CookieName = "session"
+const (
+	CookieName     = "session"
+	csrfCookieName = "csrf"
+	csrfHostCookie = "__Host-csrf"
+)
 
 var ErrNotFound = errors.New("session not found")
 
@@ -26,6 +30,8 @@ type Session struct {
 	store     *Store
 	w         http.ResponseWriter
 	sent      bool
+	csrf      string
+	csrfUsed  bool
 }
 
 func (s *Session) touch() {
@@ -43,6 +49,7 @@ func (s *Session) Get(key string) string {
 
 func (s *Session) Put(key, value string) {
 	s.Data[key] = value
+	s.touch()
 }
 
 func (s *Session) Pop(key string) string {
@@ -67,7 +74,7 @@ func NewStore(db *sql.DB, lifetime time.Duration, secure bool, logger *slog.Logg
 	}
 }
 
-func (s *Store) New(w http.ResponseWriter) (*Session, error) {
+func (s *Store) New(w http.ResponseWriter, r *http.Request) (*Session, error) {
 	raw := make([]byte, 32)
 	_, err := rand.Read(raw)
 	if err != nil {
@@ -80,6 +87,7 @@ func (s *Store) New(w http.ResponseWriter) (*Session, error) {
 		ExpiresAt: time.Now().Add(s.lifetime),
 		store:     s,
 		w:         w,
+		csrf:      s.readCSRF(r),
 	}, nil
 }
 
@@ -92,7 +100,7 @@ func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request
 	hash := hashToken(cookie.Value)
 
 	var (
-		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true}
+		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r)}
 		data []byte
 	)
 
@@ -194,6 +202,35 @@ func (s *Store) save(ctx context.Context, sess *Session) error {
 	_, err = s.db.ExecContext(ctx, query, hash[:], sess.UserID, data, sess.ExpiresAt)
 
 	return err
+}
+
+func (s *Store) csrfName() string {
+	if s.secure {
+		return csrfHostCookie
+	}
+
+	return csrfCookieName
+}
+
+func (s *Store) readCSRF(r *http.Request) string {
+	cookie, err := r.Cookie(s.csrfName())
+	if err != nil {
+		return ""
+	}
+
+	return cookie.Value
+}
+
+func (s *Store) setCSRFCookie(w http.ResponseWriter, value string, expires time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     s.csrfName(),
+		Value:    value,
+		Path:     "/",
+		Expires:  expires,
+		HttpOnly: true,
+		Secure:   s.secure,
+		SameSite: http.SameSiteLaxMode,
+	})
 }
 
 func (s *Store) setCookie(w http.ResponseWriter, sess *Session) {

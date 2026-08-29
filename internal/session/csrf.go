@@ -7,25 +7,33 @@ import (
 	"net/http"
 )
 
-const (
-	csrfKey   = "csrf"
-	CSRFField = "csrf_token"
-)
+const CSRFField = "csrf_token"
 
 func (s *Session) CSRF() string {
-	if s.Data[csrfKey] == "" {
-		raw := make([]byte, 32)
-		_, _ = rand.Read(raw)
+	s.csrfUsed = true
 
-		s.Data[csrfKey] = base64.RawURLEncoding.EncodeToString(raw)
-		s.touch()
+	if s.csrf != "" {
+		return s.csrf
 	}
 
-	return s.Data[csrfKey]
+	raw := make([]byte, 32)
+	_, _ = rand.Read(raw)
+
+	s.csrf = base64.RawURLEncoding.EncodeToString(raw)
+
+	if s.store != nil && s.w != nil {
+		s.store.setCSRFCookie(s.w, s.csrf, s.ExpiresAt)
+	}
+
+	return s.csrf
+}
+
+func (s *Session) CSRFUsed() bool {
+	return s.csrfUsed
 }
 
 func VerifyCSRF(sess *Session, r *http.Request) bool {
-	want := sess.Data[csrfKey]
+	want := sess.csrf
 	got := r.PostFormValue(CSRFField)
 
 	if want == "" || got == "" {

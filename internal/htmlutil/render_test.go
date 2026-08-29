@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"server/internal/assert"
 	"server/internal/fixtures"
+	"server/internal/session"
 	"testing"
 	"time"
 )
@@ -82,5 +83,20 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestOnlyPagesWithoutAFormAreCachedPublicly(t *testing.T) {
+	plain := &session.Session{}
+
+	if got := cacheControl(Page{Public: true}, plain); got != "public, max-age=300" {
+		t.Errorf("a public page without a form is %q, want it cacheable", got)
+	}
+
+	withForm := &session.Session{}
+	withForm.CSRF()
+
+	if got := cacheControl(Page{Public: true}, withForm); got != "no-store" {
+		t.Errorf("cache-control = %q for a page carrying a csrf token: a shared cache would hand one token to every visitor", got)
 	}
 }
