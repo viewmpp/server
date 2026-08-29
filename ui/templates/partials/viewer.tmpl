@@ -13,7 +13,10 @@
 
       <div class="bar__sep"></div>
 
-      <input type="search" id="search" class="search" placeholder="Search tasks" autocomplete="off">
+      <div class="searchbox" id="searchbox">
+        <input type="search" id="search" class="search" placeholder="Search tasks" autocomplete="off">
+        <span class="searchbox__count is-hidden" id="search-count" aria-live="polite"></span>
+      </div>
 
       <div class="seg" role="group" aria-label="Time scale">
         <button class="seg__btn is-active" type="button" data-scale="day">Day</button>

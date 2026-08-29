@@ -16,6 +16,8 @@
     details: document.getElementById('details'),
     detailsBody: document.getElementById('details-body'),
     search: document.getElementById('search'),
+    searchBox: document.getElementById('searchbox'),
+    searchCount: document.getElementById('search-count'),
     summary: document.getElementById('summary'),
     toggleCritical: document.getElementById('toggle-critical'),
     toggleOverdue: document.getElementById('toggle-overdue'),
@@ -34,6 +36,12 @@
   var todayISO = '';
   var minTextWidth = 44;
   var minFillWidth = 0;
+  var matches = [];
+  var matchSet = {};
+  var matchIndex = -1;
+  var needle = '';
+  var searchTimer = null;
+  var treeState = null;
 
   var UNITS = {
     MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
@@ -202,6 +210,7 @@
     todayISO = toISO(new Date());
 
     syncLegend();
+    resetSearch();
 
     model = window.MppMapper.toModel(contract);
     gantt.clearAll();
@@ -264,6 +273,8 @@
       var classes = [];
       if (task.$contract.is_summary) { classes.push('is-summary-row'); }
       if (showOverdue && isOverdue(task.$contract)) { classes.push('is-overdue-row'); }
+      if (matchSet[task.id]) { classes.push('is-match'); }
+      if (matchIndex >= 0 && matches[matchIndex] === task.id) { classes.push('is-match-current'); }
       return classes.join(' ');
     };
 
@@ -452,22 +463,123 @@
   }
 
   ui.search.addEventListener('input', function (e) {
-    var needle = e.target.value.trim().toLowerCase();
-    gantt.refreshData();
-    if (!needle) {
-      gantt.eachTask(function (task) { task.$open = true; });
-      gantt.render();
+    var value = e.target.value;
+
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () { runSearch(value); }, 120);
+  });
+
+  ui.search.addEventListener('keydown', function (e) {
+    clearTimeout(searchTimer);
+
+    if (e.key === 'Escape') {
+      ui.search.value = '';
+      runSearch('');
       return;
     }
+
+    if (e.key !== 'Enter') { return; }
+
+    e.preventDefault();
+
+    if (!runSearch(ui.search.value)) { stepMatch(e.shiftKey ? -1 : 1); }
+  });
+
+  function matchesTask(task) {
+    if ((task.name || '').toLowerCase().indexOf(needle) >= 0) { return true; }
+    return (task.wbs || task.outline_number || '').toLowerCase().indexOf(needle) >= 0;
+  }
+
+  function rememberTree() {
+    if (treeState) { return; }
+
+    treeState = {};
+    gantt.eachTask(function (task) { treeState[task.id] = task.$open; });
+  }
+
+  function restoreTree() {
+    if (!treeState) { return; }
+
+    var saved = treeState;
+    treeState = null;
+
+    gantt.batchUpdate(function () {
+      gantt.eachTask(function (task) {
+        if (saved[task.id] !== undefined) { task.$open = saved[task.id]; }
+      });
+    });
+  }
+
+  function updateCount() {
+    var on = needle !== '';
+
+    ui.searchBox.classList.toggle('has-count', on);
+    ui.searchCount.classList.toggle('is-hidden', !on);
+    ui.searchCount.textContent = on ? (matchIndex + 1) + ' / ' + matches.length : '';
+  }
+
+  function focusMatch() {
+    if (matchIndex >= 0) { gantt.showTask(matches[matchIndex]); }
+  }
+
+  function runSearch(value) {
+    var next = value.trim().toLowerCase();
+    if (next === needle) { return false; }
+
+    needle = next;
+    matches = [];
+    matchSet = {};
+    matchIndex = -1;
+
+    if (!needle) {
+      restoreTree();
+      updateCount();
+      gantt.refreshData();
+      return true;
+    }
+
+    rememberTree();
+
+    (loaded && loaded.tasks ? loaded.tasks : []).forEach(function (task) {
+      if (!matchesTask(task)) { return; }
+
+      var id = window.MppMapper.key(task.id);
+      matches.push(id);
+      matchSet[id] = true;
+    });
+
+    if (matches.length) { matchIndex = 0; }
+
     gantt.batchUpdate(function () {
       gantt.eachTask(function (task) { task.$open = true; });
     });
-    var first = null;
-    gantt.eachTask(function (task) {
-      if (!first && task.text.toLowerCase().indexOf(needle) >= 0) { first = task.id; }
-    });
-    if (first) { gantt.showTask(first); }
-  });
+
+    updateCount();
+    gantt.refreshData();
+    focusMatch();
+
+    return true;
+  }
+
+  function stepMatch(delta) {
+    if (!matches.length) { return; }
+
+    matchIndex = (matchIndex + delta + matches.length) % matches.length;
+
+    updateCount();
+    gantt.refreshData();
+    focusMatch();
+  }
+
+  function resetSearch() {
+    ui.search.value = '';
+    needle = '';
+    matches = [];
+    matchSet = {};
+    matchIndex = -1;
+    treeState = null;
+    updateCount();
+  }
 
   function contractDate(value) {
     return value ? escapeHtml(value.slice(0, 10)) : '';
