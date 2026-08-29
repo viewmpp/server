@@ -18,20 +18,22 @@
     search: document.getElementById('search'),
     summary: document.getElementById('summary'),
     toggleCritical: document.getElementById('toggle-critical'),
-    toggleLate: document.getElementById('toggle-late'),
+    toggleOverdue: document.getElementById('toggle-overdue'),
     legendToday: document.getElementById('legend-today'),
     legendCritical: document.getElementById('legend-critical'),
-    legendLate: document.getElementById('legend-late')
+    legendOverdue: document.getElementById('legend-overdue')
   };
 
   var model = null;
   var loaded = null;
   var loadedName = '';
   var showCritical = ui.toggleCritical.checked;
-  var showLate = ui.toggleLate.checked;
+  var showOverdue = ui.toggleOverdue.checked;
   var started = false;
   var todayLine = null;
   var todayISO = '';
+  var minTextWidth = 44;
+  var minFillWidth = 0;
 
   var UNITS = {
     MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
@@ -66,10 +68,9 @@
     predecessors: 'Predecessors',
     successors:   'Successors',
     notes:        'Notes',
-    late:         'Late',
-    lateTask:     'late task',
-    lateTasks:    'late tasks',
-    overdue:      'overdue',
+    overdue:      'Overdue',
+    overdueTask:  'overdue task',
+    overdueTasks: 'overdue tasks',
     day:          'day',
     days:         'days',
     yes:          'yes',
@@ -218,14 +219,18 @@
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
     gantt.config.row_height = 41;
-    gantt.config.bar_height = 23;
+    gantt.config.bar_height = 25;
+
+    minFillWidth = gantt.config.bar_height * 2;
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 88, resize: true,
         template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
       { name: 'text', label: 'Task', tree: true, width: 320, resize: true },
       { name: 'start', label: 'Start', align: 'center', width: 104, resize: true,
-        template: function (t) { return shortDate(t.start_date); } },
+        template: function (t) { return contractDate(t.$contract.start); } },
+      { name: 'finish', label: 'Finish', align: 'center', width: 104, resize: true,
+        template: function (t) { return finishCell(t.$contract); } },
       { name: 'duration', label: 'Dur.', align: 'center', width: 78,
         template: function (t) { return duration(t.$contract.duration); } }
     ];
@@ -234,8 +239,21 @@
       var classes = [];
       if (task.$contract.is_summary) { classes.push('is-summary'); }
       if (showCritical && task.$contract.is_critical) { classes.push('is-critical'); }
-      if (showLate && isLate(task.$contract)) { classes.push('is-late'); }
+      if (showOverdue && isOverdue(task.$contract)) { classes.push('is-overdue'); }
+      if (gantt.posFromDate(end) - gantt.posFromDate(start) < minFillWidth) { classes.push('is-narrow'); }
       return classes.join(' ');
+    };
+
+    gantt.templates.task_text = function (start, end, task) {
+      var c = task.$contract;
+      if (c.is_milestone) { return ''; }
+      if (gantt.posFromDate(end) - gantt.posFromDate(start) < minTextWidth) { return ''; }
+
+      var label = Math.round(c.percent_complete) + '%';
+      var floor = (label.length * 7.6 + 9.12).toFixed(2);
+
+      return '<span class="bar-pct" style="left:max(' + parseInt(label, 10) + '%,' + floor + 'px)">' +
+        label + '</span>';
     };
 
     gantt.templates.timeline_cell_class = function (task, date) {
@@ -245,11 +263,15 @@
     gantt.templates.grid_row_class = function (start, end, task) {
       var classes = [];
       if (task.$contract.is_summary) { classes.push('is-summary-row'); }
-      if (showLate && isLate(task.$contract)) { classes.push('is-late-row'); }
+      if (showOverdue && isOverdue(task.$contract)) { classes.push('is-overdue-row'); }
       return classes.join(' ');
     };
 
     gantt.init(ui.chart);
+
+    gantt.config.link_line_width = 1;
+    gantt.config.link_radius = 6;
+    gantt.config.link_arrow_size = 6;
 
     gantt.attachEvent('onGanttRender', placeToday);
 
@@ -269,7 +291,7 @@
     summarise(contract);
 
     var critical = contract.tasks.filter(function (t) { return t.is_critical; }).length;
-    var late = contract.tasks.filter(function (t) { return !t.is_summary && isLate(t); }).length;
+    var overdue = contract.tasks.filter(function (t) { return !t.is_summary && isOverdue(t); }).length;
 
     var parts = [
       contract.tasks.length + ' ' + TEXT.tasks,
@@ -277,7 +299,7 @@
       critical + ' ' + TEXT.onCritical
     ];
 
-    if (late) { parts.push(late + ' ' + (late === 1 ? TEXT.lateTask : TEXT.lateTasks)); }
+    if (overdue) { parts.push(overdue + ' ' + (overdue === 1 ? TEXT.overdueTask : TEXT.overdueTasks)); }
 
     parts.push(TEXT.calendar + ': ' + (model.calendar.name || TEXT.defaultCal));
 
@@ -323,7 +345,7 @@
       [TEXT.complete, Math.round(task.percent_complete) + '%']
     ];
 
-    if (isLate(task)) { rows.push([TEXT.late, lateLabel(task)]); }
+    if (isOverdue(task)) { rows.push([TEXT.overdue, overdueLabel(task)]); }
     if (task.is_critical) { rows.push([TEXT.critical, TEXT.yes]); }
     if (task.is_milestone) { rows.push([TEXT.milestone, TEXT.yes]); }
     if (task.baseline) {
@@ -418,15 +440,15 @@
     gantt.render();
   });
 
-  ui.toggleLate.addEventListener('change', function (e) {
-    showLate = e.target.checked;
+  ui.toggleOverdue.addEventListener('change', function (e) {
+    showOverdue = e.target.checked;
     syncLegend();
     gantt.render();
   });
 
   function syncLegend() {
     ui.legendCritical.classList.toggle('is-hidden', !showCritical);
-    ui.legendLate.classList.toggle('is-hidden', !showLate);
+    ui.legendOverdue.classList.toggle('is-hidden', !showOverdue);
   }
 
   ui.search.addEventListener('input', function (e) {
@@ -447,14 +469,24 @@
     if (first) { gantt.showTask(first); }
   });
 
-  function isLate(task) {
+  function contractDate(value) {
+    return value ? escapeHtml(value.slice(0, 10)) : '';
+  }
+
+  function finishCell(task) {
+    var text = contractDate(task.finish);
+    if (!text || !showOverdue || !isOverdue(task)) { return text; }
+    return '<span class="cell-overdue">' + text + '</span>';
+  }
+
+  function isOverdue(task) {
     if (!task || !task.finish || task.percent_complete >= 100) { return false; }
     return task.finish.slice(0, 10) < todayISO;
   }
 
-  function lateLabel(task) {
+  function overdueLabel(task) {
     var behind = Math.round((new Date(todayISO) - new Date(task.finish.slice(0, 10))) / 86400000);
-    return behind + ' ' + (behind === 1 ? TEXT.day : TEXT.days) + ' ' + TEXT.overdue;
+    return behind + ' ' + (behind === 1 ? TEXT.day : TEXT.days);
   }
 
   function ensureToday() {
