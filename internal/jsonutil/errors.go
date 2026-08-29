@@ -35,6 +35,10 @@ func TooManyRequestsResponse(w http.ResponseWriter, message string) {
 	errorResponse(w, http.StatusTooManyRequests, message)
 }
 
+func ForbiddenResponse(w http.ResponseWriter, message string) {
+	errorResponse(w, http.StatusForbidden, message)
+}
+
 func UnauthorizedResponse(w http.ResponseWriter) {
 	errorResponse(w, http.StatusUnauthorized, "you must be signed in to do that")
 }

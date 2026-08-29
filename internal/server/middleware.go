@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
@@ -119,6 +120,56 @@ func (s *Server) tooManyRequests(w http.ResponseWriter, r *http.Request, window 
 	}
 
 	htmlutil.TooManyRequestsPage(w)
+}
+
+var safeMethods = map[string]bool{
+	http.MethodGet:     true,
+	http.MethodHead:    true,
+	http.MethodOptions: true,
+}
+
+func (s *Server) sameOrigin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if safeMethods[r.Method] || s.fromOwnSite(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		s.logger.Warn("cross site request refused", "method", r.Method, "uri", safelog.URI(r.URL.Path))
+
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			jsonutil.ForbiddenResponse(w, "this request did not come from the site")
+			return
+		}
+
+		htmlutil.BadRequestPage(w, r, s.logger)
+	})
+}
+
+func (s *Server) fromOwnSite(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = originOf(r.Header.Get("Referer"))
+	}
+
+	if origin == "" {
+		return true
+	}
+
+	return origin == strings.TrimSuffix(s.cfg.BaseURL, "/")
+}
+
+func originOf(reference string) string {
+	if reference == "" {
+		return ""
+	}
+
+	parsed, err := url.Parse(reference)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return ""
+	}
+
+	return parsed.Scheme + "://" + parsed.Host
 }
 
 func (s *Server) clientIP(next http.Handler) http.Handler {

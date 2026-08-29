@@ -1,7 +1,9 @@
 package session
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"net/http"
@@ -12,31 +14,46 @@ const CSRFField = "csrf_token"
 func (s *Session) CSRF() string {
 	s.csrfUsed = true
 
-	if s.csrf != "" {
-		return s.csrf
+	if s.csrf == "" {
+		raw := make([]byte, 32)
+		_, _ = rand.Read(raw)
+
+		s.csrf = base64.RawURLEncoding.EncodeToString(raw)
+
+		if s.store != nil && s.w != nil {
+			s.store.setCSRFCookie(s.w, s.csrf, s.ExpiresAt)
+		}
 	}
 
-	raw := make([]byte, 32)
-	_, _ = rand.Read(raw)
-
-	s.csrf = base64.RawURLEncoding.EncodeToString(raw)
-
-	if s.store != nil && s.w != nil {
-		s.store.setCSRFCookie(s.w, s.csrf, s.ExpiresAt)
-	}
-
-	return s.csrf
+	return s.sign(s.csrf)
 }
 
 func (s *Session) CSRFUsed() bool {
 	return s.csrfUsed
 }
 
+func (s *Session) sign(value string) string {
+	if s.store == nil {
+		return ""
+	}
+
+	mac := hmac.New(sha256.New, s.store.secret)
+	mac.Write([]byte(value))
+	mac.Write([]byte("|"))
+	mac.Write([]byte(s.bind))
+
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
 func VerifyCSRF(sess *Session, r *http.Request) bool {
-	want := sess.csrf
 	got := r.PostFormValue(CSRFField)
 
-	if want == "" || got == "" {
+	if sess.csrf == "" || got == "" {
+		return false
+	}
+
+	want := sess.sign(sess.csrf)
+	if want == "" {
 		return false
 	}
 

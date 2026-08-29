@@ -38,6 +38,8 @@ func Load() Config {
 
 	flag.Parse()
 
+	cfg.fillSecretKey()
+
 	return cfg
 }
 
@@ -59,6 +61,10 @@ func (cfg Config) Validate() error {
 
 	if cfg.BaseURL == "" || strings.Contains(cfg.BaseURL, "localhost") || strings.Contains(cfg.BaseURL, "127.0.0.1") {
 		return fmt.Errorf("BASE_URL is %q in prod: it signs every canonical tag, the sitemap and every password reset link", cfg.BaseURL)
+	}
+
+	if cfg.SecretKey == "" {
+		return fmt.Errorf("SECRET_KEY is empty in prod: it signs every csrf token, and a generated one would log everyone out of their open forms on each restart")
 	}
 
 	if !strings.HasPrefix(cfg.BaseURL, "https://") {

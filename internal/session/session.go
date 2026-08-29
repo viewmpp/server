@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	CookieName     = "session"
+	cookieName     = "session"
+	hostCookieName = "__Host-session"
 	csrfCookieName = "csrf"
 	csrfHostCookie = "__Host-csrf"
 )
@@ -32,6 +33,7 @@ type Session struct {
 	sent      bool
 	csrf      string
 	csrfUsed  bool
+	bind      string
 }
 
 func (s *Session) touch() {
@@ -62,16 +64,26 @@ type Store struct {
 	db       *sql.DB
 	lifetime time.Duration
 	secure   bool
+	secret   []byte
 	logger   *slog.Logger
 }
 
-func NewStore(db *sql.DB, lifetime time.Duration, secure bool, logger *slog.Logger) *Store {
+func NewStore(db *sql.DB, lifetime time.Duration, secure bool, secret string, logger *slog.Logger) *Store {
 	return &Store{
 		db:       db,
 		lifetime: lifetime,
 		secure:   secure,
+		secret:   []byte(secret),
 		logger:   logger,
 	}
+}
+
+func (s *Store) name() string {
+	if s.secure {
+		return hostCookieName
+	}
+
+	return cookieName
 }
 
 func (s *Store) New(w http.ResponseWriter, r *http.Request) (*Session, error) {
@@ -92,7 +104,7 @@ func (s *Store) New(w http.ResponseWriter, r *http.Request) (*Session, error) {
 }
 
 func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request) (*Session, error) {
-	cookie, err := r.Cookie(CookieName)
+	cookie, err := r.Cookie(s.name())
 	if err != nil {
 		return nil, ErrNotFound
 	}
@@ -100,7 +112,7 @@ func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request
 	hash := hashToken(cookie.Value)
 
 	var (
-		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r)}
+		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r), bind: cookie.Value}
 		data []byte
 	)
 
@@ -166,7 +178,7 @@ func (s *Store) Clear(ctx context.Context, w http.ResponseWriter, sess *Session)
 	sess.Dropped = true
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     CookieName,
+		Name:     s.name(),
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -235,7 +247,7 @@ func (s *Store) setCSRFCookie(w http.ResponseWriter, value string, expires time.
 
 func (s *Store) setCookie(w http.ResponseWriter, sess *Session) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     CookieName,
+		Name:     s.name(),
 		Value:    sess.Token,
 		Path:     "/",
 		Expires:  sess.ExpiresAt,

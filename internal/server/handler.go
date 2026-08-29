@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
+	"server/internal/safelog"
 	"server/internal/vcs"
 	"server/ui"
 	"strings"
@@ -40,6 +41,22 @@ func (s *Server) static() http.Handler {
 		}
 		files.ServeHTTP(w, r)
 	})
+}
+
+const appHeader = "X-Requested-With"
+
+const appHeaderValue = "mpp-viewer"
+
+func (s *Server) fromApp(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(appHeader) != appHeaderValue {
+			s.logger.Warn("api call without the app header", "method", r.Method, "uri", safelog.URI(r.URL.Path))
+			jsonutil.ForbiddenResponse(w, "this endpoint is called by the viewer, not directly")
+			return
+		}
+
+		next(w, r)
+	}
 }
 
 func (s *Server) icon(name string) http.HandlerFunc {

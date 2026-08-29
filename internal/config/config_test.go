@@ -23,6 +23,7 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 			var cfg Config
 			cfg.Env = tc.env
 			cfg.BaseURL = tc.baseURL
+			cfg.SecretKey = "test-key"
 
 			err := cfg.Validate()
 
@@ -33,6 +34,33 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 				t.Fatalf("Validate() rejected a valid configuration: %v", err)
 			}
 		})
+	}
+}
+
+func TestProductionNeedsASecretKey(t *testing.T) {
+	cfg := Config{}
+	cfg.Env = "prod"
+	cfg.BaseURL = "https://viewmpp.com"
+
+	if cfg.Validate() == nil {
+		t.Error("prod started without SECRET_KEY: every restart would invalidate the forms people have open")
+	}
+
+	cfg.SecretKey = "set"
+
+	if err := cfg.Validate(); err != nil {
+		t.Errorf("a configured key was still rejected: %v", err)
+	}
+}
+
+func TestOnlyProductionInsistsOnAKey(t *testing.T) {
+	cfg := Config{}
+	cfg.Env = "dev"
+
+	cfg.fillSecretKey()
+
+	if cfg.SecretKey == "" {
+		t.Error("dev was left without a key: csrf tokens could not be signed at all")
 	}
 }
 

@@ -5,7 +5,7 @@ import (
 )
 
 func (s *Server) routes() http.Handler {
-	return s.logRequest(s.recoverPanic(s.noStore(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
+	return s.logRequest(s.recoverPanic(s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux())))))))
 }
 
 func (s *Server) mux() *http.ServeMux {
@@ -22,9 +22,9 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /sitemap.xml", s.sitemap)
 
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
-	mux.HandleFunc("POST /api/v1/upload", s.uploadHandler.Upload)
-	mux.HandleFunc("POST /api/v1/xlsx", s.exportHandler.XLSX)
-	mux.HandleFunc("POST /api/v1/projects", s.projectHandler.Create)
+	mux.HandleFunc("POST /api/v1/upload", s.fromApp(s.uploadHandler.Upload))
+	mux.HandleFunc("POST /api/v1/xlsx", s.fromApp(s.exportHandler.XLSX))
+	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.projectHandler.Create))
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimiter, "read-ip:", s.projectHandler.Contract))
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.throttle(s.readLimiter, "read-ip:", s.viewerHandler.ExampleContract))
