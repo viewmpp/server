@@ -5,7 +5,7 @@ import (
 )
 
 func (s *Server) routes() http.Handler {
-	return s.recoverPanic(s.logRequest(s.noStore(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
+	return s.logRequest(s.recoverPanic(s.noStore(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
 }
 
 func (s *Server) mux() *http.ServeMux {
