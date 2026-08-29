@@ -97,8 +97,7 @@
     yes:          'yes',
     projStart:    'Start',
     projFinish:   'Finish',
-    projDuration: 'Duration',
-    weeks:        'w'
+    projDuration: 'Duration'
   };
 
   var openProjectID = ui.app.dataset.projectId;
@@ -336,22 +335,34 @@
   }
 
   function summarise(contract) {
-    var dates = [];
-    contract.tasks.forEach(function (t) {
-      if (t.start) { dates.push(t.start); }
-      if (t.finish) { dates.push(t.finish); }
-    });
-    if (!dates.length) { ui.summary.classList.add('is-hidden'); return; }
+    var project = contract.project || {};
+    var root = projectRow(contract);
+    var parts = [];
 
-    dates.sort();
-    var from = dates[0], to = dates[dates.length - 1];
-    var weeks = Math.max(1, Math.round((new Date(to) - new Date(from)) / 604800000));
+    if (project.start) { parts.push(summaryCell(TEXT.projStart, contractDate(project.start))); }
+    if (project.finish) { parts.push(summaryCell(TEXT.projFinish, contractDate(project.finish))); }
+    if (root && root.duration) {
+      parts.push(summaryCell(TEXT.projDuration, escapeHtml(duration(root.duration))));
+    }
 
-    ui.summary.innerHTML =
-      '<span>' + TEXT.projStart + ': <b>' + escapeHtml(shortDateTime(from).slice(0, 10)) + '</b></span>' +
-      '<span>' + TEXT.projFinish + ': <b>' + escapeHtml(shortDateTime(to).slice(0, 10)) + '</b></span>' +
-      '<span>' + TEXT.projDuration + ': <b>' + weeks + TEXT.weeks + '</b></span>';
+    if (!parts.length) { ui.summary.classList.add('is-hidden'); return; }
+
+    ui.summary.innerHTML = parts.join('');
     ui.summary.classList.remove('is-hidden');
+  }
+
+  function summaryCell(label, value) {
+    return '<span>' + label + ': <b>' + value + '</b></span>';
+  }
+
+  function projectRow(contract) {
+    var tasks = contract.tasks || [];
+
+    for (var i = 0; i < tasks.length; i++) {
+      if (tasks[i].parent_id === null && tasks[i].outline_level === 0) { return tasks[i]; }
+    }
+
+    return null;
   }
 
   function isNonWorking(date) {
