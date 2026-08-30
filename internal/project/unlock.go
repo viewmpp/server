@@ -59,7 +59,7 @@ func (h *Handler) Unlock(w http.ResponseWriter, r *http.Request) {
 
 	h.limiter.ResetAll(keys)
 
-	sess.Put(unlockKey(publicID), "1")
+	sess.Put(unlockKey(publicID), unlockMark(p.Password))
 
 	http.Redirect(w, r, "/p/"+publicID, http.StatusSeeOther)
 }

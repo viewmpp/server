@@ -69,12 +69,12 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	h.limiter.ResetAll(keys)
 
+	sess.UserID = &u.ID
+
 	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
-
-	sess.UserID = &u.ID
 
 	if !u.Verified {
 		sess.Put("pending_email", u.Email)

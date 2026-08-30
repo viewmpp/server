@@ -75,12 +75,12 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sess.UserID = &u.ID
+
 	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
-
-	sess.UserID = &u.ID
 	sess.Pop("pending_email")
 	sess.Put("flash", MsgEmailConfirmed)
 

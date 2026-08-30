@@ -101,12 +101,12 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, u *User) {
+	sess.UserID = &u.ID
+
 	if err := h.sessions.Renew(r.Context(), w, sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
-
-	sess.UserID = &u.ID
 	sess.Put("pending_email", u.Email)
 	sess.Put("flash", MsgCodeSent(u.Email))
 
