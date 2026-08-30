@@ -273,10 +273,12 @@
       if (gantt.posFromDate(end) - gantt.posFromDate(start) < minTextWidth) { return ''; }
 
       var label = Math.round(c.percent_complete) + '%';
-      var floor = (label.length * 7.6 + 9.12).toFixed(2);
+      var inset = 6.84;
+      var floor = (label.length * 7.6 + 9.12 + inset).toFixed(2);
+      var ceil = 'calc(100% - ' + inset + 'px)';
 
-      return '<span class="bar-pct" style="left:max(' + parseInt(label, 10) + '%,' + floor + 'px)">' +
-        label + '</span>';
+      return '<span class="bar-pct" style="left:clamp(' + floor + 'px,' +
+        parseInt(label, 10) + '%,' + ceil + ')">' + label + '</span>';
     };
 
     gantt.templates.timeline_cell_class = function (task, date) {
