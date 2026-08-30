@@ -24,6 +24,7 @@
   var BACK = 'Created your account? Now save it';
   var AGAIN = 'Finish creating your account, then save';
   var FULL = 'Not saved - your free account is full. Delete a plan, or go Pro to save without a limit.';
+  var UNREADABLE = 'Not saved - this plan could not be stored. You can still read it here.';
 
   document.addEventListener('mpp:loaded', function (event) {
     loaded = event.detail.contract;
@@ -32,6 +33,8 @@
     if (signedIn) {
       if (event.detail.refused === 'limit') {
         only(manage, FULL);
+      } else if (event.detail.refused) {
+        only(manage, UNREADABLE);
       } else {
         box.classList.add('is-hidden');
       }

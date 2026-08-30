@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"server/internal/clientip"
+	"server/internal/contract"
 	"server/internal/jsonutil"
 	"server/internal/parser"
 	"server/internal/ratelimit"
@@ -62,7 +63,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, limit)
 
-	contract, err := h.client.Parse(r.Context(), r.Body, r.ContentLength)
+	plan, err := h.client.Parse(r.Context(), r.Body, r.ContentLength)
 	if err != nil {
 		pe, exists := errors.AsType[*parser.ParseError](err)
 		if exists && pe.Status < 500 {
@@ -80,10 +81,15 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !u.CanSave(saved) {
+		switch {
+		case !u.CanSave(saved):
 			w.Header().Set("X-Save-Refused", "limit")
-		} else {
-			publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), contract)
+
+		case !storable(plan, h.logger):
+			w.Header().Set("X-Save-Refused", "unreadable")
+
+		default:
+			publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), plan)
 			if err != nil {
 				jsonutil.ServerErrorResponse(w, r, err, h.logger)
 				return
@@ -93,7 +99,16 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(contract)
+	_, _ = w.Write(plan)
+}
+
+func storable(plan []byte, logger *slog.Logger) bool {
+	if _, err := contract.Decode(plan); err != nil {
+		logger.Error("parser produced a contract we cannot store", "err", err)
+		return false
+	}
+
+	return true
 }
 
 func (h *Handler) allow(r *http.Request, u *user.User) bool {
