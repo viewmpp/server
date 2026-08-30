@@ -13,7 +13,7 @@ const (
 	MsgEmailOrPass   = "Wrong email or password"
 
 	MsgSubscribeNeedsEmail  = "Confirm your email address first"
-	MsgEarlyAccessClosed    = "All early access seats are taken"
+	MsgProUnavailable       = "Pro is not available right now - please try again later"
 	MsgPassRequired         = "Choose a password"
 	MsgPassTooShort         = "Password must be at least 8 characters"
 	MsgPassTooLong          = "Password is too long"
@@ -29,8 +29,9 @@ const (
 )
 
 func MsgEarlyAccessGranted(seat int, until time.Time) string {
-	return fmt.Sprintf("Pro is on - you are early user #%d. Free until %s, renew it from your account.",
-		seat, until.Format("2 Jan 2006"))
+	return fmt.Sprintf("Congratulations - you are one of our first %d users, so Pro is on us. "+
+		"It runs until %s with nothing to pay, and you can renew it from your account when it ends.",
+		seat, until.Format("2 January 2006"))
 }
 
 func MsgResetSent(email string) string {

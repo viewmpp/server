@@ -41,7 +41,7 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if taken >= h.earlyAccessSeats {
-		sess.Put("flash", MsgEarlyAccessClosed)
+		sess.Put("flash", MsgProUnavailable)
 		http.Redirect(w, r, back, http.StatusSeeOther)
 		return
 	}

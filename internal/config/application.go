@@ -19,7 +19,7 @@ func (cfg *Config) loadApplication() {
 	flag.StringVar(&cfg.Env, "env", env.GetString("ENV", "dev"), "environment dev|stage|prod")
 	flag.IntVar(&cfg.EarlyAccessSeats, "early-access-seats", env.GetInt("EARLY_ACCESS_SEATS", 100),
 		"how many users may claim Pro for free; 0 closes early access")
-	flag.DurationVar(&cfg.EarlyAccessPeriod, "early-access-period", env.GetDuration("EARLY_ACCESS_PERIOD", 30*24*time.Hour),
+	flag.DurationVar(&cfg.EarlyAccessPeriod, "early-access-period", env.GetDuration("EARLY_ACCESS_PERIOD", 90*24*time.Hour),
 		"how long an early access grant lasts before it has to be renewed")
 	flag.IntVar(&cfg.Proxies, "proxies", env.GetInt("PROXIES", 0),
 		"number of trusted reverse proxies in front of the server; 0 means none")

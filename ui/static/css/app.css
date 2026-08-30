@@ -1476,6 +1476,8 @@ input:-webkit-autofill:focus {
 .plans td:first-child { color: var(--text); }
 
 .plans__best { background: var(--bg-selected); }
+.plans__was { color: var(--secondary); text-decoration: line-through; font-weight: 400; }
+.plans__row-price td { padding-top: 13.68px; padding-bottom: 13.68px; }
 .plans thead .plans__best { color: var(--main); background: var(--bg-selected); }
 .plans tbody tr:hover .plans__best { background: var(--pale-control); }
 

@@ -49,7 +49,7 @@ func TestGrantMessageCarriesTheDate(t *testing.T) {
 
 	got := MsgEarlyAccessGranted(7, until)
 
-	for _, want := range []string{"#7", "20 Sep 2026"} {
+	for _, want := range []string{"first 7 users", "20 September 2026"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("message %q does not mention %q", got, want)
 		}

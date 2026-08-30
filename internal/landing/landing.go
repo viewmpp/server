@@ -39,7 +39,7 @@ var pages = []Page{
 		Slug:        "/pricing",
 		Group:       GroupProduct,
 		Label:       "Pricing",
-		Description: "What the free tier gives you, what Pro adds, and why Pro costs nothing during early access. Reading and converting a plan is free and needs no account.",
+		Description: "What the free tier gives you and what Pro adds: unlimited saved plans and share links, password-protected links, 50 MB uploads. Reading stays free.",
 	},
 	{
 		Slug:        "/share-a-project-plan",
