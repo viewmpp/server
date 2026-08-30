@@ -104,3 +104,29 @@ func TestDecodeRejectsHostileRelationType(t *testing.T) {
 		t.Fatal("accepted hostile relation type")
 	}
 }
+
+func TestDecodeRejectsTrailingData(t *testing.T) {
+	document := `{"contract_version":1,` +
+		`"project":{"name":null,"start":null,"finish":null},` +
+		`"calendar":{"name":null,"non_working_weekdays":[],"exceptions":[]},` +
+		`"resources":[],"tasks":[],"relations":[]}`
+
+	if _, err := Decode([]byte(document + "\n")); err != nil {
+		t.Fatalf("rejected a trailing newline: %s", err)
+	}
+
+	rejected := map[string]string{
+		"markup":          document + "<script>alert(1)</script>",
+		"second document": document + document,
+		"garbage":         document + "!!!",
+		"json fragment":   document + `,"tasks":[]`,
+	}
+
+	for name, raw := range rejected {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Decode([]byte(raw)); err == nil {
+				t.Fatalf("accepted trailing %s", name)
+			}
+		})
+	}
+}

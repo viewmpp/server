@@ -3,7 +3,9 @@ package contract
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"time"
 )
 
@@ -94,6 +96,10 @@ func Decode(data []byte) (*Contract, error) {
 
 	if err := dec.Decode(&c); err != nil {
 		return nil, fmt.Errorf("decode contract: %w", err)
+	}
+
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+		return nil, fmt.Errorf("contract is followed by more data")
 	}
 
 	if c.Version != Version {
