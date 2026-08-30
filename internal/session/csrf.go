@@ -25,6 +25,8 @@ func (s *Session) CSRF() string {
 		}
 	}
 
+	s.touch()
+
 	return s.sign(s.csrf)
 }
 
@@ -39,6 +41,8 @@ func (s *Session) sign(value string) string {
 
 	mac := hmac.New(sha256.New, s.store.secret)
 	mac.Write([]byte(value))
+	mac.Write([]byte("|"))
+	mac.Write([]byte(s.Token))
 
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }

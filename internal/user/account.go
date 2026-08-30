@@ -107,7 +107,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
+	if err = h.sessions.Renew(r.Context(), w, sess, nil); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}

@@ -235,7 +235,11 @@ func (s *Server) withSession(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, session.SetContext(r, sess))
 
-		if sess.Dropped || (maps.Equal(before, sess.Data) && beforeUser == sessionUserID(sess)) {
+		if sess.Dropped {
+			return
+		}
+
+		if !sess.Unsaved() && maps.Equal(before, sess.Data) && beforeUser == sessionUserID(sess) {
 			return
 		}
 

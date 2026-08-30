@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const MinSecretKeyLength = 32
+
 type Session struct {
 	SessionLifetime time.Duration
 	SecretKey       string

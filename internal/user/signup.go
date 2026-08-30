@@ -101,9 +101,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, u *User) {
-	sess.UserID = &u.ID
-
-	if err := h.sessions.Renew(r.Context(), w, sess); err != nil {
+	if err := h.sessions.Renew(r.Context(), w, sess, &u.ID); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}

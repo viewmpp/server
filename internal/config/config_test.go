@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 	cases := []struct {
@@ -23,7 +26,7 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 			var cfg Config
 			cfg.Env = tc.env
 			cfg.BaseURL = tc.baseURL
-			cfg.SecretKey = "test-key"
+			cfg.SecretKey = strings.Repeat("k", MinSecretKeyLength)
 
 			err := cfg.Validate()
 
@@ -46,10 +49,21 @@ func TestProductionNeedsASecretKey(t *testing.T) {
 		t.Error("prod started without SECRET_KEY: every restart would invalidate the forms people have open")
 	}
 
-	cfg.SecretKey = "set"
+	cfg.SecretKey = strings.Repeat("k", MinSecretKeyLength)
 
 	if err := cfg.Validate(); err != nil {
 		t.Errorf("a configured key was still rejected: %v", err)
+	}
+}
+
+func TestAShortSecretKeyIsRefused(t *testing.T) {
+	cfg := Config{}
+	cfg.Env = "prod"
+	cfg.BaseURL = "https://viewmpp.com"
+	cfg.SecretKey = "abc"
+
+	if cfg.Validate() == nil {
+		t.Error("prod accepted a three character key: a signature is only as strong as what signs it")
 	}
 }
 

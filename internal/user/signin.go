@@ -69,9 +69,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	h.limiter.ResetAll(keys)
 
-	sess.UserID = &u.ID
-
-	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
+	if err = h.sessions.Renew(r.Context(), w, sess, &u.ID); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}

@@ -75,9 +75,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess.UserID = &u.ID
-
-	if err = h.sessions.Renew(r.Context(), w, sess); err != nil {
+	if err = h.sessions.Renew(r.Context(), w, sess, &u.ID); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}

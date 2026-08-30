@@ -63,8 +63,9 @@ func (cfg Config) Validate() error {
 		return fmt.Errorf("BASE_URL is %q in prod: it signs every canonical tag, the sitemap and every password reset link", cfg.BaseURL)
 	}
 
-	if cfg.SecretKey == "" {
-		return fmt.Errorf("SECRET_KEY is empty in prod: it signs every csrf token, and a generated one would log everyone out of their open forms on each restart")
+	if len(cfg.SecretKey) < MinSecretKeyLength {
+		return fmt.Errorf("SECRET_KEY is %d characters in prod: it signs every csrf token, so it must be at least %d and come from a random generator, not a keyboard",
+			len(cfg.SecretKey), MinSecretKeyLength)
 	}
 
 	if !strings.HasPrefix(cfg.BaseURL, "https://") {

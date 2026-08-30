@@ -12,16 +12,20 @@ func newTestStore(secure bool) *Store {
 	return &Store{lifetime: 12 * time.Hour, secure: secure, secret: []byte("test-secret")}
 }
 
-func render(t *testing.T, store *Store, r *http.Request) (string, *httptest.ResponseRecorder) {
+func render(t *testing.T, store *Store, r *http.Request, token string) (string, *httptest.ResponseRecorder) {
 	t.Helper()
 
 	w := httptest.NewRecorder()
-	sess := &Session{Data: map[string]string{}, store: store, w: w, csrf: store.readCSRF(r)}
+	sess := &Session{Data: map[string]string{}, store: store, w: w, csrf: store.readCSRF(r), Token: token}
+
+	if c, err := r.Cookie(store.name()); err == nil {
+		sess.Token, sess.sent, sess.stored = c.Value, true, true
+	}
 
 	return sess.CSRF(), w
 }
 
-func submit(t *testing.T, store *Store, cookie, field string) bool {
+func submit(t *testing.T, store *Store, cookie, field, token string) bool {
 	t.Helper()
 
 	r := httptest.NewRequest(http.MethodPost, "/signin", strings.NewReader(CSRFField+"="+field))
@@ -31,7 +35,7 @@ func submit(t *testing.T, store *Store, cookie, field string) bool {
 		r.AddCookie(&http.Cookie{Name: store.csrfName(), Value: cookie})
 	}
 
-	sess := &Session{Data: map[string]string{}, store: store, csrf: store.readCSRF(r)}
+	sess := &Session{Data: map[string]string{}, store: store, csrf: store.readCSRF(r), Token: token}
 
 	return VerifyCSRF(sess, r)
 }
@@ -39,7 +43,7 @@ func submit(t *testing.T, store *Store, cookie, field string) bool {
 func TestTheFormCarriesASignatureAndTheCookieCarriesTheSecretHalf(t *testing.T) {
 	store := newTestStore(false)
 
-	field, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil))
+	field, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil), "")
 
 	cookie := w.Result().Cookies()[0]
 
@@ -51,33 +55,47 @@ func TestTheFormCarriesASignatureAndTheCookieCarriesTheSecretHalf(t *testing.T) 
 		t.Error("the csrf cookie is readable from javascript")
 	}
 
-	if !submit(t, store, cookie.Value, field) {
+	if !submit(t, store, cookie.Value, field, "") {
 		t.Error("the pair a form was rendered with does not verify")
 	}
 }
 
-func TestRenderingAFormWritesNothingToTheSession(t *testing.T) {
+func TestRenderingAFormEstablishesTheSessionItIsSignedAgainst(t *testing.T) {
 	store := newTestStore(false)
-	sess := &Session{Data: map[string]string{}, store: store, w: httptest.NewRecorder()}
+	w := httptest.NewRecorder()
+	sess := &Session{Data: map[string]string{}, store: store, w: w}
 
 	sess.CSRF()
 
 	if len(sess.Data) != 0 {
-		t.Fatalf("session data holds %v: a form page must not create server state", sess.Data)
+		t.Errorf("session data holds %v: a form page must not write application state", sess.Data)
+	}
+
+	if !sess.Unsaved() {
+		t.Error("the form is signed against a session that never reaches the database, so the next request cannot verify it")
+	}
+
+	var issued []string
+	for _, c := range w.Result().Cookies() {
+		issued = append(issued, c.Name)
+	}
+
+	if len(issued) != 2 {
+		t.Errorf("cookies issued: %v, want the session and the csrf cookie together", issued)
 	}
 }
 
 func TestTheCookieSurvivesAcrossRequests(t *testing.T) {
 	store := newTestStore(false)
 
-	_, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil))
+	_, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil), "")
 
 	next := httptest.NewRequest(http.MethodGet, "/signin", nil)
 	for _, c := range w.Result().Cookies() {
 		next.AddCookie(c)
 	}
 
-	if _, second := render(t, store, next); len(second.Result().Cookies()) != 0 {
+	if _, second := render(t, store, next, ""); len(second.Result().Cookies()) != 0 {
 		t.Error("a second page hands out another cookie: the form left open in the first tab would stop working")
 	}
 }
@@ -85,41 +103,45 @@ func TestTheCookieSurvivesAcrossRequests(t *testing.T) {
 func TestWhatIsAcceptedAndWhatIsNot(t *testing.T) {
 	store := newTestStore(false)
 
-	field, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil))
+	field, w := render(t, store, httptest.NewRequest(http.MethodGet, "/signin", nil), "")
 	value := w.Result().Cookies()[0].Value
 
 	other := newTestStore(false)
 	other.secret = []byte("stolen-guess")
 
-	_, elsewhere := render(t, store, httptest.NewRequest(http.MethodGet, "/account", nil))
-	otherValue := elsewhere.Result().Cookies()[0].Value
+	_, signedIn := render(t, store, httptest.NewRequest(http.MethodGet, "/account", nil), "session-abc")
+	boundValue := signedIn.Result().Cookies()[0].Value
 
 	tests := []struct {
 		name   string
 		cookie string
 		field  string
+		token  string
 		want   bool
 	}{
-		{"the pair the form was rendered with", value, field, true},
-		{"signature invented", value, "not-a-signature", false},
-		{"cookie replaced by an attacker who can write cookies", "planted-value", field, false},
-		{"signature made with another secret", value, mustSign(other, value), false},
-		{"a signature made for a different cookie", otherValue, field, false},
-		{"no cookie", "", field, false},
-		{"no form field", value, "", false},
+		{"the pair the form was rendered with", value, field, "", true},
+		{"signature invented", value, "not-a-signature", "", false},
+		{"cookie replaced by an attacker who can write cookies", "planted-value", field, "", false},
+		{"signature made with another secret", value, mustSign(other, value, ""), "", false},
+		{"a signature made for a different cookie", boundValue, field, "", false},
+		{"a token minted for a signed in session, replayed anonymously", boundValue, mustSign(store, boundValue, "session-abc"), "", false},
+		{"a token minted for another visitor's session", boundValue, mustSign(store, boundValue, "session-xyz"), "session-abc", false},
+		{"a token minted for this very session", boundValue, mustSign(store, boundValue, "session-abc"), "session-abc", true},
+		{"no cookie", "", field, "", false},
+		{"no form field", value, "", "", false},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := submit(t, store, tc.cookie, tc.field); got != tc.want {
+			if got := submit(t, store, tc.cookie, tc.field, tc.token); got != tc.want {
 				t.Errorf("accepted = %v, want %v", got, tc.want)
 			}
 		})
 	}
 }
 
-func mustSign(store *Store, value string) string {
-	return (&Session{store: store}).sign(value)
+func mustSign(store *Store, value, token string) string {
+	return (&Session{store: store, Token: token}).sign(value)
 }
 
 func TestAPageThatShowsAFormIsFlagged(t *testing.T) {
@@ -157,18 +179,56 @@ func TestCookiesAreLockedToTheHostInProduction(t *testing.T) {
 	}
 }
 
-func TestAFormOutlivesASessionRotation(t *testing.T) {
+func TestSigningInInvalidatesAFormRenderedBeforeIt(t *testing.T) {
 	store := newTestStore(false)
 
 	w := httptest.NewRecorder()
 	sess := &Session{Data: map[string]string{}, store: store, w: w}
 
-	field := sess.CSRF()
-	cookie := w.Result().Cookies()[0].Value
+	stale := sess.CSRF()
+	staleCookie := w.Result().Cookies()[0].Value
 
-	sess.rotate("a-freshly-issued-session-token")
+	const token = "a-freshly-issued-session-token"
 
-	if !submit(t, store, cookie, field) {
-		t.Error("signing in kills a form the visitor already had open in another tab")
+	renewed := httptest.NewRecorder()
+	sess.rotate(token)
+	store.rotateCSRF(renewed, sess)
+
+	freshCookie := renewed.Result().Cookies()[0].Value
+
+	if submit(t, store, freshCookie, stale, token) {
+		t.Error("a form rendered before sign in still verifies afterwards: the security context changed and the old token must die with it")
+	}
+
+	if submit(t, store, staleCookie, stale, token) {
+		t.Error("the old pair verifies against the new session: binding is not in force")
+	}
+}
+
+func TestRenewalHandsOutAFreshPair(t *testing.T) {
+	store := newTestStore(false)
+
+	w := httptest.NewRecorder()
+	sess := &Session{Data: map[string]string{}, store: store, w: w, ExpiresAt: time.Now().Add(time.Hour)}
+
+	before := sess.CSRF()
+	sess.rotate("new-session-token")
+
+	renewed := httptest.NewRecorder()
+	store.rotateCSRF(renewed, sess)
+
+	cookies := renewed.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Fatal("renewal handed out no csrf cookie: the next form on the page would have nothing to match")
+	}
+
+	after := sess.CSRF()
+
+	if before == after {
+		t.Error("the token survived renewal unchanged")
+	}
+
+	if !submit(t, store, cookies[0].Value, after, sess.Token) {
+		t.Error("the pair issued during renewal does not verify")
 	}
 }

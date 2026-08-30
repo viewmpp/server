@@ -33,6 +33,11 @@ type Session struct {
 	sent      bool
 	csrf      string
 	csrfUsed  bool
+	stored    bool
+}
+
+func (s *Session) Unsaved() bool {
+	return s.sent && !s.stored
 }
 
 func (s *Session) touch() {
@@ -116,7 +121,7 @@ func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request
 	hash := hashToken(cookie.Value)
 
 	var (
-		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r)}
+		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, stored: true, csrf: s.readCSRF(r)}
 		data []byte
 	)
 
@@ -144,27 +149,46 @@ func (s *Store) Save(ctx context.Context, sess *Session) error {
 	return s.save(ctx, sess)
 }
 
-func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session) error {
+func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session, userID *int64) error {
 	if err := s.Delete(ctx, sess.Token); err != nil {
 		return err
 	}
 
 	raw := make([]byte, 32)
-	_, err := rand.Read(raw)
-	if err != nil {
+	if _, err := rand.Read(raw); err != nil {
 		return err
+	}
+
+	previousUser, previousToken := sess.UserID, sess.Token
+
+	if userID != nil {
+		sess.UserID = userID
 	}
 
 	sess.rotate(base64.RawURLEncoding.EncodeToString(raw))
 
-	if err = s.save(ctx, sess); err != nil {
+	if err := s.save(ctx, sess); err != nil {
+		sess.UserID, sess.Token = previousUser, previousToken
 		return err
 	}
 
 	s.setCookie(w, sess)
 	sess.sent = true
 
+	s.rotateCSRF(w, sess)
+
 	return nil
+}
+
+func (s *Store) rotateCSRF(w http.ResponseWriter, sess *Session) {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return
+	}
+
+	sess.csrf = base64.RawURLEncoding.EncodeToString(raw)
+
+	s.setCSRFCookie(w, sess.csrf, sess.ExpiresAt)
 }
 
 func (s *Store) Delete(ctx context.Context, token string) error {
@@ -214,9 +238,13 @@ func (s *Store) save(ctx context.Context, sess *Session) error {
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (token_hash) DO UPDATE SET user_id = $2, data = $3, expires_at = $4`
 
-	_, err = s.db.ExecContext(ctx, query, hash[:], sess.UserID, data, sess.ExpiresAt)
+	if _, err = s.db.ExecContext(ctx, query, hash[:], sess.UserID, data, sess.ExpiresAt); err != nil {
+		return err
+	}
 
-	return err
+	sess.stored = true
+
+	return nil
 }
 
 func (s *Store) csrfName() string {
