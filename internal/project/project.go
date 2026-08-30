@@ -24,8 +24,9 @@ const (
 	MinPasswordLength = 4
 	MaxPasswordLength = 72
 
-	publicIDBytes = 12
-	maxContract   = 32 << 20
+	publicIDBytes    = 12
+	maxContract      = 32 << 20
+	maxFileNameBytes = 255
 )
 
 var ErrNotFound = errors.New("project not found")
@@ -310,19 +311,25 @@ func decompress(data []byte) ([]byte, error) {
 
 func sanitizeFileName(name string) string {
 	name = filepath.Base(name)
-	if !utf8.ValidString(name) {
+	if name == "." || name == string(filepath.Separator) || !utf8.ValidString(name) {
 		return ""
 	}
+
 	name = strings.Map(func(r rune) rune {
 		if r < 0x20 || r == 0x7f {
 			return -1
 		}
 		return r
 	}, name)
-	for len(name) > 255 {
-		_, size := utf8.DecodeLastRuneInString(name[:255])
-		name = name[:255-size+size%1]
+
+	if len(name) <= maxFileNameBytes {
+		return name
 	}
 
-	return name
+	cut := maxFileNameBytes
+	for cut > 0 && !utf8.RuneStart(name[cut]) {
+		cut--
+	}
+
+	return name[:cut]
 }
