@@ -33,7 +33,6 @@ type Session struct {
 	sent      bool
 	csrf      string
 	csrfUsed  bool
-	bind      string
 }
 
 func (s *Session) touch() {
@@ -43,6 +42,11 @@ func (s *Session) touch() {
 
 	s.store.setCookie(s.w, s)
 	s.sent = true
+}
+
+func (s *Session) rotate(token string) {
+	s.Token = token
+	s.ExpiresAt = time.Now().Add(s.store.lifetime)
 }
 
 func (s *Session) Get(key string) string {
@@ -112,7 +116,7 @@ func (s *Store) Find(ctx context.Context, w http.ResponseWriter, r *http.Request
 	hash := hashToken(cookie.Value)
 
 	var (
-		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r), bind: cookie.Value}
+		sess = &Session{Token: cookie.Value, store: s, w: w, sent: true, csrf: s.readCSRF(r)}
 		data []byte
 	)
 
@@ -151,8 +155,7 @@ func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session)
 		return err
 	}
 
-	sess.Token = base64.RawURLEncoding.EncodeToString(raw)
-	sess.ExpiresAt = time.Now().Add(s.lifetime)
+	sess.rotate(base64.RawURLEncoding.EncodeToString(raw))
 
 	if err = s.save(ctx, sess); err != nil {
 		return err
