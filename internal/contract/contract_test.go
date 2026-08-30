@@ -62,3 +62,45 @@ func TestDecodeRejectsOtherVersion(t *testing.T) {
 		t.Fatal("wrong contract version accepted")
 	}
 }
+
+func TestDecodeRejectsHostileStrings(t *testing.T) {
+	tests := map[string]string{
+		"task start":         `"start":"<img src=x onerror=alert(1)>"`,
+		"task finish":        `"finish":"2026-01-05"`,
+		"baseline start":     `"baseline":{"start":"2026-01-05T08:00","finish":null}`,
+		"duration units":     `"duration":{"value":1.0,"units":"<b>d</b>"}`,
+		"zoned date":         `"start":"2026-01-05T08:00:00Z"`,
+		"space instead of T": `"start":"2026-01-05 08:00:00"`,
+	}
+
+	for name, field := range tests {
+		t.Run(name, func(t *testing.T) {
+			raw := `{"contract_version":1,` +
+				`"project":{"name":null,"start":null,"finish":null},` +
+				`"calendar":{"name":null,"non_working_weekdays":[],"exceptions":[]},` +
+				`"resources":[],` +
+				`"tasks":[{"id":1,"parent_id":null,"name":"x","wbs":null,"outline_number":null,` +
+				`"outline_level":1,"start":null,"finish":null,"duration":null,"percent_complete":0.0,` +
+				`"is_summary":false,"is_milestone":false,"is_critical":false,"notes":null,` +
+				`"baseline":null,"assignments":[],` + field + `}],` +
+				`"relations":[]}`
+
+			if _, err := Decode([]byte(raw)); err == nil {
+				t.Fatalf("accepted hostile %s", name)
+			}
+		})
+	}
+}
+
+func TestDecodeRejectsHostileRelationType(t *testing.T) {
+	raw := `{"contract_version":1,` +
+		`"project":{"name":null,"start":null,"finish":null},` +
+		`"calendar":{"name":null,"non_working_weekdays":[],"exceptions":[]},` +
+		`"resources":[],"tasks":[],` +
+		`"relations":[{"id":1,"predecessor_id":1,"successor_id":2,` +
+		`"type":"<script>alert(1)</script>","lag":null}]}`
+
+	if _, err := Decode([]byte(raw)); err == nil {
+		t.Fatal("accepted hostile relation type")
+	}
+}

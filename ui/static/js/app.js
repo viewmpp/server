@@ -247,8 +247,9 @@
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 88, resize: true,
-        template: function (t) { return t.$contract.wbs || t.$contract.outline_number || ''; } },
-      { name: 'text', label: 'Task', tree: true, width: 320, resize: true },
+        template: function (t) { return escapeHtml(t.$contract.wbs || t.$contract.outline_number || ''); } },
+      { name: 'text', label: 'Task', tree: true, width: 320, resize: true,
+        template: function (t) { return escapeHtml(t.$contract.name || ''); } },
       { name: 'start', label: 'Start', align: 'center', width: 104, resize: true,
         template: function (t) { return contractDate(t.$contract.start); } },
       { name: 'finish', label: 'Finish', align: 'center', width: 104, resize: true,
@@ -342,7 +343,7 @@
     if (project.start) { parts.push(summaryCell(TEXT.projStart, contractDate(project.start))); }
     if (project.finish) { parts.push(summaryCell(TEXT.projFinish, contractDate(project.finish))); }
     if (root && root.duration) {
-      parts.push(summaryCell(TEXT.projDuration, escapeHtml(duration(root.duration))));
+      parts.push(summaryCell(TEXT.projDuration, duration(root.duration)));
     }
 
     if (!parts.length) { ui.summary.classList.add('is-hidden'); return; }
@@ -400,13 +401,13 @@
 
     var predecessors = (model.index.predecessors[task.id] || []).map(function (r) {
       return escapeHtml(model.index.taskName[r.predecessor_id] || ('#' + r.predecessor_id)) +
-        ' (' + (LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
+        ' (' + escapeHtml(LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
     });
     if (predecessors.length) { rows.push([TEXT.predecessors, predecessors.join('<br>')]); }
 
     var successors = (model.index.successors[task.id] || []).map(function (r) {
       return escapeHtml(model.index.taskName[r.successor_id] || ('#' + r.successor_id)) +
-        ' (' + (LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
+        ' (' + escapeHtml(LINK_LABEL[r.type] || r.type) + lag(r.lag) + ')';
     });
     if (successors.length) { rows.push([TEXT.successors, successors.join('<br>')]); }
 
@@ -553,7 +554,7 @@
     collectMatches();
 
     if (!needle) {
-      restoreTree();
+      if (filter === 'all') { restoreTree(); }
       updateCount();
       gantt.refreshData();
       return true;
@@ -745,7 +746,7 @@
 
   function duration(value) {
     if (!value) { return ''; }
-    return String(value.value) + ' ' + (UNITS[value.units] || value.units);
+    return escapeHtml(String(value.value) + ' ' + (UNITS[value.units] || value.units));
   }
 
   function lag(value) {
@@ -753,13 +754,9 @@
     return ' ' + (value.value > 0 ? '+' : '') + duration(value);
   }
 
-  function shortDate(date) {
-    return date ? toISO(date) : '';
-  }
-
   function shortDateTime(value) {
     if (!value) { return '-'; }
-    return value.slice(0, 10) + ' ' + value.slice(11, 16);
+    return escapeHtml(value.slice(0, 10) + ' ' + value.slice(11, 16));
   }
 
   function toISO(date) {
