@@ -42,7 +42,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
 
 	mux.HandleFunc("GET /projects", s.projectHandler.List)
-	mux.HandleFunc("GET /p/{id}", s.throttle(s.readLimiter, "read-ip:", s.projectHandler.Page))
+	mux.HandleFunc("GET /p/{id}", s.throttle(s.readLimiter, "page-ip:", s.projectHandler.Page))
 	mux.HandleFunc("GET /p/{id}/xlsx", s.throttle(s.exportLimiter, "export-ip:", s.projectHandler.Export))
 	mux.HandleFunc("POST /p/{id}/unlock", s.projectHandler.Unlock)
 	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
