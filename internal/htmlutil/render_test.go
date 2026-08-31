@@ -6,6 +6,7 @@ import (
 	"server/internal/assert"
 	"server/internal/fixtures"
 	"server/internal/session"
+	"strings"
 	"testing"
 	"time"
 )
@@ -20,6 +21,8 @@ type stubProject struct {
 type stubForm struct {
 	Token       string
 	Email       string
+	SentTo      string
+	LinkLife    string
 	EmailTaken  bool
 	FileName    string
 	FieldErrors map[string]string
@@ -83,6 +86,30 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestTheResetPageDropsTheFormOnceTheLinkIsSent(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	sent := Page{Form: stubForm{SentTo: "a@b.c", LinkLife: "one hour"}}
+
+	var buf bytes.Buffer
+	assert.NilError(t, pages.Forgot.ExecuteTemplate(&buf, "base", sent))
+
+	body := buf.String()
+
+	if !strings.Contains(body, "a@b.c") {
+		t.Error("the address the link went to is not shown: it is the one thing worth checking on this screen")
+	}
+
+	if !strings.Contains(body, "one hour") {
+		t.Error("the link lifetime is not shown")
+	}
+
+	if strings.Contains(body, `action="/reset"`) {
+		t.Error("the email form is still on the page: it invites a second submission that the rate limit will refuse")
 	}
 }
 

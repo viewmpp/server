@@ -110,10 +110,31 @@
   document.addEventListener('drop', function (e) { e.preventDefault(); });
 
   document.addEventListener('submit', function (event) {
-    var message = event.target.getAttribute('data-confirm');
+    var form = event.target;
+
+    var message = form.getAttribute('data-confirm');
     if (message && !window.confirm(message)) {
       event.preventDefault();
+      return;
     }
+
+    if (!form.hasAttribute('data-busy')) { return; }
+
+    var button = form.querySelector('button[type="submit"]');
+    if (!button) { return; }
+
+    if (button.getAttribute('aria-busy') === 'true') {
+      event.preventDefault();
+      return;
+    }
+
+    button.setAttribute('aria-busy', 'true');
+  });
+
+  window.addEventListener('pageshow', function () {
+    document.querySelectorAll('[aria-busy="true"]').forEach(function (element) {
+      element.removeAttribute('aria-busy');
+    });
   });
 
   document.addEventListener('click', function (event) {

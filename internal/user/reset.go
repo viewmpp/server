@@ -7,12 +7,17 @@ import (
 	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/safelog"
+	"server/internal/session"
 	"server/internal/token"
 	"server/internal/validator"
 )
 
+const resetSentKey = "reset_sent"
+
 type ForgotForm struct {
 	Email       string
+	SentTo      string
+	LinkLife    string
 	FieldErrors map[string]string
 }
 
@@ -22,7 +27,11 @@ type ResetForm struct {
 }
 
 func (h *Handler) ForgotPage(w http.ResponseWriter, r *http.Request) {
-	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Forgot, NewPage(r, ForgotForm{}), h.logger)
+	sess := session.FromContext(r)
+
+	form := ForgotForm{SentTo: sess.Pop(resetSentKey), LinkLife: MsgLinkLife(h.resetTTL)}
+
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Forgot, NewPage(r, form), h.logger)
 }
 
 func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +65,7 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess.Put("flash", MsgResetSent(form.Email))
+	sess.Put(resetSentKey, form.Email)
 
 	http.Redirect(w, r, "/reset", http.StatusSeeOther)
 }

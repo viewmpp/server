@@ -34,8 +34,16 @@ func MsgEarlyAccessGranted(seat int, until time.Time) string {
 		seat, until.Format("2 January 2006"))
 }
 
-func MsgResetSent(email string) string {
-	return "If " + email + " has an account, we sent a link to it"
+func MsgLinkLife(d time.Duration) string {
+	if d < time.Hour {
+		return fmt.Sprintf("%d minutes", int(d.Minutes()))
+	}
+
+	if d < 2*time.Hour {
+		return "one hour"
+	}
+
+	return fmt.Sprintf("%d hours", int(d.Hours()))
 }
 
 func MsgCodeSent(email string) string {

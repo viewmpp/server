@@ -4,26 +4,30 @@
 <main class="auth centered">
   <h1>Sign in</h1>
 
-  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+  {{with .Flash}}<p class="flash" role="status">{{.}}</p>{{end}}
 
-  <form action="/signin" method="POST" novalidate>
+  {{$formError := index .Form.FieldErrors "email"}}
+  <form action="/signin" method="POST" novalidate data-busy>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-    {{with index .Form.FieldErrors "email"}}
-      <p class="field__error">{{.}}</p>
+    {{with $formError}}
+      <p class="field__error" id="signin-error" role="alert">{{.}}</p>
     {{end}}
 
     <div class="field">
       <label for="email">Email</label>
-      <input id="email" type="email" name="email" value="{{.Form.Email}}" autocomplete="email" required>
+      <input id="email" type="email" name="email" value="{{.Form.Email}}"
+             autocomplete="email" autocapitalize="none" spellcheck="false" required
+             {{if $formError}}aria-invalid="true" aria-describedby="signin-error"{{end}}>
     </div>
 
     <div class="field">
       <label for="password">Password</label>
-      <input id="password" type="password" name="password" autocomplete="current-password" required>
+      <input id="password" type="password" name="password" autocomplete="current-password" required
+             {{if $formError}}aria-invalid="true" aria-describedby="signin-error"{{end}}>
     </div>
 
-    <button class="btn btn--primary" type="submit">Sign in</button>
+    <button class="btn btn--solid" type="submit">Sign in</button>
   </form>
 
   <div class="auth__foot">
@@ -32,4 +36,3 @@
   </div>
 </main>
 {{end}}
-

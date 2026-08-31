@@ -2,27 +2,54 @@
 
 {{define "main"}}
 <main class="auth centered">
-  <h1>Reset your password</h1>
+  {{if .Form.SentTo}}
+    <div class="empty">
+      <span class="empty__media" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="2.5" y="4.75" width="19" height="14.5" rx="2.5"/>
+          <path d="m3.5 6.75 8.5 6 8.5-6"/>
+        </svg>
+      </span>
 
-  <p class="lead">Enter the address you signed up with and we will send you a link.</p>
+      <h1 class="empty__title">Check your email</h1>
 
-  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+      <p class="auth__sent-to">{{.Form.SentTo}}</p>
 
-  <form action="/reset" method="POST" novalidate>
-    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <p class="empty__desc">
+        If that address has an account, a link is on its way. Open it and choose a new password.
+        The link works for {{.Form.LinkLife}}, and asking again replaces it.
+      </p>
 
-    <div class="field">
-      <label for="email">Email</label>
-      {{with index .Form.FieldErrors "email"}}<span class="field__error">{{.}}</span>{{end}}
-      <input id="email" type="email" name="email" value="{{.Form.Email}}" autocomplete="email" autofocus required>
+      <div class="empty__content">
+        <p>Nothing yet? Look in the spam folder - the message comes from a sender your inbox has not seen before.</p>
+        <p><a href="/reset">Use a different address</a> · <a href="/signin">Back to sign in</a></p>
+      </div>
     </div>
+  {{else}}
+    <h1>Reset your password</h1>
 
-    <button class="btn btn--primary" type="submit">Send the link</button>
-  </form>
+    <p class="lead">Enter the address you signed up with and we will send you a link.</p>
 
-  <div class="auth__foot">
-    <p>Remembered it? <a href="/signin">Sign in</a></p>
-  </div>
+    {{with .Flash}}<p class="flash" role="status">{{.}}</p>{{end}}
+
+    {{$emailError := index .Form.FieldErrors "email"}}
+    <form action="/reset" method="POST" novalidate data-busy>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <div class="field">
+        <label for="email">Email</label>
+        {{with $emailError}}<span class="field__error" id="email-error" role="alert">{{.}}</span>{{end}}
+        <input id="email" type="email" name="email" value="{{.Form.Email}}"
+               autocomplete="email" autocapitalize="none" spellcheck="false" autofocus required
+               {{if $emailError}}aria-invalid="true" aria-describedby="email-error"{{end}}>
+      </div>
+
+      <button class="btn btn--solid" type="submit">Send the link</button>
+    </form>
+
+    <div class="auth__foot">
+      <p>Remembered it? <a href="/signin">Sign in</a></p>
+    </div>
+  {{end}}
 </main>
 {{end}}
-
