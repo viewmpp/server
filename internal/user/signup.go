@@ -13,7 +13,11 @@ import (
 	"server/internal/validator"
 )
 
-var ErrEmailTaken = errors.New("email belongs to a verified account")
+var ErrEmailTaken = errors.New("email belongs to an existing account")
+
+type signupStore interface {
+	Save(ctx context.Context, user *User) error
+}
 
 type SignupForm struct {
 	Email       string
@@ -59,24 +63,14 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.store.Save(r.Context(), &u)
-	if errors.Is(err, ErrDuplicateEmail) {
-		err = h.takeOverPendingSignup(r.Context(), &u)
+	err := createSignup(r.Context(), h.store, &u)
+	if errors.Is(err, ErrEmailTaken) {
+		h.sendExistingAccount(form.Email)
 
-		switch {
-		case errors.Is(err, ErrEmailTaken):
-			h.sendExistingAccount(form.Email)
-
-			form.FieldErrors = map[string]string{"email": MsgEmailTaken}
-			form.EmailTaken = true
-			htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
-			return
-
-		case errors.Is(err, ErrEditConflict):
-			form.FieldErrors = map[string]string{"email": MsgSignupRetry}
-			htmlutil.WriteHTML(w, r, http.StatusConflict, h.templates.Signup, NewPage(r, form), h.logger)
-			return
-		}
+		form.FieldErrors = map[string]string{"email": MsgEmailTaken}
+		form.EmailTaken = true
+		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Signup, NewPage(r, form), h.logger)
+		return
 	}
 
 	if err != nil {
@@ -100,6 +94,14 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	h.startVerification(w, r, sess, &u)
 }
 
+func createSignup(ctx context.Context, store signupStore, u *User) error {
+	err := store.Save(ctx, u)
+	if errors.Is(err, ErrDuplicateEmail) {
+		return ErrEmailTaken
+	}
+	return err
+}
+
 func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess *session.Session, u *User) {
 	if err := h.sessions.Renew(r.Context(), w, sess, &u.ID); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -114,31 +116,6 @@ func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess
 	}
 
 	http.Redirect(w, r, "/verify", http.StatusSeeOther)
-}
-
-func (h *Handler) takeOverPendingSignup(ctx context.Context, u *User) error {
-	existing, err := h.store.GetByEmail(ctx, u.Email)
-	if err != nil {
-		return err
-	}
-
-	if existing.Verified {
-		return ErrEmailTaken
-	}
-
-	u.ID = existing.ID
-	u.Version = existing.Version
-	u.Verified = false
-
-	if err = h.store.Update(ctx, u); err != nil {
-		return err
-	}
-
-	if err = h.token.DeleteVerificationsByUserID(ctx, u.ID); err != nil {
-		return err
-	}
-
-	return h.sessions.DeleteByUserID(ctx, u.ID)
 }
 
 func (h *Handler) sendVerificationCode(email, code string) {
