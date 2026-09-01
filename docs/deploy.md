@@ -190,6 +190,12 @@ docker compose run --rm migrate \
 If a migration fails halfway, `migrate` marks the schema dirty and refuses to
 run again until the version is forced with `force <version>`.
 
+The `early_access` row in `quota_campaigns` is part of quota enforcement, not
+ordinary campaign data. Seat claims lock it before counting active subscribers
+and granting Pro. Save and share transactions instead lock the owner row before
+counting, with access changes locking the project row second. Deleting the
+campaign row makes seat claims fail closed.
+
 Rollback
 --------
 

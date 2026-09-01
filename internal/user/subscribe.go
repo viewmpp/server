@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 	"server/internal/htmlutil"
 	"time"
@@ -34,28 +35,22 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taken, err := h.store.CountSubscribers(r.Context())
+	until := time.Now().Add(h.earlyAccessPeriod)
+
+	seat, err := h.store.GrantSubscription(r.Context(), u.ID, &until, h.earlyAccessSeats)
+	if errors.Is(err, ErrSeatLimit) {
+		sess.Put("flash", MsgProUnavailable)
+		http.Redirect(w, r, back, http.StatusSeeOther)
+		return
+	}
 	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
-	if taken >= h.earlyAccessSeats {
-		sess.Put("flash", MsgProUnavailable)
-		http.Redirect(w, r, back, http.StatusSeeOther)
-		return
-	}
+	h.logger.Info("early access granted", "user_id", u.ID, "seat", seat, "of", h.earlyAccessSeats)
 
-	until := time.Now().Add(h.earlyAccessPeriod)
-
-	if err = h.store.GrantSubscription(r.Context(), u.ID, &until); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
-
-	h.logger.Info("early access granted", "user_id", u.ID, "seat", taken+1, "of", h.earlyAccessSeats)
-
-	sess.Put("flash", MsgEarlyAccessGranted(taken+1, until))
+	sess.Put("flash", MsgEarlyAccessGranted(seat, until))
 
 	http.Redirect(w, r, back, http.StatusSeeOther)
 }

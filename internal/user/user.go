@@ -245,30 +245,61 @@ func (s *Store) CountSubscribers(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (s *Store) GrantSubscription(ctx context.Context, userID int64, until *time.Time) error {
-	query := `
-		UPDATE users
-		SET subscription = $1, subscription_until = $2, version = version + 1
-		WHERE id = $3 AND verified = TRUE
-		  AND (subscription = $4 OR subscription_until <= now())`
-
+func (s *Store) GrantSubscription(ctx context.Context, userID int64, until *time.Time, limit int) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.db.ExecContext(ctx, query, SubscriptionPro, until, userID, SubscriptionFree)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var campaign string
+	if err = tx.QueryRowContext(ctx, `
+		SELECT name FROM quota_campaigns WHERE name = $1 FOR UPDATE`, earlyAccessCampaign).Scan(&campaign); err != nil {
+		return 0, err
 	}
 
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
+	var verified bool
+	var active bool
+	err = tx.QueryRowContext(ctx, `
+		SELECT verified,
+		       subscription = $2 AND (subscription_until IS NULL OR subscription_until > now())
+		FROM users WHERE id = $1
+		FOR UPDATE`, userID, SubscriptionPro).Scan(&verified, &active)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, ErrUserNotFound
 	}
-	if rows == 0 {
-		return ErrEditConflict
+	if err != nil {
+		return 0, err
+	}
+	if !verified || active {
+		return 0, ErrEditConflict
 	}
 
-	return nil
+	var taken int
+	if err = tx.QueryRowContext(ctx, `
+		SELECT count(*) FROM users
+		WHERE subscription = $1
+		  AND (subscription_until IS NULL OR subscription_until > now())`, SubscriptionPro).Scan(&taken); err != nil {
+		return 0, err
+	}
+	if taken >= limit {
+		return 0, &QuotaError{Kind: ErrSeatLimit, Used: taken, Limit: limit}
+	}
+
+	if _, err = tx.ExecContext(ctx, `
+		UPDATE users
+		SET subscription = $1, subscription_until = $2, version = version + 1
+		WHERE id = $3`, SubscriptionPro, until, userID); err != nil {
+		return 0, err
+	}
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return taken + 1, nil
 }
 
 func (s *Store) GetByToken(ctx context.Context, plaintext string, scope token.Scope) (*User, error) {

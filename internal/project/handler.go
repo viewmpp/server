@@ -152,20 +152,6 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 
 	var password []byte
 
-	if opensNewShare(current, access) {
-		shared, err := h.store.CountShared(r.Context(), u.ID)
-		if err != nil {
-			htmlutil.ServerErrorResponse(w, r, err, h.logger)
-			return
-		}
-
-		if !u.CanShare(shared) {
-			sess.Put("flash", shareRefusal(u))
-			http.Redirect(w, r, back, http.StatusSeeOther)
-			return
-		}
-	}
-
 	if access == AccessProtected && !u.CanProtect() {
 		sess.Put("flash", protectRefusal(u))
 		http.Redirect(w, r, back, http.StatusSeeOther)
@@ -203,6 +189,19 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := save(); err != nil {
+		if errors.Is(err, user.ErrShareLimit) {
+			var quota *user.QuotaError
+			if errors.As(err, &quota) {
+				sess.Put("flash", MsgShareLimit(quota.Limit))
+				http.Redirect(w, r, back, http.StatusSeeOther)
+				return
+			}
+		}
+		if errors.Is(err, user.ErrShareUnverified) {
+			sess.Put("flash", MsgConfirmEmail)
+			http.Redirect(w, r, back, http.StatusSeeOther)
+			return
+		}
 		if errors.Is(err, ErrNotFound) {
 			htmlutil.NotFoundPage(w, r, h.logger)
 			return

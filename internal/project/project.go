@@ -13,6 +13,7 @@ import (
 	"io"
 	"path/filepath"
 	"server/internal/contract"
+	"server/internal/user"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -131,14 +132,36 @@ func (s *Store) Save(ctx context.Context, userID int64, fileName string, contrac
 		return "", err
 	}
 
-	query := `
-		INSERT INTO projects (public_id, user_id, file_name, contract)
-		VALUES ($1, $2, $3, $4)`
-
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if _, err = s.db.ExecContext(ctx, query, publicID, userID, fileName, packed); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	_, subscribed, err := lockOwner(ctx, tx, userID)
+	if err != nil {
+		return "", err
+	}
+
+	if !subscribed {
+		var saved int
+		if err = tx.QueryRowContext(ctx, `SELECT count(*) FROM projects WHERE user_id = $1`, userID).Scan(&saved); err != nil {
+			return "", err
+		}
+		if saved >= user.MaxSavedFree {
+			return "", &user.QuotaError{Kind: user.ErrSaveLimit, Used: saved, Limit: user.MaxSavedFree}
+		}
+	}
+
+	if _, err = tx.ExecContext(ctx, `
+		INSERT INTO projects (public_id, user_id, file_name, contract)
+		VALUES ($1, $2, $3, $4)`, publicID, userID, fileName, packed); err != nil {
+		return "", err
+	}
+	if err = tx.Commit(); err != nil {
 		return "", err
 	}
 
@@ -230,31 +253,77 @@ func (s *Store) SetAccessKeepingPassword(ctx context.Context, publicID string, u
 }
 
 func (s *Store) setAccess(ctx context.Context, publicID string, userID int64, access string, password []byte, keep bool) error {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	verified, subscribed, err := lockOwner(ctx, tx, userID)
+	if err != nil {
+		return err
+	}
+
+	var current string
+	if err = tx.QueryRowContext(ctx, `
+		SELECT access FROM projects
+		WHERE public_id = $1 AND user_id = $2
+		FOR UPDATE`, publicID, userID).Scan(&current); errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	if opensNewShare(current, access) {
+		if !verified {
+			return user.ErrShareUnverified
+		}
+		if !subscribed {
+			var shared int
+			if err = tx.QueryRowContext(ctx, `
+				SELECT count(*) FROM projects
+				WHERE user_id = $1 AND access IN ($2, $3)`, userID, AccessPublic, AccessProtected).Scan(&shared); err != nil {
+				return err
+			}
+			if shared >= user.MaxPublicFree {
+				return &user.QuotaError{Kind: user.ErrShareLimit, Used: shared, Limit: user.MaxPublicFree}
+			}
+		}
+	}
+
 	query := `UPDATE projects SET access = $1, password_hash = $2 WHERE public_id = $3 AND user_id = $4`
 	args := []any{access, password, publicID, userID}
-
 	if keep {
 		query = `UPDATE projects SET access = $1 WHERE public_id = $2 AND user_id = $3`
 		args = []any{access, publicID, userID}
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-
-	res, err := s.db.ExecContext(ctx, query, args...)
-	if err != nil {
+	if _, err = tx.ExecContext(ctx, query, args...); err != nil {
 		return err
 	}
 
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
+	return tx.Commit()
+}
+
+func lockOwner(ctx context.Context, tx *sql.Tx, userID int64) (bool, bool, error) {
+	var verified bool
+	var subscribed bool
+	err := tx.QueryRowContext(ctx, `
+		SELECT verified,
+		       subscription = $2 AND (subscription_until IS NULL OR subscription_until > now())
+		FROM users WHERE id = $1
+		FOR UPDATE`, userID, user.SubscriptionPro).Scan(&verified, &subscribed)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, false, user.ErrUserNotFound
 	}
-	if rows == 0 {
-		return ErrNotFound
+	if err != nil {
+		return false, false, err
 	}
 
-	return nil
+	return verified, subscribed, nil
 }
 
 func (s *Store) Delete(ctx context.Context, publicID string, userID int64) error {
