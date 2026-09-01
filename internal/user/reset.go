@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"server/internal/background"
