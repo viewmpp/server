@@ -150,32 +150,55 @@ func (s *Store) Save(ctx context.Context, sess *Session) error {
 }
 
 func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session, userID *int64) error {
-	if err := s.Delete(ctx, sess.Token); err != nil {
-		return err
-	}
-
-	raw := make([]byte, 32)
+	raw := make([]byte, 64)
 	if _, err := rand.Read(raw); err != nil {
 		return err
 	}
 
-	previousUser, previousToken := sess.UserID, sess.Token
-
+	nextUser := sess.UserID
 	if userID != nil {
-		sess.UserID = userID
+		id := *userID
+		nextUser = &id
 	}
 
-	sess.rotate(base64.RawURLEncoding.EncodeToString(raw))
-
-	if err := s.save(ctx, sess); err != nil {
-		sess.UserID, sess.Token = previousUser, previousToken
+	nextToken := base64.RawURLEncoding.EncodeToString(raw[:32])
+	nextCSRF := base64.RawURLEncoding.EncodeToString(raw[32:])
+	nextExpiry := time.Now().Add(s.lifetime)
+	data, err := json.Marshal(sess.Data)
+	if err != nil {
 		return err
 	}
 
-	s.setCookie(w, sess)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	previousHash := hashToken(sess.Token)
+	if _, err = tx.ExecContext(ctx, `DELETE FROM sessions WHERE token_hash = $1`, previousHash[:]); err != nil {
+		return err
+	}
+
+	nextHash := hashToken(nextToken)
+	if _, err = tx.ExecContext(ctx, `
+		INSERT INTO sessions (token_hash, user_id, data, expires_at)
+		VALUES ($1, $2, $3, $4)`, nextHash[:], nextUser, data, nextExpiry); err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	sess.Token = nextToken
+	sess.UserID = nextUser
+	sess.ExpiresAt = nextExpiry
+	sess.csrf = nextCSRF
+	sess.stored = true
 	sess.sent = true
 
-	s.rotateCSRF(w, sess)
+	s.setCookie(w, sess)
+	s.setCSRFCookie(w, sess.csrf, sess.ExpiresAt)
 
 	return nil
 }
