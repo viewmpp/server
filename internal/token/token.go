@@ -111,6 +111,11 @@ func (s *Store) DeleteResetsByUserID(ctx context.Context, userID int64) error {
 	return err
 }
 
+func DeleteResetsByUserIDTx(ctx context.Context, tx *sql.Tx, userID int64) error {
+	_, err := tx.ExecContext(ctx, `DELETE FROM tokens WHERE user_id = $1 AND scope = 'reset'`, userID)
+	return err
+}
+
 func (s *Store) DeleteExpired(ctx context.Context) (int64, error) {
 	res, err := s.db.ExecContext(ctx, `DELETE FROM tokens WHERE expires_at <= now()`)
 	if err != nil {

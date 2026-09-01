@@ -155,7 +155,7 @@ func (h *Handler) Reset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.store.Update(r.Context(), u); err != nil {
+	if err = h.completePasswordReset(r.Context(), w, sess, u); err != nil {
 		if errors.Is(err, ErrEditConflict) {
 			form.FieldErrors = map[string]string{"password": MsgVerifyRetry}
 			htmlutil.WriteHTML(w, r, http.StatusConflict, h.templates.Reset, NewPage(r, form), h.logger)
@@ -164,22 +164,28 @@ func (h *Handler) Reset(w http.ResponseWriter, r *http.Request) {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
-
-	if err = h.token.DeleteResetsByUserID(r.Context(), u.ID); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
-
-	if err = h.sessions.DeleteByUserID(r.Context(), u.ID); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
-
-	if err = h.sessions.Renew(r.Context(), w, sess, &u.ID); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
-		return
-	}
 	sess.Put("flash", MsgPasswordChanged)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (h *Handler) completePasswordReset(ctx context.Context, w http.ResponseWriter, sess *session.Session, u *User) error {
+	var version int
+
+	err := h.sessions.RenewWith(ctx, w, sess, &u.ID, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		if version, err = UpdateTx(ctx, tx, u); err != nil {
+			return err
+		}
+		if err = token.DeleteResetsByUserIDTx(ctx, tx, u.ID); err != nil {
+			return err
+		}
+		return session.DeleteByUserIDTx(ctx, tx, u.ID)
+	})
+	if err != nil {
+		return err
+	}
+
+	u.Version = version
+	return nil
 }

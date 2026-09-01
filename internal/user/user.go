@@ -181,30 +181,46 @@ func (s *Store) Save(ctx context.Context, user *User) error {
 }
 
 func (s *Store) Update(ctx context.Context, user *User) error {
+	version, err := updateUser(ctx, s.db, user)
+	if err != nil {
+		return err
+	}
+
+	user.Version = version
+	return nil
+}
+
+type userUpdater interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func UpdateTx(ctx context.Context, tx *sql.Tx, user *User) (int, error) {
+	return updateUser(ctx, tx, user)
+}
+
+func updateUser(ctx context.Context, updater userUpdater, user *User) (int, error) {
 	query := `
 		UPDATE users
 		SET email = $1, password_hash = $2, verified = $3, version = version + 1
 		WHERE id = $4 AND version = $5
 		RETURNING version`
 
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-
 	args := []any{user.Email, user.password.hash, user.Verified, user.ID, user.Version}
+	var version int
 
-	err := s.db.QueryRowContext(ctx, query, args...).Scan(&user.Version)
+	err := updater.QueryRowContext(ctx, query, args...).Scan(&version)
 	if err != nil {
 		pgErr, exists := errors.AsType[*pgconn.PgError](err)
 		if exists && pgErr.Code == "23505" {
-			return ErrDuplicateEmail
+			return 0, ErrDuplicateEmail
 		}
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrEditConflict
+			return 0, ErrEditConflict
 		}
-		return err
+		return 0, err
 	}
 
-	return nil
+	return version, nil
 }
 
 func (s *Store) Delete(ctx context.Context, id int64) error {

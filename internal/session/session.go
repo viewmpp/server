@@ -150,6 +150,10 @@ func (s *Store) Save(ctx context.Context, sess *Session) error {
 }
 
 func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session, userID *int64) error {
+	return s.RenewWith(ctx, w, sess, userID, nil)
+}
+
+func (s *Store) RenewWith(ctx context.Context, w http.ResponseWriter, sess *Session, userID *int64, change func(context.Context, *sql.Tx) error) error {
 	raw := make([]byte, 64)
 	if _, err := rand.Read(raw); err != nil {
 		return err
@@ -174,6 +178,12 @@ func (s *Store) Renew(ctx context.Context, w http.ResponseWriter, sess *Session,
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
+
+	if change != nil {
+		if err = change(ctx, tx); err != nil {
+			return err
+		}
+	}
 
 	previousHash := hashToken(sess.Token)
 	if _, err = tx.ExecContext(ctx, `DELETE FROM sessions WHERE token_hash = $1`, previousHash[:]); err != nil {
@@ -317,5 +327,10 @@ func hashToken(token string) [32]byte {
 
 func (s *Store) DeleteByUserID(ctx context.Context, userID int64) error {
 	_, err := s.db.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID)
+	return err
+}
+
+func DeleteByUserIDTx(ctx context.Context, tx *sql.Tx, userID int64) error {
+	_, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID)
 	return err
 }
