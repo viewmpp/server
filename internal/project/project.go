@@ -8,9 +8,11 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"path/filepath"
+	"server/internal/contract"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -25,7 +27,6 @@ const (
 	MaxPasswordLength = 72
 
 	publicIDBytes    = 12
-	maxContract      = 32 << 20
 	maxFileNameBytes = 255
 )
 
@@ -306,7 +307,14 @@ func decompress(data []byte) ([]byte, error) {
 	}
 	defer func() { _ = zr.Close() }()
 
-	return io.ReadAll(io.LimitReader(zr, maxContract))
+	decoded, err := io.ReadAll(io.LimitReader(zr, contract.MaxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(decoded) > contract.MaxBytes {
+		return nil, fmt.Errorf("stored contract exceeds %d bytes", contract.MaxBytes)
+	}
+	return decoded, nil
 }
 
 func sanitizeFileName(name string) string {

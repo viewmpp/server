@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"server/internal/contract"
 	"time"
 )
 
@@ -35,9 +36,12 @@ func (c *Client) Parse(ctx context.Context, body io.Reader, size int64) ([]byte,
 		_ = res.Body.Close()
 	}()
 
-	data, err := io.ReadAll(res.Body)
+	data, err := io.ReadAll(io.LimitReader(res.Body, contract.MaxBytes+1))
 	if err != nil {
 		return nil, err
+	}
+	if len(data) > contract.MaxBytes {
+		return nil, fmt.Errorf("parser response exceeds %d bytes", contract.MaxBytes)
 	}
 	if res.StatusCode != http.StatusOK {
 		pe := &ParseError{Status: res.StatusCode}

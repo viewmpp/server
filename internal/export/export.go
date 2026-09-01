@@ -14,7 +14,7 @@ import (
 	"strconv"
 )
 
-const MaxContractBytes = 8 << 20
+const MaxContractBytes = contract.MaxBytes
 
 type Handler struct {
 	limiter *ratelimit.Limiter

@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	sheet     = "Tasks"
-	inputTime = "2006-01-02T15:04:05"
+	sheet                  = "Tasks"
+	inputTime              = "2006-01-02T15:04:05"
+	maxVisibleOutlineLevel = 10
 )
 
 var headers = []string{
@@ -145,8 +146,9 @@ func cell(col, row int) string {
 
 func indent(t contract.Task) string {
 	name := deref(t.Name)
-	if t.OutlineLevel > 1 {
-		return strings.Repeat("    ", t.OutlineLevel-1) + name
+	level := min(t.OutlineLevel, maxVisibleOutlineLevel)
+	if level > 1 {
+		return strings.Repeat("    ", level-1) + name
 	}
 	return name
 }

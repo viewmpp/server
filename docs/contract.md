@@ -38,6 +38,55 @@ changes `mapper.js`, not the contract.
 The shape of the Java DTOs follows from the same principle - it is dictated by
 this document, not by whatever MPXJ finds convenient to hand out.
 
+Resource policy
+---------------
+
+Version 1 has one resource policy. The limits are checked by the Go contract
+decoder and apply regardless of whether the contract came directly from the
+parser, storage, or the export endpoint.
+
+| Resource | Limit |
+|---|---:|
+| Encoded JSON document | 8 MiB |
+| Tasks | 10,000 |
+| Resources | 10,000 |
+| Relations | 20,000 |
+| Assignments across the document | 20,000 |
+| Calendar exceptions | 1,000 |
+| Assignments on one task | 25 |
+| Predecessors on one task | 25 |
+| Successors on one task | 25 |
+| Non-working weekdays | 7 |
+| Project, calendar, exception, resource, task, WBS, and outline text | 255 Unicode characters |
+| Task notes | 32,767 Unicode characters |
+| Enum tokens | 32 Unicode characters |
+| Task, resource, parent, and relation endpoint IDs | 0..2,147,483,647 |
+| Relation IDs | 1..2,147,483,647 |
+| Outline level | 0..65,535 |
+| Percent complete | 0..100 |
+| Assignment units | 0..6,000,000,000 |
+| Duration value | 0..9,999,999,999,999.99 |
+| Relation lag value | -9,999,999,999,999.99..9,999,999,999,999.99 |
+
+All numeric values must be finite. Counts are independent limits: satisfying
+the per-task assignment limit does not exempt the document from the total
+assignment limit. The 8 MiB byte limit is checked before JSON decoding and when
+reading parser responses and compressed stored contracts, with one extra byte
+read to distinguish an exact-limit document from a truncated oversized one.
+
+The collection ceilings are service limits, not claims about Microsoft
+Project's file-format maxima. They are based on the current corpus and measured
+export cost: the largest fixture is 806,135 bytes with 1,651 tasks, while a
+synthetic 10,000-task XLSX export completed in 0.398 seconds and used about
+84.31 MiB in the test container. The byte limit is about ten times the largest
+fixture. Microsoft Project permits substantially larger schedules, but those
+vendor limits do not establish a safe request budget for this service.
+
+`outline_level` preserves the source value up to the Microsoft Project range.
+XLSX presentation is separately bounded to ten visible levels, so an extreme
+but valid outline value cannot cause proportional string allocation. Levels
+beyond ten retain their task data but receive the same 36-space visual indent.
+
 ---
 
 Four rules that silently corrupt data

@@ -84,3 +84,12 @@ func TestWriteKeepsDatesAsDates(t *testing.T) {
 		t.Errorf("start cell is %q; expected a formatted date, not the raw ISO string", got)
 	}
 }
+
+func TestIndentIsBounded(t *testing.T) {
+	name := "task"
+	got := indent(contract.Task{Name: &name, OutlineLevel: contract.MaxOutlineLevel})
+	want := strings.Repeat("    ", maxVisibleOutlineLevel-1) + name
+	if got != want {
+		t.Fatalf("indent length is %d, want %d", len(got), len(want))
+	}
+}
