@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"net/http"
+	"time"
+
 	"server/internal/htmlutil"
 )
 
@@ -31,7 +33,7 @@ func NewPage(r *http.Request, form any) htmlutil.Page {
 		page.UserEmail = u.Email
 		page.Verified = u.Verified
 		page.Pro = u.HasSubscription()
-		page.ProWarning = proWarning(u)
+		page.ProWarning = proWarning(u, time.Now())
 	}
 
 	return page

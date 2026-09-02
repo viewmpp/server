@@ -55,10 +55,14 @@ func (u *User) IsAnonymous() bool {
 }
 
 func (u *User) HasSubscription() bool {
+	return u.hasSubscriptionAt(time.Now())
+}
+
+func (u *User) hasSubscriptionAt(now time.Time) bool {
 	if u.Subscription != SubscriptionPro {
 		return false
 	}
-	return u.SubscriptionUntil == nil || u.SubscriptionUntil.After(time.Now())
+	return u.SubscriptionUntil == nil || u.SubscriptionUntil.After(now)
 }
 
 func (u *User) CanShare(shared int) bool {
@@ -80,16 +84,16 @@ func (u *User) CanSave(saved int) bool {
 
 const proWarningWindow = 7 * 24 * time.Hour
 
-func proWarning(u *User) string {
-	if !u.HasSubscription() || u.SubscriptionUntil == nil {
+func proWarning(u *User, now time.Time) string {
+	if !u.hasSubscriptionAt(now) || u.SubscriptionUntil == nil {
 		return ""
 	}
 
-	if time.Until(*u.SubscriptionUntil) > proWarningWindow {
+	if u.SubscriptionUntil.Sub(now) > proWarningWindow {
 		return ""
 	}
 
-	today := time.Now().UTC().Truncate(24 * time.Hour)
+	today := now.UTC().Truncate(24 * time.Hour)
 	last := u.SubscriptionUntil.UTC().Truncate(24 * time.Hour)
 
 	switch days := int(last.Sub(today).Hours() / 24); {
