@@ -20,6 +20,8 @@
     search: document.getElementById('search'),
     searchBox: document.getElementById('searchbox'),
     searchCount: document.getElementById('search-count'),
+    scaleRange: document.getElementById('scale-range'),
+    scaleLabel: document.getElementById('scale-label'),
     filterToggle: document.getElementById('filter-toggle'),
     filterLabel: document.getElementById('filter-label'),
     filterItems: document.querySelectorAll('[data-filter]'),
@@ -49,6 +51,7 @@
   var treeState = null;
   var filter = 'all';
   var visibleSet = null;
+  var nonWorkingSeen = {};
 
   var UNITS = {
     MINUTES: 'min', HOURS: 'h', DAYS: 'd', WEEKS: 'w',
@@ -396,10 +399,13 @@
     resetFilter();
     resetSearch();
 
+    nonWorkingSeen = {};
     model = window.MppMapper.toModel(contract);
     gantt.clearAll();
     gantt.parse({ data: model.data, links: model.links });
-    setScale('day');
+    ui.scaleRange.value = 0;
+    zoomRendered = '';
+    setZoom(0, true);
     describe(contract, fileName);
 
     document.dispatchEvent(new CustomEvent('mpp:loaded', {
@@ -545,12 +551,22 @@
 
   function isNonWorking(date) {
     if (!model) { return false; }
+
     var iso = toISO(date);
+    if (iso in nonWorkingSeen) { return nonWorkingSeen[iso]; }
+
+    var answer = !!model.calendar.nonWorking[date.getDay()];
+
     for (var i = 0; i < model.calendar.exceptions.length; i++) {
       var ex = model.calendar.exceptions[i];
-      if (iso >= ex.from && iso <= ex.to) { return !ex.working; }
+      if (iso >= ex.from && iso <= ex.to) {
+        answer = !ex.working;
+        break;
+      }
     }
-    return !!model.calendar.nonWorking[date.getDay()];
+
+    nonWorkingSeen[iso] = answer;
+    return answer;
   }
 
   function showDetails(task) {
@@ -602,6 +618,100 @@
     ui.details.classList.add('is-hidden');
   });
 
+  var SPANS = [
+    { unit: 'day', days: 1, label: 'Day' },
+    { unit: 'week', days: 7, label: 'Week' },
+    { unit: 'month', days: 30.44, label: 'Month' },
+    { unit: 'quarter', days: 91.31, label: 'Quarter' }
+  ];
+
+  var PPD_NEAR = 44;
+  var PPD_FAR = 0.34;
+  var MIN_COLUMN = 22;
+
+  var zoom = 0;
+  var zoomShown = 0;
+  var zoomFrame = null;
+  var zoomRendered = '';
+  var zoomHold = null;
+  var zoomSkip = false;
+
+  function spanFor(value) {
+    var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100);
+
+    for (var i = 0; i < SPANS.length; i++) {
+      var width = ppd * SPANS[i].days;
+      if (width >= MIN_COLUMN || i === SPANS.length - 1) {
+        return { span: SPANS[i], width: Math.max(MIN_COLUMN, Math.round(width)) };
+      }
+    }
+  }
+
+  function setZoom(value, immediate) {
+    zoom = value;
+
+    var picked = spanFor(value);
+    ui.scaleLabel.textContent = picked.span.label;
+    ui.scaleRange.setAttribute('aria-valuetext', picked.span.label);
+
+    if (!zoomHold) { zoomHold = holdCentre(); }
+
+    if (immediate || calmMotion.matches) {
+      if (zoomFrame) { cancelAnimationFrame(zoomFrame); }
+      zoomFrame = null;
+      zoomShown = value;
+      applyZoom(picked);
+      zoomHold = null;
+      return;
+    }
+
+    if (!zoomFrame) { zoomFrame = requestAnimationFrame(zoomStep); }
+  }
+
+  function holdCentre() {
+    var state = gantt.getScrollState();
+    var middle = state.inner_width / 2;
+
+    return { date: gantt.dateFromPos(state.x + middle), middle: middle, y: state.y };
+  }
+
+  function zoomStep() {
+    var gap = zoom - zoomShown;
+
+    if (Math.abs(gap) < 0.4) {
+      zoomShown = zoom;
+      zoomFrame = null;
+      applyZoom(spanFor(zoomShown));
+      zoomHold = null;
+      return;
+    }
+
+    zoomSkip = !zoomSkip;
+
+    if (!zoomSkip) {
+      zoomShown += gap * 0.42;
+      applyZoom(spanFor(zoomShown));
+    }
+
+    zoomFrame = requestAnimationFrame(zoomStep);
+  }
+
+  function applyZoom(picked) {
+    var mark = picked.span.unit + ':' + picked.width;
+    if (mark === zoomRendered) { return; }
+    zoomRendered = mark;
+
+    var hold = zoomHold || holdCentre();
+
+    setScale(picked.span.unit);
+    gantt.config.min_column_width = picked.width;
+    gantt.render();
+
+    if (hold.date) {
+      gantt.scrollTo(Math.max(0, gantt.posFromDate(hold.date) - hold.middle), hold.y);
+    }
+  }
+
   function setScale(scale) {
     if (scale === 'day') {
       gantt.config.scales = [
@@ -625,20 +735,16 @@
       ];
     }
     gantt.config.scale_height = 59;
-    gantt.render();
   }
 
   function quarterLabel(date) {
     return 'Q' + (Math.floor(date.getMonth() / 3) + 1);
   }
 
-  document.querySelectorAll('[data-scale]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('[data-scale]').forEach(function (b) { b.classList.remove('is-active'); });
-      btn.classList.add('is-active');
-      setScale(btn.dataset.scale);
-    });
+  ui.scaleRange.addEventListener('input', function () {
+    setZoom(Number(ui.scaleRange.value));
   });
+
 
   ui.toggleCritical.addEventListener('change', function (e) {
     showCritical = e.target.checked;

@@ -22,11 +22,10 @@
         <span class="searchbox__count is-hidden" id="search-count" aria-live="polite"></span>
       </div>
 
-      <div class="seg" role="group" aria-label="Time scale">
-        <button class="seg__btn is-active" type="button" data-scale="day">Day</button>
-        <button class="seg__btn" type="button" data-scale="week">Week</button>
-        <button class="seg__btn" type="button" data-scale="month">Month</button>
-        <button class="seg__btn" type="button" data-scale="quarter">Quarter</button>
+      <div class="zoom">
+        <input class="zoom__range" type="range" id="scale-range"
+               min="0" max="100" step="1" value="0" aria-label="Time scale">
+        <span class="zoom__label" id="scale-label">Day</span>
       </div>
 
       <div class="menu" data-menu>
