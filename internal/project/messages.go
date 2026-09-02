@@ -46,10 +46,3 @@ func protectRefusal(u *user.User) string {
 	}
 	return MsgProtectNeedsPro
 }
-
-func shareRefusal(u *user.User) string {
-	if !u.Verified {
-		return MsgConfirmEmail
-	}
-	return MsgShareLimit(user.MaxPublicFree)
-}
