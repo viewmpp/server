@@ -474,6 +474,25 @@ This requires a decision.
 
 ---
 
+Producer notes
+--------------
+
+Facts about MPXJ that the Java side needs and that cost time to establish.
+
+- The Maven groupId is still `net.sf.mpxj`, current version 16.5.0. Only the
+  internal Java package was renamed to `org.mpxj.*`. There is no `org.mpxj`
+  groupId on Maven Central.
+- There is **no `.mpp` writer**. The binary format is read-only. Writers exist for
+  MSPDI, MPX, JSON, Primavera, Planner and SDEF. To obtain a real `.mpp`, generate
+  MSPDI and re-save it through MS Project.
+- `UniversalProjectReader` detects the format from the bytes. No per-version
+  handling is needed: mpp8, mpp9, mpp12 and mpp14 open through the same path, as do
+  MPX, MPD and Primavera XER.
+- Dates arrive as `java.time.LocalDateTime`, not `java.util.Date`.
+- `Relation` is built through `Relation.Builder`.
+- MPXJ prints a Log4j "no logging provider" warning to stderr. Harmless, and
+  silenced by adding any log4j2 implementation.
+
 Traps the spike already fell into
 ----------------------------------
 
