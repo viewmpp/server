@@ -2,7 +2,7 @@
 set -eu
 
 USERNAME=dzenthai
-PROJECT_DIR=/opt/viewmpp
+PROJECT_DIR=/viewmpp
 
 read -rsp "Enter password for ${USERNAME}: " PASSWORD
 echo
