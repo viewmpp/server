@@ -1076,6 +1076,47 @@ input:-webkit-autofill:focus {
 
 .workspace { position: relative; flex: 1; min-height: 0; display: flex; }
 #gantt-here { flex: 1; min-width: 0; }
+.gantt_hor_scroll, .gantt_ver_scroll {
+  scrollbar-width: auto;
+  scrollbar-color: var(--disabled) var(--bg-hover);
+}
+
+.gantt_hor_scroll::-webkit-scrollbar { height: 16px; }
+.gantt_ver_scroll::-webkit-scrollbar { width: 16px; }
+
+.gantt_hor_scroll::-webkit-scrollbar-track {
+  background: var(--bg-hover);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.gantt_ver_scroll::-webkit-scrollbar-track {
+  background: var(--bg-hover);
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+.gantt_hor_scroll::-webkit-scrollbar-thumb,
+.gantt_ver_scroll::-webkit-scrollbar-thumb {
+  background: var(--disabled);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 1138.86px;
+}
+
+.gantt_hor_scroll::-webkit-scrollbar-thumb:hover,
+.gantt_ver_scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+  background-clip: padding-box;
+}
+
+.gantt_hor_scroll::-webkit-scrollbar-thumb:active,
+.gantt_ver_scroll::-webkit-scrollbar-thumb:active {
+  background: var(--text);
+  background-clip: padding-box;
+}
+
+#gantt-here .gantt_task_bg { cursor: grab; }
+#gantt-here.is-panning, #gantt-here.is-panning .gantt_task_bg { cursor: grabbing; }
+#gantt-here.is-panning .gantt_task_line { cursor: grabbing; }
 
 .details {
   width: 401.28px;

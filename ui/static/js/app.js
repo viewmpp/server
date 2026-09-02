@@ -191,6 +191,157 @@
       });
   }
 
+  var glideTo = null;
+  var glideFrame = null;
+  var glideWas = null;
+  var glideStalled = 0;
+  var calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function scrollLimits() {
+    var s = gantt.getScrollState();
+    var hor = ui.chart.querySelector('.gantt_hor_scroll');
+    var ver = ui.chart.querySelector('.gantt_ver_scroll');
+
+    return {
+      x: hor ? Math.max(0, hor.scrollWidth - hor.clientWidth) : Math.max(0, s.width - s.inner_width),
+      y: ver ? Math.max(0, ver.scrollHeight - ver.clientHeight) : Math.max(0, s.height - s.inner_height),
+      at: s
+    };
+  }
+
+  function glide(dx, dy) {
+    var limits = scrollLimits();
+    var from = glideTo || { x: limits.at.x, y: limits.at.y };
+
+    glideTo = {
+      x: Math.min(Math.max(from.x + dx, 0), limits.x),
+      y: Math.min(Math.max(from.y + dy, 0), limits.y)
+    };
+
+    if (calmMotion.matches) {
+      gantt.scrollTo(glideTo.x, glideTo.y);
+      glideTo = null;
+      return;
+    }
+
+    if (!glideFrame) { glideFrame = requestAnimationFrame(glideStep); }
+  }
+
+  function glideStep() {
+    var s = gantt.getScrollState();
+    var dx = glideTo.x - s.x;
+    var dy = glideTo.y - s.y;
+
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+      stopGlide();
+      return;
+    }
+
+    if (glideWas && glideWas.x === s.x && glideWas.y === s.y) {
+      glideStalled++;
+      if (glideStalled > 2) {
+        stopGlide();
+        return;
+      }
+    } else {
+      glideStalled = 0;
+    }
+
+    glideWas = { x: s.x, y: s.y };
+
+    var nx = Math.round(Math.abs(dx) < 1 ? glideTo.x : s.x + dx * 0.28);
+    var ny = Math.round(Math.abs(dy) < 1 ? glideTo.y : s.y + dy * 0.28);
+
+    if (nx !== s.x || ny !== s.y) { gantt.scrollTo(nx, ny); }
+
+    glideFrame = requestAnimationFrame(glideStep);
+  }
+
+  function stopGlide() {
+    if (glideFrame) { cancelAnimationFrame(glideFrame); }
+    glideFrame = null;
+    glideTo = null;
+    glideWas = null;
+    glideStalled = 0;
+  }
+
+  function wheelPixels(value, mode) {
+    if (mode === 1) { return value * 24; }
+    if (mode === 2) { return value * 400; }
+    return value;
+  }
+
+  function bindWheel() {
+    ui.chart.addEventListener('wheel', function (e) {
+      var dx = wheelPixels(e.deltaX, e.deltaMode);
+      var dy = wheelPixels(e.deltaY, e.deltaMode);
+
+      if (e.shiftKey && !dx) {
+        dx = dy;
+        dy = 0;
+      }
+
+      var limits = scrollLimits();
+      if ((dx && limits.x) || (dy && limits.y)) {
+        e.preventDefault();
+        e.stopPropagation();
+        glide(dx, dy);
+      }
+    }, { capture: true, passive: false });
+  }
+
+  function bindPan() {
+    var from = null;
+
+    var panTo = null;
+    var panFrame = null;
+
+    ui.chart.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) { return; }
+
+      stopGlide();
+
+      if (e.target.closest('.gantt_hor_scroll, .gantt_ver_scroll')) { return; }
+      if (!e.target.closest('.gantt_task_bg, .gantt_task_row, .gantt_task_cell')) { return; }
+      if (e.target.closest('.gantt_task_line, .gantt_link_arrow, .gantt_task_link')) { return; }
+
+      var s = gantt.getScrollState();
+      from = { pointerX: e.clientX, pointerY: e.clientY, x: s.x, y: s.y };
+      ui.chart.classList.add('is-panning');
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', function (e) {
+      if (!from) { return; }
+
+      var limits = scrollLimits();
+
+      panTo = {
+        x: Math.round(Math.min(Math.max(from.x - (e.clientX - from.pointerX), 0), limits.x)),
+        y: Math.round(Math.min(Math.max(from.y - (e.clientY - from.pointerY), 0), limits.y))
+      };
+
+      if (!panFrame) { panFrame = requestAnimationFrame(panStep); }
+    });
+
+    window.addEventListener('mouseup', function () {
+      if (!from) { return; }
+      from = null;
+      panTo = null;
+      if (panFrame) { cancelAnimationFrame(panFrame); }
+      panFrame = null;
+      ui.chart.classList.remove('is-panning');
+    });
+
+    function panStep() {
+      panFrame = null;
+      if (!panTo) { return; }
+
+      var s = gantt.getScrollState();
+      if (panTo.x !== s.x || panTo.y !== s.y) { gantt.scrollTo(panTo.x, panTo.y); }
+    }
+  }
+
   function fail(message) {
     ui.error.textContent = message;
     ui.error.classList.remove('is-hidden');
@@ -261,6 +412,7 @@
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
     gantt.config.row_height = 41;
+    gantt.config.scroll_size = 16;
     gantt.config.bar_height = 25;
 
     minFillWidth = gantt.config.bar_height * 2;
@@ -315,6 +467,9 @@
     };
 
     gantt.init(ui.chart);
+
+    bindWheel();
+    bindPan();
 
     gantt.config.link_line_width = 1;
     gantt.config.link_radius = 6;
