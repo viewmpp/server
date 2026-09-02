@@ -53,34 +53,35 @@ Prerequisites
 First deploy
 ------------
 
-**1. Provision.** Copy the script up as root and run it. It asks for a password
-for the account it creates:
+Everything happens on the server. Nothing is copied up from your machine.
+
+**1. Get on the box and clone both repositories.** The provisioning script lives in
+this repository, so the clone comes first. GitHub needs a key it will accept, either
+a deploy key or your own forwarded over SSH.
 
 ```bash
-rsync -P ./remote/setup/init.sh root@<host-ip>:~
-ssh -t root@<host-ip> 'bash init.sh'
-```
-
-It creates the `dzenthai` account in the `sudo` and `docker` groups, installs
-Docker from get.docker.com, and creates `/viewmpp` owned by that account. It does
-**not** clone anything - that is the next step.
-
-**2. Clone both repositories.** Sign in as the account the script made, put a key
-on the server that GitHub accepts, and clone side by side:
-
-```bash
-ssh dzenthai@<host-ip>
-cd /viewmpp
+ssh root@<host-ip>
+mkdir /viewmpp && cd /viewmpp
 git clone git@github.com:<owner>/server.git
 git clone git@github.com:<owner>/parser.git
 ```
 
-The parser build context is `../parser`, so `/viewmpp/server` and `/viewmpp/parser`
-next to each other is required, not cosmetic. A clone under any other directory
-name breaks the build with a confusing error about a missing context.
+The parser build context is `../parser`, so the two clones have to sit next to each
+other under the same parent. Any other layout breaks the build with a confusing
+error about a missing context.
 
-**3. Write the environment file.** It lives only on the host and is never
-committed:
+**2. Provision.** The script asks for a password for the account it creates:
+
+```bash
+bash server/remote/setup/init.sh
+```
+
+It makes the `dzenthai` account, puts it in the `sudo` and `docker` groups,
+installs Docker from get.docker.com, and hands `/viewmpp` over to that account. It
+installs nothing else and clones nothing.
+
+**3. Write the environment file.** Compose reads it for interpolation and hands it
+to the server container, so without it step 4 stops before it starts anything:
 
 ```bash
 cd /viewmpp/server
@@ -88,10 +89,10 @@ cp .env.example .env
 nano .env
 ```
 
-Fill in `POSTGRES_*`, `RESEND_API_KEY` and `SECRET_KEY`. The server refuses to
-start in prod without `SECRET_KEY`, and it must be at least 32 characters from a
-random generator. URL-encode the database password if it contains `@ : / ? # &` -
-compose interpolates it into the DSN as a string.
+Fill in `POSTGRES_*`, `RESEND_API_KEY` and `SECRET_KEY`. The server refuses to start
+in prod without `SECRET_KEY`, and it wants at least 32 characters out of a random
+generator. URL-encode the database password if it contains `@ : / ? # &`, because
+compose drops it into the DSN as a plain string.
 
 **4. Bring it up.**
 
@@ -106,24 +107,22 @@ curl -fsS https://viewmpp.com/api/v1/healthcheck
 # {"status":"OK","env":"prod","version":"<sha>"}
 ```
 
-Deploying an update
--------------------
+Updating
+--------
+
+Nothing has been redeployed since the first deploy. The only change made on the
+server since then is the Caddy configuration in `remote/production`.
+
+Caddy has no build stage, so a `Caddyfile` change only needs the container
+recreated:
 
 ```bash
-ssh dzenthai@<host-ip>
-cd /viewmpp/server && git pull
-cd ../parser && git pull
-cd ../server
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
+cd /viewmpp/server
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d caddy
 ```
 
-Compose rebuilds and recreates only what changed. Migrations run automatically:
-the `migrate` service is gated on a healthy database, and `server` waits for it
-to exit 0.
-
-Deploys are not zero-downtime. `stop_grace_period: 40s` gives the old container
-room to drain its 30-second shutdown context and finish any in-flight
-verification email before Docker escalates to SIGKILL.
+Production therefore still runs the code from the first deploy. Everything done
+in the repository since - the stored-XSS fix included - is not live.
 
 Local development
 -----------------
@@ -183,14 +182,8 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
 Migrations
 ----------
 
-Run on every `up`. To run one by hand:
-
-```bash
-docker compose run --rm migrate \
-  -path /migrations \
-  -database "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@server-db:5432/$POSTGRES_DB?sslmode=disable" \
-  down 1
-```
+Migrations run on every `up`: the `migrate` service is gated on a healthy
+database, and `server` waits for it to exit 0. No migration has been run by hand.
 
 If a migration fails halfway, `migrate` marks the schema dirty and refuses to
 run again until the version is forced with `force <version>`.
@@ -201,20 +194,6 @@ and granting Pro. Save and share transactions instead lock the owner row before
 counting, with access changes locking the project row second. Deleting the
 campaign row makes seat claims fail closed.
 
-Rollback
---------
-
-```bash
-cd /viewmpp/server
-git checkout <previous-sha>
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
-```
-
-If the rolled-back code predates a migration that already ran, roll the
-migration back **first**. `migrate` runs before the server starts, so a
-forward-only schema paired with backward code fails at query time, not at boot,
-which is the harder failure to read.
-
 Backups
 -------
 
@@ -222,26 +201,12 @@ The database is the only state that matters. A stored contract cannot be
 regenerated - the uploaded `.mpp` is deleted immediately after parsing, so for a
 signed-in user the row in Postgres is the only remaining copy.
 
-```bash
-docker compose exec -T server-db \
-  pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > backup-$(date +%F).sql.gz
-```
-
-Restore:
-
-```bash
-gunzip -c backup-2026-01-01.sql.gz | \
-  docker compose exec -T server-db psql -U "$POSTGRES_USER" "$POSTGRES_DB"
-```
-
-`remote/production/mpp-backup.service` and `mpp-backup.timer` run this nightly at
-03:30 with a randomised delay. Install them with `systemctl enable --now
-mpp-backup.timer`.
-
-**Both units are currently wrong and the timer would fail.** They point at
-`/home/dzenthai/mpp-viewer`, while `init.sh` creates `/viewmpp`, and their
-`ExecStart` names `remote/production/backup.sh`, which is not in the repository.
-Fix the path and add the script before relying on them.
+Nothing is being backed up right now. `remote/production/mpp-backup.service` and
+`mpp-backup.timer` are in the repository but have never been installed, and they
+would fail if they were: they point at `/home/dzenthai/mpp-viewer` while `init.sh`
+creates `/viewmpp`, and their `ExecStart` names `remote/production/backup.sh`,
+which does not exist. The script has to be written and the paths fixed before the
+timer means anything.
 
 Logs
 ----
