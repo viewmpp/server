@@ -21,10 +21,8 @@ var invalidToken = template.Must(template.ParseFS(ui.Files, "templates/errors/in
 
 func errorResponse(w http.ResponseWriter, status int, tmpl *template.Template) {
 	buf := new(bytes.Buffer)
-	var err error
 
-	err = tmpl.Execute(buf, nil)
-
+	err := tmpl.Execute(buf, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
