@@ -8,16 +8,10 @@ on the host - no registry, no CI, no artifacts shipped from your machine.
 Shape
 -----
 
-```
-internet ──► caddy :80/:443 ──► server:4000 ──► parser:8080
-             (published)        (internal)      (internal)
-                                     │
-                                     └──► server-db:5432 (internal)
-```
-
-Only Caddy is reachable from outside. Everything else lives on the compose
-network and has no `ports:` entry at all, so there is nothing to reach even
-from the host's own loopback.
+Caddy is the only container that publishes ports. It terminates TLS on 80 and 443
+and proxies to `server:4000`. The server talks to `parser:8080` and to
+`server-db:5432`, both of which live on the compose network with no `ports:` entry
+at all, so there is nothing to reach even from the host's own loopback.
 
 Files
 -----
@@ -27,7 +21,9 @@ docker-compose.yaml         base: postgres, migrate, parser, server
 docker-compose.dev.yaml     override: loopback ports for host development
 docker-compose.prod.yaml    override: caddy
 remote/production/Caddyfile mounted read-only into the caddy container
-remote/setup/01.sh          one-time provisioning of a fresh server
+remote/setup/init.sh        one-time provisioning of a fresh server
+remote/production/mpp-backup.service   nightly database backup
+remote/production/mpp-backup.timer     schedule for it
 .env.example                template for the .env that lives on the host
 ```
 
@@ -57,37 +53,45 @@ Prerequisites
 First deploy
 ------------
 
-**1. Provision.** Copy the script up as root and run it:
+**1. Provision.** Copy the script up as root and run it. It asks for a password
+for the account it creates:
 
 ```bash
-rsync -P ./remote/setup/01.sh root@<host-ip>:~
-ssh -t root@<host-ip> 'bash 01.sh'
+rsync -P ./remote/setup/init.sh root@<host-ip>:~
+ssh -t root@<host-ip> 'bash init.sh'
 ```
 
-It installs Docker and the Compose plugin, creates the `deploy` user in the
-`docker` group, and clones both repositories to `~/mpp-viewer/server` and
-`~/mpp-viewer/parser`. The parser build context is `../parser`, so that layout
-is required, not cosmetic.
+It creates the `dzenthai` account in the `sudo` and `docker` groups, installs
+Docker from get.docker.com, and creates `/viewmpp` owned by that account. It does
+**not** clone anything - that is the next step.
 
-**2. Set a password for the deploy user.** The script deletes it and forces a
-change on first login:
+**2. Clone both repositories.** Sign in as the account the script made, put a key
+on the server that GitHub accepts, and clone side by side:
 
 ```bash
-ssh deploy@<host-ip>
+ssh dzenthai@<host-ip>
+cd /viewmpp
+git clone git@github.com:<owner>/server.git
+git clone git@github.com:<owner>/parser.git
 ```
+
+The parser build context is `../parser`, so `/viewmpp/server` and `/viewmpp/parser`
+next to each other is required, not cosmetic. A clone under any other directory
+name breaks the build with a confusing error about a missing context.
 
 **3. Write the environment file.** It lives only on the host and is never
 committed:
 
 ```bash
-cd ~/mpp-viewer/server
+cd /viewmpp/server
 cp .env.example .env
 nano .env
 ```
 
-Fill in `RESEND_API_KEY` and replace `POSTGRES_PASSWORD`. The rest of the
-template is already production-shaped. URL-encode the password if it contains
-`@ : / ? # &` - compose interpolates it into the DSN as a string.
+Fill in `POSTGRES_*`, `RESEND_API_KEY` and `SECRET_KEY`. The server refuses to
+start in prod without `SECRET_KEY`, and it must be at least 32 characters from a
+random generator. URL-encode the database password if it contains `@ : / ? # &` -
+compose interpolates it into the DSN as a string.
 
 **4. Bring it up.**
 
@@ -106,8 +110,8 @@ Deploying an update
 -------------------
 
 ```bash
-ssh deploy@<host-ip>
-cd ~/mpp-viewer/server && git pull
+ssh dzenthai@<host-ip>
+cd /viewmpp/server && git pull
 cd ../parser && git pull
 cd ../server
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
@@ -163,6 +167,7 @@ untrusted binary input, so it is the one that gets nothing worth stealing.
 | `POSTGRES_USER` / `_PASSWORD` / `_DB` | | Compose assembles `DB_DSN` from these |
 | `RESEND_API_KEY` | | No key means no verification or reset email |
 | `RESEND_SENDER` | `noreply@viewmpp.com` | The domain must be verified in Resend first |
+| `SECRET_KEY` | 32+ random characters | Signs every csrf token. The process refuses to start in prod without it |
 | `EARLY_ACCESS_SEATS` | `100` | `0` closes early access |
 
 `PORT`, `DB_DSN` and `PARSER_URL` are set in `docker-compose.yaml` and override
@@ -200,7 +205,7 @@ Rollback
 --------
 
 ```bash
-cd ~/mpp-viewer/server
+cd /viewmpp/server
 git checkout <previous-sha>
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 ```
@@ -229,7 +234,14 @@ gunzip -c backup-2026-01-01.sql.gz | \
   docker compose exec -T server-db psql -U "$POSTGRES_USER" "$POSTGRES_DB"
 ```
 
-This is manual. Put it in cron on the host before you have users worth losing.
+`remote/production/mpp-backup.service` and `mpp-backup.timer` run this nightly at
+03:30 with a randomised delay. Install them with `systemctl enable --now
+mpp-backup.timer`.
+
+**Both units are currently wrong and the timer would fail.** They point at
+`/home/dzenthai/mpp-viewer`, while `init.sh` creates `/viewmpp`, and their
+`ExecStart` names `remote/production/backup.sh`, which is not in the repository.
+Fix the path and add the script before relying on them.
 
 Logs
 ----
