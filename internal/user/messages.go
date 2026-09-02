@@ -8,30 +8,33 @@ import (
 const (
 	MsgEmailRequired    = "Enter your email address"
 	MsgEmailTooLong     = "That address is too long"
-	MsgEmailInvalid     = "That does not look like an email address"
+	MsgEmailInvalid     = "That doesn't look like an email address"
 	MsgEmailTaken       = "This address is already registered"
-	MsgEmailNotFound    = "This address is not found"
-	MsgEmailNotVerified = "This address is not verified"
-	MsgEmailOrPass      = "Wrong email or password"
+	MsgEmailNotFound    = "Could not find this account"
+	MsgEmailNotVerified = "This email address hasn't been verified yet"
+	MsgEmailOrPass      = "Incorrect email or password"
 
 	MsgSubscribeNeedsEmail  = "Confirm your email address first"
-	MsgProUnavailable       = "Pro is not available right now - please try again later"
+	MsgProUnavailable       = "Sorry, Pro isn't available right now. Try again shortly"
 	MsgPassRequired         = "Choose a password"
-	MsgPassTooShort         = "Password must be at least 8 characters"
-	MsgPassTooLong          = "Password is too long"
-	MsgCodeRequired         = "Enter the code from the email"
+	MsgPassTooLong          = "That password is too long"
+	MsgCodeRequired         = "Enter the code we emailed you"
 	MsgCodeInvalid          = "That code is wrong or has expired"
-	MsgTooManyTries         = "Too many attempts, wait a minute"
-	MsgVerifyRetry          = "Could not finish, please try again"
-	MsgEmailConfirmed       = "Email confirmed"
-	MsgPasswordChanged      = "Password changed"
-	MsgWrongCurrentPassword = "That is not your current password"
-	MsgVerifyLater          = "Confirm your email - without it you cannot get back in if you forget your password"
+	MsgTooManyTries         = "Too many attempts. Wait a minute and try again"
+	MsgVerifyRetry          = "Sorry, something went wrong. Try again"
+	MsgEmailConfirmed       = "Your email address has been confirmed."
+	MsgPasswordChanged      = "Your password has been changed."
+	MsgWrongCurrentPassword = "Your current password isn't right"
+	MsgVerifyLater          = "Confirm your email address. Without it you can't get back in if you forget your password"
 )
 
+func MsgPassTooShort() string {
+	return fmt.Sprintf("Use at least %d characters", MinPasswordLength)
+}
+
 func MsgEarlyAccessGranted(seat int, until time.Time) string {
-	return fmt.Sprintf("Congratulations - you are one of our first %d users, so Pro is on us. "+
-		"It runs until %s with nothing to pay, and you can renew it from your account when it ends.",
+	return fmt.Sprintf("You are one of our first %d users, so Pro is on us. "+
+		"It is yours until %s, and you can renew it from your account when it runs out.",
 		seat, until.Format("2 January 2006"))
 }
 
@@ -52,5 +55,5 @@ func MsgCodeSent(email string) string {
 }
 
 func MsgCodeResent(email string) string {
-	return "If the code is still valid, we sent it again to " + email
+	return "If that code is still valid, we have sent it again to " + email
 }

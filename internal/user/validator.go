@@ -33,7 +33,7 @@ func CheckPassword(v *validator.Validator, field, value string) {
 	}
 
 	v.Check(utf8.RuneCountInString(value) >= MinPasswordLength, field,
-		MsgPassTooShort)
+		MsgPassTooShort())
 	v.Check(len(value) <= MaxPasswordLength, field,
 		MsgPassTooLong)
 }
