@@ -5,12 +5,13 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/landing"
 	"server/internal/user"
 	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -32,7 +33,7 @@ func NewHandler(
 }
 
 func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
-	page := user.NewPage(r, fixtures.Examples())
+	page := user.NewPage(r, examples.All())
 	page.Description = landing.BySlug("/").Description
 	page.Canonical = h.baseURL + "/"
 	page.Public = true
@@ -41,7 +42,7 @@ func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ExamplesPage(w http.ResponseWriter, r *http.Request) {
-	page := user.NewPage(r, fixtures.Examples())
+	page := user.NewPage(r, examples.All())
 	page.Description = landing.BySlug("/examples").Description
 	page.Canonical = h.baseURL + "/examples"
 	page.Public = true
@@ -50,7 +51,7 @@ func (h *Handler) ExamplesPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
-	e, ok := fixtures.ByName(r.PathValue("name"))
+	e, ok := examples.ByName(r.PathValue("name"))
 	if !ok {
 		htmlutil.NotFoundPage(w, r, h.logger)
 		return
@@ -68,15 +69,23 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {
-	e, ok := fixtures.ByName(r.PathValue("name"))
+	e, ok := examples.ByName(r.PathValue("name"))
 	if !ok {
 		jsonutil.NotFoundResponse(w)
 		return
 	}
 
+	now := time.Now()
+
+	plan, err := e.Contract(now)
+	if err != nil {
+		jsonutil.ServerErrorResponse(w, r, err, h.logger)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	_, _ = w.Write(e.Contract)
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int(time.Until(examples.NextWeek(now)).Seconds())))
+	_, _ = w.Write(plan)
 }
 
 func (h *Handler) PrivacyPage(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +133,7 @@ func (h *Handler) landing(w http.ResponseWriter, r *http.Request, slug string, t
 	htmlutil.WriteHTML(w, r, http.StatusOK, tmpl, page, h.logger)
 }
 
-func exampleDescription(e fixtures.Example) string {
+func exampleDescription(e examples.Example) string {
 	return fmt.Sprintf(
 		"%s - %s. Open this sample MS Project plan in the browser: Gantt chart, task table and dependencies, no install and no signup.",
 		e.Label, e.Note)

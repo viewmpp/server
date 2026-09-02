@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+<SaveVersion>14</SaveVersion><Name>Виадук через Каменку - этап 2.mpp</Name>
+<Title>Виадук через реку Каменку, этап 2</Title>
+<ScheduleFromStart>1</ScheduleFromStart>
+<StartDate>2026-03-02T08:00:00</StartDate><FinishDate>2026-10-30T17:00:00</FinishDate>
+<CalendarUID>1</CalendarUID>
+<DefaultStartTime>08:00:00</DefaultStartTime><DefaultFinishTime>17:00:00</DefaultFinishTime>
+<MinutesPerDay>480</MinutesPerDay><MinutesPerWeek>2400</MinutesPerWeek><DaysPerMonth>20</DaysPerMonth>
+<DurationFormat>7</DurationFormat><WorkFormat>2</WorkFormat>
+<CurrentDate>2026-07-15T08:00:00</CurrentDate>
+<Calendars><Calendar><UID>1</UID><Name>Standard</Name>
+<IsBaseCalendar>1</IsBaseCalendar><BaseCalendarUID>-1</BaseCalendarUID><WeekDays>
+<WeekDay><DayType>1</DayType><DayWorking>0</DayWorking>
+</WeekDay>
+<WeekDay><DayType>2</DayType><DayWorking>1</DayWorking>
+<WorkingTimes><WorkingTime><FromTime>08:00:00</FromTime><ToTime>12:00:00</ToTime></WorkingTime><WorkingTime><FromTime>13:00:00</FromTime><ToTime>17:00:00</ToTime></WorkingTime></WorkingTimes>
+</WeekDay>
+<WeekDay><DayType>3</DayType><DayWorking>1</DayWorking>
+<WorkingTimes><WorkingTime><FromTime>08:00:00</FromTime><ToTime>12:00:00</ToTime></WorkingTime><WorkingTime><FromTime>13:00:00</FromTime><ToTime>17:00:00</ToTime></WorkingTime></WorkingTimes>
+</WeekDay>
+<WeekDay><DayType>4</DayType><DayWorking>1</DayWorking>
+<WorkingTimes><WorkingTime><FromTime>08:00:00</FromTime><ToTime>12:00:00</ToTime></WorkingTime><WorkingTime><FromTime>13:00:00</FromTime><ToTime>17:00:00</ToTime></WorkingTime></WorkingTimes>
+</WeekDay>
+<WeekDay><DayType>5</DayType><DayWorking>1</DayWorking>
+<WorkingTimes><WorkingTime><FromTime>08:00:00</FromTime><ToTime>12:00:00</ToTime></WorkingTime><WorkingTime><FromTime>13:00:00</FromTime><ToTime>17:00:00</ToTime></WorkingTime></WorkingTimes>
+</WeekDay>
+<WeekDay><DayType>6</DayType><DayWorking>1</DayWorking>
+<WorkingTimes><WorkingTime><FromTime>08:00:00</FromTime><ToTime>12:00:00</ToTime></WorkingTime><WorkingTime><FromTime>13:00:00</FromTime><ToTime>17:00:00</ToTime></WorkingTime></WorkingTimes>
+</WeekDay>
+<WeekDay><DayType>7</DayType><DayWorking>0</DayWorking>
+</WeekDay>
+</WeekDays>
+<Exceptions>
+<Exception><EnteredByOccurrences>0</EnteredByOccurrences><TimePeriod><FromDate>2026-05-01T00:00:00</FromDate><ToDate>2026-05-01T23:59:00</ToDate></TimePeriod><Occurrences>1</Occurrences><Name>Праздничный день</Name><Type>1</Type><DayWorking>0</DayWorking></Exception>
+<Exception><EnteredByOccurrences>0</EnteredByOccurrences><TimePeriod><FromDate>2026-05-11T00:00:00</FromDate><ToDate>2026-05-11T23:59:00</ToDate></TimePeriod><Occurrences>1</Occurrences><Name>Праздничный день</Name><Type>1</Type><DayWorking>0</DayWorking></Exception>
+<Exception><EnteredByOccurrences>0</EnteredByOccurrences><TimePeriod><FromDate>2026-06-12T00:00:00</FromDate><ToDate>2026-06-12T23:59:00</ToDate></TimePeriod><Occurrences>1</Occurrences><Name>Нерабочий день</Name><Type>1</Type><DayWorking>0</DayWorking></Exception>
+</Exceptions>
+</Calendar></Calendars><Tasks>
+<Task><UID>1</UID><ID>1</ID><Name>Подготовительный период</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1</WBS><OutlineNumber>1</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-03-02T08:00:00</Start><Finish>2026-03-24T17:00:00</Finish><Duration>PT136H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-02T08:00:00</Start><Finish>2026-03-24T17:00:00</Finish><Duration>PT136H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>2</UID><ID>2</ID><Name>Передача площадки подрядчику</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.1</WBS><OutlineNumber>1.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-02T08:00:00</Start><Finish>2026-03-02T17:00:00</Finish><Duration>PT0H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>1</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-02T08:00:00</Start><Finish>2026-03-02T17:00:00</Finish><Duration>PT0H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>3</UID><ID>3</ID><Name>Геодезическая разбивочная основа</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.2</WBS><OutlineNumber>1.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-03T08:00:00</Start><Finish>2026-03-10T17:00:00</Finish><Duration>PT48H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-03T08:00:00</Start><Finish>2026-03-10T17:00:00</Finish><Duration>PT48H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>2</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>4</UID><ID>4</ID><Name>Устройство временной объездной дороги</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.3</WBS><OutlineNumber>1.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-03T08:00:00</Start><Finish>2026-03-20T17:00:00</Finish><Duration>PT112H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-03T08:00:00</Start><Finish>2026-03-20T17:00:00</Finish><Duration>PT112H0M0S</Duration></Baseline>
+<Notes>Согласовали с ГИБДД схему на весь период работ, знаки выставлены.</Notes>
+<PredecessorLink><PredecessorUID>2</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>5</UID><ID>5</ID><Name>Вынос сетей связи из зоны работ</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.4</WBS><OutlineNumber>1.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-11T08:00:00</Start><Finish>2026-03-24T17:00:00</Finish><Duration>PT80H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-11T08:00:00</Start><Finish>2026-03-24T17:00:00</Finish><Duration>PT80H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>3</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>6</UID><ID>6</ID><Name>Ограждение и бытовой городок</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.5</WBS><OutlineNumber>1.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-04T08:00:00</Start><Finish>2026-03-10T17:00:00</Finish><Duration>PT40H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-04T08:00:00</Start><Finish>2026-03-10T17:00:00</Finish><Duration>PT40H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>2</PredecessorUID><Type>3</Type><CrossProject>0</CrossProject><LinkLag>9600</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>7</UID><ID>7</ID><Name>Движение пущено по объезду</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>1.6</WBS><OutlineNumber>1.6</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-23T08:00:00</Start><Finish>2026-03-23T17:00:00</Finish><Duration>PT0H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>1</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-23T08:00:00</Start><Finish>2026-03-23T17:00:00</Finish><Duration>PT0H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>4</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>8</UID><ID>8</ID><Name>Опоры</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2</WBS><OutlineNumber>2</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-03-11T08:00:00</Start><Finish>2026-06-26T17:00:00</Finish><Duration>PT600H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-11T08:00:00</Start><Finish>2026-06-26T17:00:00</Finish><Duration>PT600H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>9</UID><ID>9</ID><Name>Опора №1 (береговая)</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.1</WBS><OutlineNumber>2.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-24T08:00:00</Start><Finish>2026-05-28T17:00:00</Finish><Duration>PT368H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-24T08:00:00</Start><Finish>2026-05-28T17:00:00</Finish><Duration>PT368H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>10</UID><ID>10</ID><Name>Разработка котлована опоры №1</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.1.1</WBS><OutlineNumber>2.1.1</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-03-24T08:00:00</Start><Finish>2026-04-02T17:00:00</Finish><Duration>PT64H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-24T08:00:00</Start><Finish>2026-04-02T17:00:00</Finish><Duration>PT64H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>7</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>11</UID><ID>11</ID><Name>Свайное поле опоры №1</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.1.2</WBS><OutlineNumber>2.1.2</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-03T08:00:00</Start><Finish>2026-04-24T17:00:00</Finish><Duration>PT128H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-03T08:00:00</Start><Finish>2026-04-24T17:00:00</Finish><Duration>PT128H0M0S</Duration></Baseline>
+<Notes>Три сваи ушли ниже проектной отметки, добрали бетоном по согласованию с автором проекта.</Notes>
+<PredecessorLink><PredecessorUID>10</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>12</UID><ID>12</ID><Name>Ростверк опоры №1</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.1.3</WBS><OutlineNumber>2.1.3</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-27T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT80H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-27T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT80H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>11</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>13</UID><ID>13</ID><Name>Тело опоры №1</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.1.4</WBS><OutlineNumber>2.1.4</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-05-13T08:00:00</Start><Finish>2026-05-28T17:00:00</Finish><Duration>PT96H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-05-13T08:00:00</Start><Finish>2026-05-28T17:00:00</Finish><Duration>PT96H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>12</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>14</UID><ID>14</ID><Name>Опора №2 (русловая)</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2</WBS><OutlineNumber>2.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-24T08:00:00</Start><Finish>2026-06-25T17:00:00</Finish><Duration>PT520H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-24T08:00:00</Start><Finish>2026-06-18T17:00:00</Finish><Duration>PT520H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>15</UID><ID>15</ID><Name>Устройство островка и шпунтового ограждения</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2.1</WBS><OutlineNumber>2.2.1</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-03-24T08:00:00</Start><Finish>2026-04-08T17:00:00</Finish><Duration>PT96H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-24T08:00:00</Start><Finish>2026-04-08T17:00:00</Finish><Duration>PT96H0M0S</Duration></Baseline>
+<Notes>Уровень воды в мае держался выше графика, шпунт добивали дважды.</Notes>
+<PredecessorLink><PredecessorUID>7</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>16</UID><ID>16</ID><Name>Разработка котлована опоры №2</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2.2</WBS><OutlineNumber>2.2.2</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-09T08:00:00</Start><Finish>2026-04-21T17:00:00</Finish><Duration>PT72H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-09T08:00:00</Start><Finish>2026-04-21T17:00:00</Finish><Duration>PT72H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>15</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>17</UID><ID>17</ID><Name>Свайное поле опоры №2</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2.3</WBS><OutlineNumber>2.2.3</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-22T08:00:00</Start><Finish>2026-05-19T17:00:00</Finish><Duration>PT144H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-22T08:00:00</Start><Finish>2026-05-19T17:00:00</Finish><Duration>PT144H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>16</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>18</UID><ID>18</ID><Name>Ростверк опоры №2</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2.4</WBS><OutlineNumber>2.2.4</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-05-20T08:00:00</Start><Finish>2026-06-04T17:00:00</Finish><Duration>PT96H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-05-20T08:00:00</Start><Finish>2026-06-04T17:00:00</Finish><Duration>PT96H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>17</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>19</UID><ID>19</ID><Name>Тело опоры №2</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.2.5</WBS><OutlineNumber>2.2.5</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-06-05T08:00:00</Start><Finish>2026-06-25T17:00:00</Finish><Duration>PT112H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>90</PercentComplete><PercentWorkComplete>90</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-05-29T08:00:00</Start><Finish>2026-06-18T17:00:00</Finish><Duration>PT112H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>18</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>20</UID><ID>20</ID><Name>Опора №3 (береговая)</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.3</WBS><OutlineNumber>2.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-03-11T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT344H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-11T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT344H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>21</UID><ID>21</ID><Name>Разработка котлована опоры №3</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.3.1</WBS><OutlineNumber>2.3.1</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-03-11T08:00:00</Start><Finish>2026-03-19T17:00:00</Finish><Duration>PT56H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-11T08:00:00</Start><Finish>2026-03-19T17:00:00</Finish><Duration>PT56H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>6</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>22</UID><ID>22</ID><Name>Свайное поле опоры №3</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.3.2</WBS><OutlineNumber>2.3.2</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-03-20T08:00:00</Start><Finish>2026-04-09T17:00:00</Finish><Duration>PT120H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-03-20T08:00:00</Start><Finish>2026-04-09T17:00:00</Finish><Duration>PT120H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>21</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>23</UID><ID>23</ID><Name>Ростверк опоры №3</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.3.3</WBS><OutlineNumber>2.3.3</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-10T08:00:00</Start><Finish>2026-04-23T17:00:00</Finish><Duration>PT80H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-10T08:00:00</Start><Finish>2026-04-23T17:00:00</Finish><Duration>PT80H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>22</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>24</UID><ID>24</ID><Name>Тело опоры №3</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.3.4</WBS><OutlineNumber>2.3.4</OutlineNumber><OutlineLevel>3</OutlineLevel><Priority>500</Priority><Start>2026-04-24T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT88H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-24T08:00:00</Start><Finish>2026-05-12T17:00:00</Finish><Duration>PT88H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>23</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>25</UID><ID>25</ID><Name>Все опоры забетонированы</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>2.4</WBS><OutlineNumber>2.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-06-26T08:00:00</Start><Finish>2026-06-26T17:00:00</Finish><Duration>PT0H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>1</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-06-26T08:00:00</Start><Finish>2026-06-26T17:00:00</Finish><Duration>PT0H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>13</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>19</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>24</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>26</UID><ID>26</ID><Name>Пролётное строение</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3</WBS><OutlineNumber>3</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-04-27T08:00:00</Start><Finish>2026-08-24T17:00:00</Finish><Duration>PT664H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-27T08:00:00</Start><Finish>2026-08-24T17:00:00</Finish><Duration>PT664H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>27</UID><ID>27</ID><Name>Изготовление балок на заводе</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.1</WBS><OutlineNumber>3.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-04-27T08:00:00</Start><Finish>2026-06-09T17:00:00</Finish><Duration>PT240H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-04-27T08:00:00</Start><Finish>2026-06-09T17:00:00</Finish><Duration>PT240H0M0S</Duration></Baseline>
+<Notes>Завод отгружает партиями по четыре балки, всего три партии.</Notes>
+<PredecessorLink><PredecessorUID>12</PredecessorUID><Type>3</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>28</UID><ID>28</ID><Name>Доставка балок на площадку</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.2</WBS><OutlineNumber>3.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-06-10T08:00:00</Start><Finish>2026-06-22T17:00:00</Finish><Duration>PT64H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>100</PercentComplete><PercentWorkComplete>100</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-06-10T08:00:00</Start><Finish>2026-06-22T17:00:00</Finish><Duration>PT64H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>27</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>29</UID><ID>29</ID><Name>Монтаж балок пролёта 1-2</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.3</WBS><OutlineNumber>3.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-06-26T08:00:00</Start><Finish>2026-07-08T17:00:00</Finish><Duration>PT72H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>45</PercentComplete><PercentWorkComplete>45</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-06-18T08:00:00</Start><Finish>2026-06-30T17:00:00</Finish><Duration>PT72H0M0S</Duration></Baseline>
+<Notes>Кран стоит на левом берегу, перестановка на правый занимает два дня - учтено в монтаже пролёта 2-3.</Notes>
+<PredecessorLink><PredecessorUID>13</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>19</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>28</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>30</UID><ID>30</ID><Name>Монтаж балок пролёта 2-3</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.4</WBS><OutlineNumber>3.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-07-13T08:00:00</Start><Finish>2026-07-23T17:00:00</Finish><Duration>PT72H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-07-13T08:00:00</Start><Finish>2026-07-23T17:00:00</Finish><Duration>PT72H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>29</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>9600</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>31</UID><ID>31</ID><Name>Омоноличивание стыков</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.5</WBS><OutlineNumber>3.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-07-24T08:00:00</Start><Finish>2026-08-04T17:00:00</Finish><Duration>PT64H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-07-24T08:00:00</Start><Finish>2026-08-04T17:00:00</Finish><Duration>PT64H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>30</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>32</UID><ID>32</ID><Name>Устройство плиты проезжей части</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>3.6</WBS><OutlineNumber>3.6</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-08-05T08:00:00</Start><Finish>2026-08-24T17:00:00</Finish><Duration>PT112H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-08-05T08:00:00</Start><Finish>2026-08-24T17:00:00</Finish><Duration>PT112H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>31</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>33</UID><ID>33</ID><Name>Мостовое полотно</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4</WBS><OutlineNumber>4</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-08-25T08:00:00</Start><Finish>2026-09-24T17:00:00</Finish><Duration>PT184H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-08-25T08:00:00</Start><Finish>2026-09-24T17:00:00</Finish><Duration>PT184H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>34</UID><ID>34</ID><Name>Гидроизоляция плиты</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.1</WBS><OutlineNumber>4.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-08-25T08:00:00</Start><Finish>2026-09-02T17:00:00</Finish><Duration>PT56H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-08-25T08:00:00</Start><Finish>2026-09-02T17:00:00</Finish><Duration>PT56H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>32</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>35</UID><ID>35</ID><Name>Защитный слой</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.2</WBS><OutlineNumber>4.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-03T08:00:00</Start><Finish>2026-09-09T17:00:00</Finish><Duration>PT40H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-03T08:00:00</Start><Finish>2026-09-09T17:00:00</Finish><Duration>PT40H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>34</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>36</UID><ID>36</ID><Name>Деформационные швы</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.3</WBS><OutlineNumber>4.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-08T08:00:00</Start><Finish>2026-09-15T17:00:00</Finish><Duration>PT48H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-08T08:00:00</Start><Finish>2026-09-15T17:00:00</Finish><Duration>PT48H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>35</PredecessorUID><Type>3</Type><CrossProject>0</CrossProject><LinkLag>14400</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>37</UID><ID>37</ID><Name>Асфальтобетонное покрытие</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.4</WBS><OutlineNumber>4.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-16T08:00:00</Start><Finish>2026-09-23T17:00:00</Finish><Duration>PT48H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-16T08:00:00</Start><Finish>2026-09-23T17:00:00</Finish><Duration>PT48H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>35</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>36</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>38</UID><ID>38</ID><Name>Барьерное и перильное ограждение</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.5</WBS><OutlineNumber>4.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-10T08:00:00</Start><Finish>2026-09-21T17:00:00</Finish><Duration>PT64H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-10T08:00:00</Start><Finish>2026-09-21T17:00:00</Finish><Duration>PT64H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>35</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>39</UID><ID>39</ID><Name>Водоотвод и лотки</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>4.6</WBS><OutlineNumber>4.6</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-18T08:00:00</Start><Finish>2026-09-24T17:00:00</Finish><Duration>PT40H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-18T08:00:00</Start><Finish>2026-09-24T17:00:00</Finish><Duration>PT40H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>37</PredecessorUID><Type>3</Type><CrossProject>0</CrossProject><LinkLag>9600</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>40</UID><ID>40</ID><Name>Подходы и обустройство</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5</WBS><OutlineNumber>5</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-05-29T08:00:00</Start><Finish>2026-10-13T17:00:00</Finish><Duration>PT776H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-05-25T08:00:00</Start><Finish>2026-10-13T17:00:00</Finish><Duration>PT776H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>41</UID><ID>41</ID><Name>Насыпь подходов</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5.1</WBS><OutlineNumber>5.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-05-29T08:00:00</Start><Finish>2026-06-22T17:00:00</Finish><Duration>PT128H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>60</PercentComplete><PercentWorkComplete>60</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-05-25T08:00:00</Start><Finish>2026-06-16T17:00:00</Finish><Duration>PT128H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>13</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>42</UID><ID>42</ID><Name>Укрепление конусов</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5.2</WBS><OutlineNumber>5.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-06-23T08:00:00</Start><Finish>2026-07-03T17:00:00</Finish><Duration>PT72H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-06-23T08:00:00</Start><Finish>2026-07-03T17:00:00</Finish><Duration>PT72H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>41</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>43</UID><ID>43</ID><Name>Сопряжение с существующей дорогой</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5.3</WBS><OutlineNumber>5.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-24T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT80H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-24T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT80H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>41</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>37</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>44</UID><ID>44</ID><Name>Дорожная разметка и знаки</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5.4</WBS><OutlineNumber>5.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-10-08T08:00:00</Start><Finish>2026-10-13T17:00:00</Finish><Duration>PT32H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-10-08T08:00:00</Start><Finish>2026-10-13T17:00:00</Finish><Duration>PT32H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>43</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>45</UID><ID>45</ID><Name>Освещение на мосту</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>5.5</WBS><OutlineNumber>5.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-22T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT96H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-22T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT96H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>38</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>46</UID><ID>46</ID><Name>Сдача</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6</WBS><OutlineNumber>6</OutlineNumber><OutlineLevel>1</OutlineLevel><Priority>500</Priority><Start>2026-08-12T08:00:00</Start><Finish>2026-10-30T17:00:00</Finish><Duration>PT464H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>1</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-08-12T08:00:00</Start><Finish>2026-10-30T17:00:00</Finish><Duration>PT464H0M0S</Duration></Baseline>
+</Task>
+<Task><UID>47</UID><ID>47</ID><Name>Испытание моста статической нагрузкой</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.1</WBS><OutlineNumber>6.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-24T08:00:00</Start><Finish>2026-09-28T17:00:00</Finish><Duration>PT24H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-24T08:00:00</Start><Finish>2026-09-28T17:00:00</Finish><Duration>PT24H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>37</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>38</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>48</UID><ID>48</ID><Name>Исполнительная документация</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.2</WBS><OutlineNumber>6.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-08-12T08:00:00</Start><Finish>2026-09-01T17:00:00</Finish><Duration>PT120H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-08-12T08:00:00</Start><Finish>2026-09-01T17:00:00</Finish><Duration>PT120H0M0S</Duration></Baseline>
+<Notes>Собирать по мере закрытия работ, а не в конце - на первом этапе это стоило трёх недель.</Notes>
+<PredecessorLink><PredecessorUID>32</PredecessorUID><Type>3</Type><CrossProject>0</CrossProject><LinkLag>24000</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>49</UID><ID>49</ID><Name>Замечания стройконтроля</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.3</WBS><OutlineNumber>6.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-09-29T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT56H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-09-29T08:00:00</Start><Finish>2026-10-07T17:00:00</Finish><Duration>PT56H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>47</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>50</UID><ID>50</ID><Name>Устранение замечаний</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.4</WBS><OutlineNumber>6.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-10-08T08:00:00</Start><Finish>2026-10-21T17:00:00</Finish><Duration>PT80H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-10-08T08:00:00</Start><Finish>2026-10-21T17:00:00</Finish><Duration>PT80H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>49</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>51</UID><ID>51</ID><Name>Разборка объездной дороги</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.5</WBS><OutlineNumber>6.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-10-22T08:00:00</Start><Finish>2026-10-29T17:00:00</Finish><Duration>PT48H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-10-22T08:00:00</Start><Finish>2026-10-29T17:00:00</Finish><Duration>PT48H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>44</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>50</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>52</UID><ID>52</ID><Name>Рабочая комиссия</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.6</WBS><OutlineNumber>6.6</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-10-22T08:00:00</Start><Finish>2026-10-23T17:00:00</Finish><Duration>PT16H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>0</Milestone><Summary>0</Summary><Critical>0</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-10-22T08:00:00</Start><Finish>2026-10-23T17:00:00</Finish><Duration>PT16H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>50</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>48</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+<Task><UID>53</UID><ID>53</ID><Name>Ввод в эксплуатацию</Name><Active>1</Active><Manual>0</Manual><Type>0</Type><IsNull>0</IsNull><WBS>6.7</WBS><OutlineNumber>6.7</OutlineNumber><OutlineLevel>2</OutlineLevel><Priority>500</Priority><Start>2026-10-30T08:00:00</Start><Finish>2026-10-30T17:00:00</Finish><Duration>PT0H0M0S</Duration><DurationFormat>7</DurationFormat><Milestone>1</Milestone><Summary>0</Summary><Critical>1</Critical><PercentComplete>0</PercentComplete><PercentWorkComplete>0</PercentWorkComplete>
+<Baseline><Number>0</Number><Start>2026-10-30T08:00:00</Start><Finish>2026-10-30T17:00:00</Finish><Duration>PT0H0M0S</Duration></Baseline>
+<PredecessorLink><PredecessorUID>52</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+<PredecessorLink><PredecessorUID>51</PredecessorUID><Type>1</Type><CrossProject>0</CrossProject><LinkLag>0</LinkLag><LagFormat>7</LagFormat></PredecessorLink>
+</Task>
+</Tasks><Resources>
+<Resource><UID>1</UID><ID>1</ID><Name>Гончаров А.П.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>2</UID><ID>2</ID><Name>Ильина М.С.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>3</UID><ID>3</ID><Name>Терентьев Д.В.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>4</UID><ID>4</ID><Name>Сабитов Р.Р.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>5</UID><ID>5</ID><Name>Кравец О.Н.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>6</UID><ID>6</ID><Name>Молчанов И.И.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>7</UID><ID>7</ID><Name>Ясенева Л.К.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>8</UID><ID>8</ID><Name>Дорош В.М.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+<Resource><UID>9</UID><ID>9</ID><Name>Пименов С.А.</Name><Type>1</Type><IsNull>0</IsNull><MaxUnits>1</MaxUnits></Resource>
+</Resources><Assignments>
+<Assignment><UID>1</UID><TaskUID>3</TaskUID><ResourceUID>3</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>2</UID><TaskUID>4</TaskUID><ResourceUID>8</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>3</UID><TaskUID>5</TaskUID><ResourceUID>4</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>4</UID><TaskUID>6</TaskUID><ResourceUID>8</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>5</UID><TaskUID>10</TaskUID><ResourceUID>6</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>6</UID><TaskUID>11</TaskUID><ResourceUID>6</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>7</UID><TaskUID>12</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>8</UID><TaskUID>13</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>9</UID><TaskUID>15</TaskUID><ResourceUID>6</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>10</UID><TaskUID>16</TaskUID><ResourceUID>6</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>11</UID><TaskUID>17</TaskUID><ResourceUID>6</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>12</UID><TaskUID>18</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>13</UID><TaskUID>19</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>14</UID><TaskUID>21</TaskUID><ResourceUID>6</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>15</UID><TaskUID>22</TaskUID><ResourceUID>6</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>16</UID><TaskUID>23</TaskUID><ResourceUID>5</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>17</UID><TaskUID>24</TaskUID><ResourceUID>5</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>18</UID><TaskUID>28</TaskUID><ResourceUID>8</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>19</UID><TaskUID>29</TaskUID><ResourceUID>7</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>20</UID><TaskUID>30</TaskUID><ResourceUID>7</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>21</UID><TaskUID>31</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>22</UID><TaskUID>32</TaskUID><ResourceUID>5</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>23</UID><TaskUID>34</TaskUID><ResourceUID>9</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>24</UID><TaskUID>35</TaskUID><ResourceUID>9</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>25</UID><TaskUID>36</TaskUID><ResourceUID>7</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>26</UID><TaskUID>37</TaskUID><ResourceUID>9</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>27</UID><TaskUID>38</TaskUID><ResourceUID>7</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>28</UID><TaskUID>39</TaskUID><ResourceUID>9</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>29</UID><TaskUID>41</TaskUID><ResourceUID>8</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>30</UID><TaskUID>42</TaskUID><ResourceUID>8</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>31</UID><TaskUID>43</TaskUID><ResourceUID>8</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>32</UID><TaskUID>44</TaskUID><ResourceUID>9</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>33</UID><TaskUID>45</TaskUID><ResourceUID>4</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>34</UID><TaskUID>47</TaskUID><ResourceUID>1</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>35</UID><TaskUID>47</TaskUID><ResourceUID>2</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>36</UID><TaskUID>48</TaskUID><ResourceUID>2</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>37</UID><TaskUID>49</TaskUID><ResourceUID>1</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>38</UID><TaskUID>50</TaskUID><ResourceUID>5</ResourceUID><Units>0.5</Units></Assignment>
+<Assignment><UID>39</UID><TaskUID>51</TaskUID><ResourceUID>8</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>40</UID><TaskUID>52</TaskUID><ResourceUID>1</ResourceUID><Units>1.0</Units></Assignment>
+<Assignment><UID>41</UID><TaskUID>52</TaskUID><ResourceUID>2</ResourceUID><Units>0.5</Units></Assignment>
+</Assignments></Project>

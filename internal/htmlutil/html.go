@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"server/internal/session"
 	"server/internal/vcs"
 	"strconv"
@@ -29,7 +29,7 @@ type Page struct {
 	Version           string
 	Flash             string
 	Form              any
-	Examples          []fixtures.Example
+	Examples          []examples.Example
 	SavedNote         string
 	SavedCount        int
 	SharedCount       int

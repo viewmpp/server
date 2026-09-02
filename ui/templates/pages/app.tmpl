@@ -12,16 +12,16 @@
 
   <h1>Open an MS&nbsp;Project file</h1>
   <p class="lead">
-    Drop an <code>.mpp</code> or <code>.xml</code> file here and see the Gantt chart straight away.
+    Drop an <code>.mpp</code> file here and see the Gantt chart straight away.
     Nothing to install, no signup needed.
   </p>
 
   <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
-    <input type="file" id="file" accept=".mpp,.xml" hidden>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
     <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
     <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
     <ul class="drop__terms">
-      <li><code>.mpp</code> or <code>.xml</code></li>
+      <li>.mpp .xml .mpx .mpd .xer</li>
       <li>up to {{.MaxUploadLabel}}</li>
       <li>no signup</li>
     </ul>
@@ -55,8 +55,9 @@
 <ol class="steps">
   <li>
     <strong>Drop the file.</strong> An <code>.mpp</code> saved by any modern version of
-    Microsoft Project, or a Project <code>.xml</code> file. Nothing is installed and you are
-    not asked to register.
+    Microsoft Project, a Project <code>.xml</code>, or the older <code>.mpx</code> and
+    <code>.mpd</code> exports. Primavera <code>.xer</code> files open too. Nothing is installed
+    and you are not asked to register.
   </li>
   <li>
     <strong>It is read, not kept.</strong> The file goes straight into a reader that pulls out

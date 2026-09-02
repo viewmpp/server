@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"server/internal/contract"
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/landing"
@@ -291,7 +291,7 @@ func (h *Handler) ConvertPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := user.NewPage(r, saved)
-	page.Examples = fixtures.Examples()
+	page.Examples = examples.All()
 	page.Description = landing.BySlug("/mpp-to-excel").Description
 	page.Canonical = h.baseURL + "/mpp-to-excel"
 	page.Public = true

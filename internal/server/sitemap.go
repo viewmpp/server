@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/xml"
 	"net/http"
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"server/internal/landing"
 	"server/internal/vcs"
 	"strings"
@@ -27,7 +27,7 @@ func sitemapPaths() []string {
 		paths = append(paths, page.Slug)
 	}
 
-	for _, e := range fixtures.Examples() {
+	for _, e := range examples.All() {
 		paths = append(paths, "/example/"+e.Name)
 	}
 

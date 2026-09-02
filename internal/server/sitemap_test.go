@@ -1,7 +1,7 @@
 package server
 
 import (
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"strings"
 	"testing"
 )
@@ -13,7 +13,7 @@ func TestSitemapCoversPublicPages(t *testing.T) {
 		t.Fatalf("the landing page must come first, got %v", paths)
 	}
 
-	for _, e := range fixtures.Examples() {
+	for _, e := range examples.All() {
 		want := "/example/" + e.Name
 		if !contains(paths, want) {
 			t.Errorf("example page %s is missing from the sitemap", want)

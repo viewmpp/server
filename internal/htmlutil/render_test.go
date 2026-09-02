@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"server/internal/assert"
-	"server/internal/fixtures"
+	"server/internal/examples"
 	"server/internal/session"
 	"strings"
 	"testing"
@@ -66,11 +66,11 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		for _, state := range states {
 			t.Run(name+"/"+state.name, func(t *testing.T) {
 				page := state.page
-				page.Examples = fixtures.Examples()
+				page.Examples = examples.All()
 
 				switch name {
 				case "app", "examples":
-					page.Form = fixtures.Examples()
+					page.Form = examples.All()
 				case "convert", "projects":
 					page.Form = projects()
 				default:

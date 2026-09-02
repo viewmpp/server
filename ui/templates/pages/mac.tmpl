@@ -8,11 +8,11 @@
   <p class="lead">Microsoft Project has never had a macOS version. Drop the file below and read the plan in Safari or Chrome - no virtual machine, no Windows licence, no signup.</p>
 
   <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
-    <input type="file" id="file" accept=".mpp,.xml" hidden>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
     <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
     <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
     <ul class="drop__terms">
-      <li><code>.mpp</code> or <code>.xml</code></li>
+      <li>.mpp .xml .mpx .mpd .xer</li>
       <li>up to {{.MaxUploadLabel}}</li>
       <li>no signup</li>
     </ul>
