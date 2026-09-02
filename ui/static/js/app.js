@@ -625,15 +625,14 @@
   });
 
   var SPANS = [
-    { unit: 'day', days: 1, label: 'Day' },
-    { unit: 'week', days: 7, label: 'Week' },
-    { unit: 'month', days: 30.44, label: 'Month' },
-    { unit: 'quarter', days: 91.31, label: 'Quarter' }
+    { unit: 'day', days: 1, label: 'Day', least: 24 },
+    { unit: 'week', days: 7, label: 'Week', least: 46 },
+    { unit: 'month', days: 30.44, label: 'Month', least: 38 },
+    { unit: 'quarter', days: 91.31, label: 'Quarter', least: 30 }
   ];
 
   var PPD_NEAR = 44;
   var PPD_FAR = 0.34;
-  var MIN_COLUMN = 22;
 
   var zoom = 0;
   var zoomShown = 0;
@@ -674,12 +673,12 @@
   }
 
   function spanFor(value) {
-    var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100);
+    var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100) * size;
 
     for (var i = 0; i < SPANS.length; i++) {
       var width = ppd * SPANS[i].days;
-      if (width >= MIN_COLUMN || i === SPANS.length - 1) {
-        return { span: SPANS[i], width: Math.max(MIN_COLUMN, Math.round(width)) };
+      if (width >= SPANS[i].least || i === SPANS.length - 1) {
+        return { span: SPANS[i], width: Math.max(SPANS[i].least, Math.round(width)) };
       }
     }
   }
@@ -734,8 +733,8 @@
   }
 
   function applyZoom(picked) {
-    var column = Math.max(10, Math.round(picked.width * size));
-    var mark = picked.span.unit + ':' + column + ':' + size.toFixed(3);
+    var column = picked.width;
+    var mark = picked.span.unit + ':' + column;
     if (mark === zoomRendered) { return; }
     zoomRendered = mark;
 
