@@ -108,7 +108,6 @@ func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess
 		return
 	}
 	sess.Put("pending_email", u.Email)
-	sess.Put("flash", MsgCodeSent(u.Email))
 
 	if err := h.sessions.Save(r.Context(), sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

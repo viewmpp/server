@@ -107,7 +107,7 @@ func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess.Put("flash", MsgCodeResent(email))
+	sess.Put("flash", MsgCodeResent())
 
 	if err := h.sessions.Save(r.Context(), sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

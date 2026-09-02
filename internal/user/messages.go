@@ -50,10 +50,6 @@ func MsgLinkLife(d time.Duration) string {
 	return fmt.Sprintf("%d hours", int(d.Hours()))
 }
 
-func MsgCodeSent(email string) string {
-	return "We sent a code to " + email
-}
-
-func MsgCodeResent(email string) string {
-	return "If that code is still valid, we have sent it again to " + email
+func MsgCodeResent() string {
+	return "If that code is still valid, we have sent it again."
 }
