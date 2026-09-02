@@ -17,19 +17,14 @@ var notFound = template.Must(template.ParseFS(ui.Files, "templates/errors/not_fo
 
 var tooMany = template.Must(template.ParseFS(ui.Files, "templates/errors/too_many.tmpl"))
 
-func errorResponse(w http.ResponseWriter, status int) {
+var invalidToken = template.Must(template.ParseFS(ui.Files, "templates/errors/invalid_token.tmpl"))
+
+func errorResponse(w http.ResponseWriter, status int, tmpl *template.Template) {
 	buf := new(bytes.Buffer)
 	var err error
-	switch status {
-	case http.StatusBadRequest:
-		err = badRequest.Execute(buf, nil)
-	case http.StatusNotFound:
-		err = notFound.Execute(buf, nil)
-	case http.StatusTooManyRequests:
-		err = tooMany.Execute(buf, nil)
-	default:
-		err = serverError.Execute(buf, nil)
-	}
+
+	err = tmpl.Execute(buf, nil)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -42,19 +37,24 @@ func errorResponse(w http.ResponseWriter, status int) {
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error, logger *slog.Logger) {
 	logger.Error("page render failed", "err", err, "method", r.Method, "uri", safelog.URI(r.URL.Path))
-	errorResponse(w, http.StatusInternalServerError)
+	errorResponse(w, http.StatusInternalServerError, serverError)
 }
 
 func BadRequestPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
 	logger.Warn("request rejected", "method", r.Method, "path", safelog.URI(r.URL.Path))
-	errorResponse(w, http.StatusBadRequest)
+	errorResponse(w, http.StatusBadRequest, badRequest)
 }
 
 func TooManyRequestsPage(w http.ResponseWriter) {
-	errorResponse(w, http.StatusTooManyRequests)
+	errorResponse(w, http.StatusTooManyRequests, tooMany)
 }
 
 func NotFoundPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
 	logger.Info("not found", "method", r.Method, "path", safelog.URI(r.URL.Path))
-	errorResponse(w, http.StatusNotFound)
+	errorResponse(w, http.StatusNotFound, notFound)
+}
+
+func InvalidResetTokenPage(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
+	logger.Warn("invalid or expired token", "method", r.Method, "path", safelog.URI(r.URL.Path))
+	errorResponse(w, http.StatusBadRequest, invalidToken)
 }

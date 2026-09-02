@@ -6,11 +6,13 @@ import (
 )
 
 const (
-	MsgEmailRequired = "Enter your email address"
-	MsgEmailTooLong  = "That address is too long"
-	MsgEmailInvalid  = "That does not look like an email address"
-	MsgEmailTaken    = "This address is already registered"
-	MsgEmailOrPass   = "Wrong email or password"
+	MsgEmailRequired    = "Enter your email address"
+	MsgEmailTooLong     = "That address is too long"
+	MsgEmailInvalid     = "That does not look like an email address"
+	MsgEmailTaken       = "This address is already registered"
+	MsgEmailNotFound    = "This address is not found"
+	MsgEmailNotVerified = "This address is not verified"
+	MsgEmailOrPass      = "Wrong email or password"
 
 	MsgSubscribeNeedsEmail  = "Confirm your email address first"
 	MsgProUnavailable       = "Pro is not available right now - please try again later"
@@ -20,7 +22,6 @@ const (
 	MsgCodeRequired         = "Enter the code from the email"
 	MsgCodeInvalid          = "That code is wrong or has expired"
 	MsgTooManyTries         = "Too many attempts, wait a minute"
-	MsgSignupRetry          = "Could not finish signing up, please try again"
 	MsgVerifyRetry          = "Could not finish, please try again"
 	MsgEmailConfirmed       = "Email confirmed"
 	MsgPasswordChanged      = "Password changed"

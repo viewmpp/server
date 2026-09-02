@@ -44,15 +44,6 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 
 	form := ForgotForm{Email: NormalizeEmail(r.PostFormValue("email"))}
 
-	v := validator.New()
-	CheckEmail(v, "email", form.Email)
-
-	if !v.Valid() {
-		form.FieldErrors = v.Errors
-		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Forgot, NewPage(r, form), h.logger)
-		return
-	}
-
 	keys := []string{"reset:" + form.Email, "reset-ip:" + clientip.From(r)}
 
 	if key, allowed := h.limiter.TakeAll(keys); !allowed {
@@ -62,8 +53,24 @@ func (h *Handler) Forgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	v := validator.New()
+	CheckEmail(v, "email", form.Email)
+
 	if err := h.issueReset(r, form.Email); err != nil {
-		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			v.AddError("email", MsgEmailNotFound)
+		case errors.Is(err, ErrUserNotVerified):
+			v.AddError("email", MsgEmailNotVerified)
+		default:
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+	}
+
+	if !v.Valid() {
+		form.FieldErrors = v.Errors
+		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Forgot, NewPage(r, form), h.logger)
 		return
 	}
 
@@ -76,14 +83,14 @@ func (h *Handler) issueReset(r *http.Request, email string) error {
 	u, err := h.store.GetByEmail(r.Context(), email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			return nil
+			return ErrUserNotFound
 		}
 		return err
 	}
 
 	if !u.Verified {
 		h.logger.Info("reset skipped for unverified account", "user_id", u.ID)
-		return nil
+		return ErrUserNotVerified
 	}
 
 	rst, err := token.NewReset(u.ID, h.resetTTL)
@@ -111,7 +118,7 @@ func (h *Handler) ResetPage(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.store.GetByToken(r.Context(), plaintext, token.ScopeReset); err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			htmlutil.NotFoundPage(w, r, h.logger)
+			htmlutil.InvalidResetTokenPage(w, r, h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -145,7 +152,7 @@ func (h *Handler) Reset(w http.ResponseWriter, r *http.Request) {
 	u, err := h.store.GetByToken(r.Context(), plaintext, token.ScopeReset)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			htmlutil.NotFoundPage(w, r, h.logger)
+			htmlutil.InvalidResetTokenPage(w, r, h.logger)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

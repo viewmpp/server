@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>That request did not go through - MPP Viewer</title>
+    <script>
+        (function(){try{var m=localStorage.getItem('mpp-theme');
+            if(m!=='light'&&m!=='dark'){m=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+            document.documentElement.setAttribute('data-theme',m);}catch(e){}})();
+    </script>
+    <style>
+        :root {
+            --text: #0a0a0a;
+            --secondary: #707070;
+            --disabled: #a1a1a1;
+            --line: #e5e5e5;
+            --border: #e5e5e5;
+            --main: #2563eb;
+            --main-hover: #1d4ed8;
+            --link: #2563eb;
+            --bg: #ffffff;
+            --bg-secondary: #fafafa;
+            --radius: 9.12px;
+            --shadow-xs: 0 1.14px 2.28px 0 rgba(0, 0, 0, .05);
+            color-scheme: light;
+        }
+
+        :root[data-theme="dark"] {
+            --text: #fafafa;
+            --secondary: #a1a1a1;
+            --disabled: #737373;
+            --line: rgba(255, 255, 255, .09);
+            --border: rgba(255, 255, 255, .12);
+            --main: #3b82f6;
+            --main-hover: #60a5fa;
+            --link: #60a5fa;
+            --bg: #0a0a0a;
+            --bg-secondary: #141414;
+            --shadow-xs: 0 1.14px 2.28px 0 rgba(0, 0, 0, .4);
+            color-scheme: dark;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 27.36px;
+            color: var(--text);
+            background: var(--bg);
+            font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-variant-numeric: lining-nums tabular-nums slashed-zero;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .box { width: 100%; max-width: 501.6px; text-align: center; }
+
+        .code {
+            margin: 0 0 13.68px;
+            color: var(--disabled);
+            font-size: 4.624rem;
+            line-height: 1;
+            font-weight: 600;
+            letter-spacing: -.04em;
+        }
+
+        h1 { margin: 0 0 25px; font-size: 1.802rem; line-height: 1.25; font-weight: 600; letter-spacing: -.02em; }
+
+        p { margin: 0 0 27px; color: var(--secondary); line-height: 1.6; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 41.04px;
+            padding: 0 18.24px;
+            background: var(--main);
+            border: 1px solid var(--main);
+            border-radius: var(--radius);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            box-shadow: var(--shadow-xs);
+            transition: background .15s cubic-bezier(.4, 0, .2, 1);
+        }
+        .btn:hover { background: var(--main-hover); border-color: var(--main-hover); }
+
+        .brand {
+            margin-top: 45.6px;
+            padding-top: 18.24px;
+            border-top: 1px solid var(--line);
+            color: var(--disabled);
+            font-size: 0.79rem;
+        }
+        .brand a { color: var(--secondary); text-decoration: none; }
+        .brand a:hover { color: var(--link); text-decoration: underline; }
+    </style>
+</head>
+<body>
+<main class="box">
+    <p class="code">400</p>
+    <h1>Invalid or expired token</h1>
+    <a class="btn" href="/">Go to the start</a>
+    <p class="brand"><a href="/">MPP Viewer</a> - MS Project plans in the browser</p>
+</main>
+</body>
+</html>

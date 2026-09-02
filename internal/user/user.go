@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	ErrDuplicateEmail = errors.New("duplicate email")
-	ErrUserNotFound   = errors.New("user not found")
-	ErrEditConflict   = errors.New("edit conflict")
+	ErrDuplicateEmail  = errors.New("duplicate email")
+	ErrUserNotFound    = errors.New("user not found")
+	ErrUserNotVerified = errors.New("user is not verified")
+	ErrEditConflict    = errors.New("edit conflict")
 )
 
 type Subscription string
