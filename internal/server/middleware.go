@@ -1,6 +1,8 @@
 package server
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -107,21 +109,45 @@ func sideRequest(path string) bool {
 	return strings.HasPrefix(path, "/static/")
 }
 
+func visitorKey(r *http.Request, prefix string) string {
+	if u := user.GetUserContext(r); !u.IsAnonymous() {
+		return prefix + "user:" + strconv.FormatInt(u.ID, 10)
+	}
+
+	if sess := session.FromContext(r); sess.Established() {
+		sum := sha256.Sum256([]byte(sess.Token))
+		return prefix + "sess:" + base64.RawURLEncoding.EncodeToString(sum[:12])
+	}
+
+	return prefix + "ip:" + clientip.From(r)
+}
+
 func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		key := prefix + clientip.From(r)
+		address := "address:" + clientip.From(r)
+
+		if !s.addressLimiter.Take(address) {
+			s.refuse(w, r, address, s.addressLimiter.Window())
+			return
+		}
+
+		key := visitorKey(r, prefix)
 
 		if !limiter.Take(key) {
-			if s.throttleNotice.Take(key) {
-				s.logger.Warn("read throttled", "limit", safelog.Key(key), "window", limiter.Window())
-			}
-
-			s.tooManyRequests(w, r, limiter.Window())
+			s.refuse(w, r, key, limiter.Window())
 			return
 		}
 
 		next(w, r)
 	}
+}
+
+func (s *Server) refuse(w http.ResponseWriter, r *http.Request, key string, window time.Duration) {
+	if s.throttleNotice.Take(key) {
+		s.logger.Warn("read throttled", "limit", safelog.Key(key), "window", window)
+	}
+
+	s.tooManyRequests(w, r, window)
 }
 
 func (s *Server) tooManyRequests(w http.ResponseWriter, r *http.Request, window time.Duration) {

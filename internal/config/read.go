@@ -11,6 +11,9 @@ type Read struct {
 	ReadWindow   time.Duration
 	ExportLimit  int
 	ExportWindow time.Duration
+
+	AddressLimit  int
+	AddressWindow time.Duration
 }
 
 func (cfg *Config) loadRead() {
@@ -22,4 +25,8 @@ func (cfg *Config) loadRead() {
 		"spreadsheets a single address may build from saved plans within the export window")
 	flag.DurationVar(&cfg.ExportWindow, "export-window", env.GetDuration("EXPORT_WINDOW", time.Minute),
 		"window for the export limit")
+	flag.IntVar(&cfg.AddressLimit, "address-limit", env.GetInt("ADDRESS_LIMIT", 900),
+		"reads a single address may make within the address window, whoever the visitors behind it are")
+	flag.DurationVar(&cfg.AddressWindow, "address-window", env.GetDuration("ADDRESS_WINDOW", time.Minute),
+		"window for the address limit")
 }

@@ -40,6 +40,10 @@ func (s *Session) Unsaved() bool {
 	return s.sent && !s.stored
 }
 
+func (s *Session) Established() bool {
+	return s.stored
+}
+
 func (s *Session) touch() {
 	if s.sent || s.store == nil || s.w == nil {
 		return

@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"server/internal/clientip"
 	"server/internal/ratelimit"
+	"server/internal/session"
+	"server/internal/user"
 	"strings"
 	"testing"
 	"time"
@@ -18,8 +20,12 @@ func newTestServer(t *testing.T) *Server {
 	notice := ratelimit.New(1, throttleNoticeWindow)
 	t.Cleanup(notice.Close)
 
+	address := ratelimit.New(1000, time.Minute)
+	t.Cleanup(address.Close)
+
 	return &Server{
 		logger:         slog.New(slog.NewTextHandler(io.Discard, nil)),
+		addressLimiter: address,
 		throttleNotice: notice,
 	}
 }
@@ -27,10 +33,23 @@ func newTestServer(t *testing.T) *Server {
 func read(t *testing.T, h http.HandlerFunc, path, ip string) *httptest.ResponseRecorder {
 	t.Helper()
 
+	return readAs(t, h, path, ip, user.AnonymousUser)
+}
+
+func readAs(t *testing.T, h http.HandlerFunc, path, ip string, u *user.User) *httptest.ResponseRecorder {
+	t.Helper()
+
 	r := clientip.SetContext(httptest.NewRequest(http.MethodGet, path, nil), ip)
 	w := httptest.NewRecorder()
 
-	h(w, r)
+	store := session.NewStore(nil, time.Hour, false, "", slog.New(slog.NewTextHandler(io.Discard, nil)))
+
+	sess, err := store.New(w, r)
+	if err != nil {
+		t.Fatalf("new session: %v", err)
+	}
+
+	h(w, user.SetUserContext(session.SetContext(r, sess), u))
 
 	return w
 }
@@ -122,14 +141,47 @@ func TestEveryUnmeteredReadRouteIsThrottled(t *testing.T) {
 
 	for _, path := range paths {
 		t.Run(path, func(t *testing.T) {
-			r := clientip.SetContext(httptest.NewRequest(http.MethodGet, path, nil), "203.0.113.5")
 			w := httptest.NewRecorder()
+			r := clientip.SetContext(httptest.NewRequest(http.MethodGet, path, nil), "203.0.113.5")
 
-			mux.ServeHTTP(w, r)
+			store := session.NewStore(nil, time.Hour, false, "", slog.New(slog.NewTextHandler(io.Discard, nil)))
+
+			sess, err := store.New(w, r)
+			if err != nil {
+				t.Fatalf("new session: %v", err)
+			}
+
+			mux.ServeHTTP(w, user.SetUserContext(session.SetContext(r, sess), user.AnonymousUser))
 
 			if w.Code != http.StatusTooManyRequests {
 				t.Fatalf("%s = %d, want 429: this route reads and decompresses a plan on every request", path, w.Code)
 			}
 		})
+	}
+}
+
+func TestSignedInVisitorsShareAnAddressButNotABudget(t *testing.T) {
+	limiter := ratelimit.New(1, time.Minute)
+	t.Cleanup(limiter.Close)
+
+	s := newTestServer(t)
+	h := s.throttle(limiter, "read-ip:", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	office := "203.0.113.5"
+	ann := &user.User{ID: 1, Subscription: user.SubscriptionFree}
+	bob := &user.User{ID: 2, Subscription: user.SubscriptionFree}
+
+	if code := readAs(t, h, "/p/abc", office, ann).Code; code != http.StatusOK {
+		t.Fatalf("first read = %d, want 200", code)
+	}
+
+	if code := readAs(t, h, "/p/abc", office, ann).Code; code != http.StatusTooManyRequests {
+		t.Fatalf("second read by the same person = %d, want 429", code)
+	}
+
+	if code := readAs(t, h, "/p/abc", office, bob).Code; code != http.StatusOK {
+		t.Errorf("colleague behind the same address = %d, want 200: one visitor must not shut out the office", code)
 	}
 }

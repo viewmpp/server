@@ -28,6 +28,7 @@ type Server struct {
 	resolver       *clientip.Resolver
 	readLimiter    *ratelimit.Limiter
 	exportLimiter  *ratelimit.Limiter
+	addressLimiter *ratelimit.Limiter
 	throttleNotice *ratelimit.Limiter
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
@@ -46,6 +47,7 @@ func New(
 	resolver *clientip.Resolver,
 	readLimiter *ratelimit.Limiter,
 	exportLimiter *ratelimit.Limiter,
+	addressLimiter *ratelimit.Limiter,
 	viewerHandler *viewer.Handler,
 	uploadHandler *upload.Handler,
 	exportHandler *export.Handler,
@@ -60,6 +62,7 @@ func New(
 		resolver:       resolver,
 		readLimiter:    readLimiter,
 		exportLimiter:  exportLimiter,
+		addressLimiter: addressLimiter,
 		throttleNotice: ratelimit.New(1, throttleNoticeWindow),
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
