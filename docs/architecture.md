@@ -28,11 +28,9 @@ crosses it needs an alternative that stays inside.
 
 ## Architecture
 
-```
-Browser → Go (public) → Java sidecar (internal network only) → JSON → Go ─┬─► browser
-                                                                          └─► Postgres
-                                                                              (signed-in only)
-```
+A request goes from the browser to Go, out to the Java sidecar, and back. Go answers
+the browser with the result and, if the user is signed in, also writes it to Postgres.
+The sidecar sits on an internal network and nothing outside can reach it.
 
 **Go** - public perimeter and the product itself: SSR landing page, file intake, limits, parsing calls, and - for signed-in users only - storage, share links, auth and subscriptions as packages inside the same binary.
 
@@ -96,16 +94,31 @@ Rules:
 - **No npm, webpack, React, or Node.** The library is vendored as a UMD file in `static/` and embedded into the binary via `go:embed`. Keep the "one Go binary + one Java sidecar + Postgres in docker-compose" shape.
 - Pin dependency versions.
 
-### Why Postgres, and why it was added (decision, not oversight)
+### Why Postgres
 
-The shape was originally "one Go binary + one Java sidecar", with no store. Anonymous viewing genuinely needs no store - that path was kept exactly as it was. Postgres exists for the signed-in tier: a project a user can come back to, and a link a colleague can open tomorrow, must outlive the request that created them.
+At first there was no store at all: one Go binary and one Java sidecar. Anonymous
+viewing still works exactly that way and nothing about it changed. Postgres came in
+for the signed-in tier, because a project you can come back to, and a link a
+colleague opens tomorrow, both have to outlive the request that created them.
 
-Postgres over Redis, deliberately:
+Redis was the obvious alternative and lost on three counts.
 
-- **Durability is the requirement, not a nice-to-have.** Redis is a cache by nature: making it a datastore needs AOF/RDB configured, and eviction under memory pressure can drop a key with no error anywhere. A saved project silently vanishing is exactly the failure class this project is built to avoid.
-- **Blobs live in RAM under Redis.** 782 KB per large plan × N projects is real memory. Postgres puts them on disk and TOAST-compresses them transparently.
-- **Auth and subscriptions are relational anyway.** Users, projects and access levels are rows with foreign keys. Choosing Redis for blobs would mean adding Postgres later regardless - two dependencies instead of one.
-- **Where Redis is genuinely better:** native TTL. In Postgres this is an `expires_at` column, a filter, and a cleanup job - roughly fifteen lines. Real, but not decisive.
+Durability is the whole requirement here, and Redis is a cache by nature. Turning it
+into a datastore means configuring AOF or RDB, and eviction under memory pressure can
+still drop a key without an error surfacing anywhere. A saved project quietly
+vanishing is the exact failure this product exists to avoid.
+
+Blobs would sit in RAM. A large plan is 782 KB; multiply that by however many
+projects people keep. Postgres puts them on disk and TOAST-compresses them without
+being asked.
+
+Users, projects and access levels are rows with foreign keys anyway. Picking Redis
+for the blobs would have meant adding Postgres later for everything else, so two
+dependencies instead of one.
+
+Redis does win on TTL, which it has natively. In Postgres that is an `expires_at`
+column, a filter and a cleanup job, about fifteen lines. A real cost, just not one
+worth a second datastore.
 
 ### Schema notes
 
@@ -196,29 +209,21 @@ revocation today is the `access` column, which is enough on its own.
 
 ## Upload flow
 
-```
-┌─ Browser ─────────────────────────────────────────────────┐
-│ 1. GET /          → page: dropzone plus a hidden chart    │
-│ 2. user drops a file → JS holds a File object             │
-│ 3. fetch POST /api/v1/upload, body = the file bytes       │
-└────────────────────────────┬──────────────────────────────┘
-                             │
-┌─ Go ───────────────────────▼──────────────────────────────┐
-│ 4. size limit applied to the request body                 │
-│ 5. byte stream → POST /parse on the sidecar               │
-│ 6. sidecar returns the contract JSON                      │
-│ 7. Go writes that JSON straight to the response and is    │
-│    done. The bytes were a local variable; GC takes them   │
-└────────────────────────────┬──────────────────────────────┘
-                             │
-┌─ Browser ──────────────────▼──────────────────────────────┐
-│ 8. res.json() → the contract in JS memory                 │
-│ 9. MppMapper.toModel() → gantt.parse()                    │
-│ 10. hide the dropzone, show the chart. The file name       │
-│     comes from file.name - the server never learns it     │
-└───────────────────────────────────────────────────────────┘
-```
+One request does the whole thing. Nothing is queued and nothing touches the disk.
 
-For a signed-in user step 7 also writes the contract to Postgres, gzipped, and
-returns the new project id in a header. That is the only branch: the browser
-renders from the upload response either way.
+1. `GET /` returns the page: a dropzone, and a chart that starts hidden.
+2. The user drops a file, so JS now holds a `File` object.
+3. `fetch POST /api/v1/upload` with the file bytes as the body.
+4. Go applies the size limit to the request body.
+5. Go streams those bytes on to `POST /parse` on the sidecar.
+6. The sidecar answers with the contract JSON.
+7. Go writes that JSON straight into its own response and is finished. The bytes
+   were a local variable and the garbage collector takes them.
+8. `res.json()` hands the contract to the browser.
+9. `MppMapper.toModel()` converts it and `gantt.parse()` draws it.
+10. The dropzone hides, the chart appears. The file name comes from `file.name` -
+    the server never learns it.
+
+For a signed-in user step 7 also writes the contract to Postgres, gzipped, and puts
+the new project id in a header. That is the only branch in the whole flow, which is
+why the frontend never has to know which tier it is talking to.
