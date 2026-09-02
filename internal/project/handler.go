@@ -82,7 +82,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
-	p, ok := h.find(w, r, false)
+	p, ok := h.findWithContract(w, r, false)
 	if !ok {
 		return
 	}
@@ -108,7 +108,7 @@ func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
-	p, ok := h.find(w, r, true)
+	p, ok := h.findWithContract(w, r, true)
 	if !ok {
 		return
 	}
@@ -249,7 +249,15 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) find(w http.ResponseWriter, r *http.Request, asJSON bool) (*Project, bool) {
-	p, err := h.store.GetByPublicID(r.Context(), r.PathValue("id"))
+	return h.locate(w, r, asJSON, false)
+}
+
+func (h *Handler) findWithContract(w http.ResponseWriter, r *http.Request, asJSON bool) (*Project, bool) {
+	return h.locate(w, r, asJSON, true)
+}
+
+func (h *Handler) locate(w http.ResponseWriter, r *http.Request, asJSON, withContract bool) (*Project, bool) {
+	p, err := h.store.GetByPublicID(r.Context(), r.PathValue("id"), withContract)
 	if err != nil && !errors.Is(err, ErrNotFound) {
 		if asJSON {
 			jsonutil.ServerErrorResponse(w, r, err, h.logger)

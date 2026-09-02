@@ -34,7 +34,7 @@ func (h *Handler) Unlock(w http.ResponseWriter, r *http.Request) {
 
 	publicID := r.PathValue("id")
 
-	p, err := h.store.GetByPublicID(r.Context(), publicID)
+	p, err := h.store.GetByPublicID(r.Context(), publicID, false)
 	if err != nil || p == nil || !p.IsProtected() {
 		htmlutil.NotFoundPage(w, r, h.logger)
 		return

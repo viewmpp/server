@@ -168,22 +168,33 @@ func (s *Store) Save(ctx context.Context, userID int64, fileName string, contrac
 	return publicID, nil
 }
 
-func (s *Store) GetByPublicID(ctx context.Context, publicID string) (*Project, error) {
+func (s *Store) GetByPublicID(ctx context.Context, publicID string, withContract bool) (*Project, error) {
 	query := `
-		SELECT id, public_id, user_id, file_name, contract, access, password_hash, created_at
+		SELECT id, public_id, user_id, file_name, access, password_hash, created_at
 		FROM projects WHERE public_id = $1`
+
+	if withContract {
+		query = `
+		SELECT id, public_id, user_id, file_name, access, password_hash, created_at, contract
+		FROM projects WHERE public_id = $1`
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	var (
-		p      Project
-		packed []byte
+		p       Project
+		packed  []byte
+		targets = []any{
+			&p.ID, &p.PublicID, &p.UserID, &p.FileName, &p.Access, &p.Password, &p.CreatedAt,
+		}
 	)
 
-	err := s.db.QueryRowContext(ctx, query, publicID).Scan(
-		&p.ID, &p.PublicID, &p.UserID, &p.FileName, &packed, &p.Access, &p.Password, &p.CreatedAt,
-	)
+	if withContract {
+		targets = append(targets, &packed)
+	}
+
+	err := s.db.QueryRowContext(ctx, query, publicID).Scan(targets...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -191,8 +202,10 @@ func (s *Store) GetByPublicID(ctx context.Context, publicID string) (*Project, e
 		return nil, err
 	}
 
-	if p.Contract, err = decompress(packed); err != nil {
-		return nil, err
+	if withContract {
+		if p.Contract, err = decompress(packed); err != nil {
+			return nil, err
+		}
 	}
 
 	return &p, nil
