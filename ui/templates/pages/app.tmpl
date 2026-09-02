@@ -7,7 +7,7 @@
 {{end}}
 
 {{define "main"}}
-<main class="landing centered" id="landing">
+<main class="landing centered{{if or .ProjectID .ExampleName}} is-hidden{{end}}" id="landing">
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
   <h1>Open an MS&nbsp;Project file</h1>
@@ -16,7 +16,7 @@
     Nothing to install, no signup needed.
   </p>
 
-  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}">
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}" data-open-saved>
     <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
     <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
     <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
@@ -177,7 +177,7 @@
   </section>
 </main>
 
-{{if not .ProjectID}}{{template "sitefooter" .}}{{end}}
+{{if not (or .ProjectID .ExampleName)}}{{template "sitefooter" .}}{{end}}
 
 {{template "viewer" .}}
 {{end}}

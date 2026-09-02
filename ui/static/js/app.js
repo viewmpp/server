@@ -7,6 +7,8 @@
     landing: document.getElementById('landing'),
     foot: document.getElementById('foot'),
     app: document.getElementById('app'),
+    loading: document.getElementById('loading'),
+    loadingText: document.getElementById('loading-text'),
     drop: document.getElementById('drop'),
     file: document.getElementById('file'),
     error: document.getElementById('error'),
@@ -97,7 +99,8 @@
     yes:          'yes',
     projStart:    'Start',
     projFinish:   'Finish',
-    projDuration: 'Duration'
+    projDuration: 'Duration',
+    opening:      'Opening '
   };
 
   var openProjectID = ui.app.dataset.projectId;
@@ -115,6 +118,7 @@
 
     ui.details.classList.add('is-hidden');
     ui.app.classList.add('is-hidden');
+    ui.loading.classList.add('is-hidden');
     ui.landing.classList.remove('is-hidden');
     if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
   });
@@ -125,9 +129,15 @@
     onStart: function () { ui.error.classList.add('is-hidden'); },
     onError: fail,
     onDone: function (contract, file, projectID, refused) {
+      if (projectID && ui.drop.hasAttribute('data-open-saved')) {
+        opening(file.name);
+        window.location.assign('/p/' + projectID);
+        return;
+      }
+
       return loadGantt().then(function () {
         show(contract, file.name, refused);
-        window.history.pushState({ chart: true }, '', projectID ? '/p/' + projectID : location.href);
+        window.history.pushState({ chart: true }, '', location.href);
       });
     }
   });
@@ -174,8 +184,9 @@
       })
       .catch(function (err) {
         ui.app.classList.add('is-hidden');
+        ui.loading.classList.add('is-hidden');
         ui.landing.classList.remove('is-hidden');
-    if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
+        if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
         fail(err.message);
       });
   }
@@ -207,9 +218,18 @@
     });
   }
 
+  function opening(fileName) {
+    ui.error.classList.add('is-hidden');
+    ui.landing.classList.add('is-hidden');
+    if (ui.foot) { ui.foot.classList.add('is-hidden'); }
+    ui.loadingText.textContent = TEXT.opening + (fileName || '');
+    ui.loading.classList.remove('is-hidden');
+  }
+
   function show(contract, fileName, refused) {
     ui.landing.classList.add('is-hidden');
     if (ui.foot) { ui.foot.classList.add('is-hidden'); }
+    ui.loading.classList.add('is-hidden');
     ui.app.classList.remove('is-hidden');
 
     if (!started) {

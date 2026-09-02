@@ -1,4 +1,8 @@
 {{define "viewer"}}
+<div class="loading{{if not (or .ProjectID .ExampleName)}} is-hidden{{end}}" id="loading" role="status">
+  <span class="loading__spin" aria-hidden="true"></span>
+  <span class="loading__text" id="loading-text">{{if .FileName}}Opening {{.FileName}}{{else}}Opening the plan{{end}}</span>
+</div>
 <div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}">
   <header class="bar">
     <div class="bar__row">
