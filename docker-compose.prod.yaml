@@ -9,6 +9,11 @@ services:
       PROXIES: '1'
 
   caddy:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     image: caddy:2-alpine
     container_name: caddy
     restart: unless-stopped

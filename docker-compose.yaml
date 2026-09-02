@@ -1,7 +1,14 @@
 name: mpp-viewer
 
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   server-db:
+    logging: *logging
     image: postgres:17
     container_name: server-db
     restart: unless-stopped
@@ -22,6 +29,7 @@ services:
       start_period: 10s
 
   parser:
+    logging: *logging
     build:
       context: ../parser
     image: parser:local
@@ -45,6 +53,7 @@ services:
 
 
   migrate:
+    logging: *logging
     image: migrate/migrate:v4.19.1
     container_name: migrate
     restart: "no"
@@ -63,6 +72,7 @@ services:
         condition: service_healthy
 
   server:
+    logging: *logging
     build: .
     image: server:local
     container_name: server
