@@ -22,6 +22,8 @@
     searchCount: document.getElementById('search-count'),
     scaleRange: document.getElementById('scale-range'),
     scaleLabel: document.getElementById('scale-label'),
+    sizeRange: document.getElementById('size-range'),
+    sizeLabel: document.getElementById('size-label'),
     filterToggle: document.getElementById('filter-toggle'),
     filterLabel: document.getElementById('filter-label'),
     filterItems: document.querySelectorAll('[data-filter]'),
@@ -276,6 +278,13 @@
 
   function bindWheel() {
     ui.chart.addEventListener('wheel', function (e) {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSize(Math.round(size * 100) - Math.sign(e.deltaY) * 3);
+        return;
+      }
+
       var dx = wheelPixels(e.deltaX, e.deltaMode);
       var dy = wheelPixels(e.deltaY, e.deltaMode);
 
@@ -403,6 +412,7 @@
     model = window.MppMapper.toModel(contract);
     gantt.clearAll();
     gantt.parse({ data: model.data, links: model.links });
+    setSize(100, true);
     ui.scaleRange.value = 0;
     zoomRendered = '';
     setZoom(0, true);
@@ -417,11 +427,7 @@
     gantt.config.readonly = true;
     gantt.config.smart_rendering = true;
     gantt.config.open_tree_initially = true;
-    gantt.config.row_height = 41;
     gantt.config.scroll_size = 16;
-    gantt.config.bar_height = 25;
-
-    minFillWidth = gantt.config.bar_height * 2;
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 88, resize: true,
@@ -636,6 +642,37 @@
   var zoomHold = null;
   var zoomSkip = false;
 
+  var SIZE_BASE = { row: 41, bar: 25, header: 59, text: 44 };
+  var SIZE_MIN = 60;
+  var SIZE_MAX = 100;
+
+  var size = 1;
+  var sizeFrame = null;
+
+  function setSize(percent, immediate) {
+    size = Math.min(Math.max(percent, SIZE_MIN), SIZE_MAX) / 100;
+
+    ui.sizeRange.value = Math.round(size * 100);
+    ui.sizeLabel.textContent = Math.round(size * 100) + '%';
+
+    if (immediate) {
+      applySize();
+      return;
+    }
+
+    if (!sizeFrame) {
+      sizeFrame = requestAnimationFrame(function () {
+        sizeFrame = null;
+        applySize();
+      });
+    }
+  }
+
+  function applySize() {
+    ui.chart.style.setProperty('--gantt-size', size.toFixed(3));
+    applyZoom(spanFor(zoomShown));
+  }
+
   function spanFor(value) {
     var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100);
 
@@ -697,14 +734,22 @@
   }
 
   function applyZoom(picked) {
-    var mark = picked.span.unit + ':' + picked.width;
+    var column = Math.max(10, Math.round(picked.width * size));
+    var mark = picked.span.unit + ':' + column + ':' + size.toFixed(3);
     if (mark === zoomRendered) { return; }
     zoomRendered = mark;
 
     var hold = zoomHold || holdCentre();
 
+    gantt.config.row_height = SIZE_BASE.row;
+    gantt.config.scale_height = SIZE_BASE.header;
+    gantt.config.bar_height = Math.round(SIZE_BASE.bar * size);
+
+    minFillWidth = gantt.config.bar_height * 2;
+    minTextWidth = Math.round(SIZE_BASE.text * size);
+
     setScale(picked.span.unit);
-    gantt.config.min_column_width = picked.width;
+    gantt.config.min_column_width = column;
     gantt.render();
 
     if (hold.date) {
@@ -734,7 +779,6 @@
         { unit: 'quarter', step: 1, format: quarterLabel }
       ];
     }
-    gantt.config.scale_height = 59;
   }
 
   function quarterLabel(date) {
@@ -743,6 +787,10 @@
 
   ui.scaleRange.addEventListener('input', function () {
     setZoom(Number(ui.scaleRange.value));
+  });
+
+  ui.sizeRange.addEventListener('input', function () {
+    setSize(Number(ui.sizeRange.value));
   });
 
 
