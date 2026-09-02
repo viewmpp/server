@@ -63,9 +63,10 @@ func (s *Server) logRequest(next http.Handler) http.Handler {
 			s.logger.Error("request handled", args...)
 		case status >= 400:
 			s.logger.Warn("request handled", args...)
+		case sideRequest(r.URL.Path):
+			s.logger.Debug("request handled", args...)
 		default:
 			s.logger.Info("request handled", args...)
-
 		}
 	})
 }
@@ -97,12 +98,24 @@ func (s *Server) noStore(next http.Handler) http.Handler {
 	})
 }
 
+func sideRequest(path string) bool {
+	switch path {
+	case "/favicon.ico", "/apple-touch-icon.png", "/robots.txt", "/sitemap.xml", "/api/v1/healthcheck":
+		return true
+	}
+
+	return strings.HasPrefix(path, "/static/")
+}
+
 func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := prefix + clientip.From(r)
 
 		if !limiter.Take(key) {
-			s.logger.Warn("read throttled", "limit", safelog.Key(key))
+			if s.throttleNotice.Take(key) {
+				s.logger.Warn("read throttled", "limit", safelog.Key(key), "window", limiter.Window())
+			}
+
 			s.tooManyRequests(w, r, limiter.Window())
 			return
 		}

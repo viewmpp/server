@@ -15,7 +15,13 @@ import (
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
 
-	return &Server{logger: slog.New(slog.NewTextHandler(io.Discard, nil))}
+	notice := ratelimit.New(1, throttleNoticeWindow)
+	t.Cleanup(notice.Close)
+
+	return &Server{
+		logger:         slog.New(slog.NewTextHandler(io.Discard, nil)),
+		throttleNotice: notice,
+	}
 }
 
 func read(t *testing.T, h http.HandlerFunc, path, ip string) *httptest.ResponseRecorder {

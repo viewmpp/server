@@ -39,7 +39,7 @@ func run() error {
 
 	var wg sync.WaitGroup
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Level()}))
 
 	for _, warning := range cfg.Warnings() {
 		logger.Warn(warning)

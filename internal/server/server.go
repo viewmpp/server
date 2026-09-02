@@ -28,6 +28,7 @@ type Server struct {
 	resolver       *clientip.Resolver
 	readLimiter    *ratelimit.Limiter
 	exportLimiter  *ratelimit.Limiter
+	throttleNotice *ratelimit.Limiter
 	viewerHandler  *viewer.Handler
 	uploadHandler  *upload.Handler
 	exportHandler  *export.Handler
@@ -37,6 +38,8 @@ type Server struct {
 	wg             *sync.WaitGroup
 	logger         *slog.Logger
 }
+
+const throttleNoticeWindow = time.Minute
 
 func New(
 	cfg config.Config,
@@ -57,6 +60,7 @@ func New(
 		resolver:       resolver,
 		readLimiter:    readLimiter,
 		exportLimiter:  exportLimiter,
+		throttleNotice: ratelimit.New(1, throttleNoticeWindow),
 		viewerHandler:  viewerHandler,
 		uploadHandler:  uploadHandler,
 		exportHandler:  exportHandler,
@@ -96,6 +100,8 @@ func (s *Server) Serve() error {
 			shutdownError <- err
 			return
 		}
+
+		s.throttleNotice.Close()
 
 		s.logger.Info("completing background tasks", "addr", srv.Addr)
 
