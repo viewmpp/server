@@ -110,19 +110,57 @@ curl -fsS https://viewmpp.com/api/v1/healthcheck
 Updating
 --------
 
-Nothing has been redeployed since the first deploy. The only change made on the
-server since then is the Caddy configuration in `remote/production`.
-
-Caddy has no build stage, so a `Caddyfile` change only needs the container
-recreated:
+Both repositories are pulled and the stack is rebuilt in place:
 
 ```bash
-cd /viewmpp/server
+cd /viewmpp/server && git pull
+cd ../parser && git pull
+cd ../server
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
+```
+
+`--build` is not optional. The server image is built locally and tagged
+`server:local`, so a plain `up -d` reuses the existing layers and quietly keeps
+running the old binary.
+
+Migrations run on the way up, and the server waits for them. Deploys are not
+zero-downtime: `stop_grace_period: 40s` gives the old container room to finish
+any verification email already in flight before Docker escalates to SIGKILL.
+
+Since the diagnostics server was added, the surest proof that the new binary is
+live is asking it - see below.
+
+Caddy has no build stage, so a `Caddyfile` change on its own only needs the
+container recreated:
+
+```bash
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d caddy
 ```
 
-Production therefore still runs the code from the first deploy. Everything done
-in the repository since - the stored-XSS fix included - is not live.
+Diagnostics
+-----------
+
+The server publishes `expvar` on a second listener, separate from the site:
+
+```bash
+docker compose exec server wget -q -O - http://127.0.0.1:6060/debug/vars
+```
+
+The scheme is not decoration. The image is Alpine, so `wget` is the BusyBox
+build, and without `http://` it does not treat the argument as a URL at all -
+the failures look unrelated to the real problem, `Permission denied` on a
+nonexistent file or a refused connection.
+
+It listens on `127.0.0.1` inside the container, which is deliberate and has one
+consequence worth knowing: the port cannot be published to the host at all,
+because Docker forwards a published port to the container's external interface
+rather than to its loopback. `docker compose exec` is the only way in, and
+`Validate` refuses to start production on any address that is not loopback.
+
+Nothing guards the endpoint itself, so anything published there is readable by
+anyone who can reach it. Today that is `cmdline` and `memstats`, neither of them
+sensitive - secrets arrive through the environment, not as flags. Adding
+counters carrying business data would change that judgement.
 
 Local development
 -----------------
@@ -168,6 +206,8 @@ untrusted binary input, so it is the one that gets nothing worth stealing.
 | `RESEND_SENDER` | `noreply@viewmpp.com` | The domain must be verified in Resend first |
 | `SECRET_KEY` | 32+ random characters | Signs every csrf token. The process refuses to start in prod without it |
 | `EARLY_ACCESS_SEATS` | `100` | `0` closes early access |
+| `DIAGNOSTIC_SERVER_ADDRESS` | unset | Defaults to `127.0.0.1:6060`. Must stay on loopback in prod, and off 4000, 5432 and 8080 |
+| `LOG_LEVEL` | unset | Defaults to `info`. `debug` adds a line per request |
 
 `PORT`, `DB_DSN` and `PARSER_URL` are set in `docker-compose.yaml` and override
 anything in `.env` - they point at compose service names and must not be edited
