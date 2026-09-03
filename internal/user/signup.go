@@ -11,6 +11,7 @@ import (
 	"server/internal/session"
 	"server/internal/token"
 	"server/internal/validator"
+	"time"
 )
 
 var ErrEmailTaken = errors.New("email belongs to an existing account")
@@ -108,6 +109,7 @@ func (h *Handler) startVerification(w http.ResponseWriter, r *http.Request, sess
 		return
 	}
 	sess.Put("pending_email", u.Email)
+	markCooldown(sess, time.Now().Add(h.verificationRC))
 
 	if err := h.sessions.Save(r.Context(), sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)

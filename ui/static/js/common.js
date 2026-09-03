@@ -134,39 +134,31 @@
   coolDownResend();
 
   function coolDownResend() {
-    var form = document.querySelector('[data-cooldown]');
-    if (!form) { return; }
+    document.querySelectorAll('[data-cooldown]').forEach(function (form) {
+      var button = form.querySelector('button[type="submit"]');
+      if (!button) { return; }
 
-    var button = form.querySelector('button[type="submit"]');
-    if (!button) { return; }
+      var left = Number(form.dataset.cooldown);
+      if (!left) { return; }
 
-    var seconds = Number(form.dataset.cooldown);
-    if (!seconds) { return; }
+      var label = button.textContent;
 
-    var label = button.textContent;
-    var until = 0;
+      tick();
 
-    try { until = Number(sessionStorage.getItem('resend-until')) || 0; } catch (err) { until = 0; }
+      function tick() {
+        if (left <= 0) {
+          button.disabled = false;
+          button.textContent = label;
+          return;
+        }
 
-    form.addEventListener('submit', function () {
-      try { sessionStorage.setItem('resend-until', String(Date.now() + seconds * 1000)); } catch (err) { /* private mode */ }
-    });
+        button.disabled = true;
+        button.textContent = label + ' (' + left + ')';
+        left--;
 
-    tick();
-
-    function tick() {
-      var left = Math.ceil((until - Date.now()) / 1000);
-
-      if (left <= 0) {
-        button.disabled = false;
-        button.textContent = label;
-        return;
+        window.setTimeout(tick, 1000);
       }
-
-      button.disabled = true;
-      button.textContent = label + ' (' + left + ')';
-      window.setTimeout(tick, 1000);
-    }
+    });
   }
 
   window.addEventListener('pageshow', function () {

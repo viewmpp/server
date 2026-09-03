@@ -34,6 +34,10 @@ func NewPage(r *http.Request, form any) htmlutil.Page {
 		page.Verified = u.Verified
 		page.Pro = u.HasSubscription()
 		page.ProWarning = proWarning(u, time.Now())
+
+		if !u.Verified {
+			page.ResendSeconds = cooldownLeft(r)
+		}
 	}
 
 	return page

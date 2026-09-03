@@ -108,7 +108,11 @@
               {{if and (eq .Access "private") (not .CanShare)}}
                 <p class="share__note">
                   {{if not .Verified}}
-                    <a href="/verify">Confirm your email address</a> to share a link.
+                    <form action="/verify/resend" method="POST" class="share__inline" data-cooldown="{{.ResendSeconds}}">
+                      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                      <button class="linkish" type="submit">Confirm your email address</button>
+                    </form>
+                    to share a link.
                   {{else}}
                     Free accounts share {{.MaxPublicFree}} plans at a time. <a href="/projects">Stop sharing one</a>, or go Pro.
                   {{end}}

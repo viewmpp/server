@@ -8,6 +8,7 @@ import (
 	"server/internal/safelog"
 	"server/internal/session"
 	"server/internal/token"
+	"strconv"
 	"time"
 )
 
@@ -22,10 +23,27 @@ func (h *Handler) VerifyPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) writeVerify(w http.ResponseWriter, r *http.Request, status int, form VerifyForm) {
-	page := NewPage(r, form)
-	page.ResendSeconds = int(h.verificationRC.Seconds())
+	htmlutil.WriteHTML(w, r, status, h.templates.Verify, NewPage(r, form), h.logger)
+}
 
-	htmlutil.WriteHTML(w, r, status, h.templates.Verify, page, h.logger)
+const cooldownKey = "code_until"
+
+func markCooldown(sess *session.Session, until time.Time) {
+	sess.Put(cooldownKey, strconv.FormatInt(until.Unix(), 10))
+}
+
+func cooldownLeft(r *http.Request) int {
+	stamp, err := strconv.ParseInt(session.FromContext(r).Get(cooldownKey), 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	left := time.Until(time.Unix(stamp, 0))
+	if left <= 0 {
+		return 0
+	}
+
+	return int(left.Seconds()) + 1
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -118,12 +136,16 @@ func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.resend(r.Context(), email); err != nil {
+	sent, err := h.resend(r.Context(), email)
+	if err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
-	sess.Put("flash", MsgCodeResent())
+	if sent {
+		markCooldown(sess, time.Now().Add(h.verificationRC))
+		sess.Put("flash", MsgCodeUpdated)
+	}
 
 	if err := h.sessions.Save(r.Context(), sess); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -133,39 +155,39 @@ func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/verify", http.StatusSeeOther)
 }
 
-func (h *Handler) resend(ctx context.Context, email string) error {
+func (h *Handler) resend(ctx context.Context, email string) (bool, error) {
 	u, err := h.store.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			return nil
+			return false, nil
 		}
-		return err
+		return false, err
 	}
 
 	if u.Verified {
-		return nil
+		return false, nil
 	}
 
 	issued, exists, err := h.token.LatestVerificationIssuedAt(ctx, u.ID, h.verificationTTL)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if exists && time.Since(issued) < h.verificationRC {
 		h.logger.Info("resend throttled", "user_id", u.ID)
-		return nil
+		return false, nil
 	}
 
 	vry, err := token.NewVerification(u.ID, h.verificationTTL)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if err = h.token.CreateVerification(ctx, vry); err != nil {
-		return err
+		return false, err
 	}
 
 	h.sendVerificationCode(u.Email, vry.Plaintext)
 
-	return nil
+	return true, nil
 }

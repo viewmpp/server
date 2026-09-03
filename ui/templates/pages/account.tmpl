@@ -24,7 +24,10 @@
         <p class="card-block__hint">
           Not confirmed yet, so a forgotten password cannot be recovered and sharing stays off.
         </p>
-        <a class="btn btn--sm btn--primary btn--inline" href="/verify">Confirm it now</a>
+        <form action="/verify/resend" method="POST" data-cooldown="{{.ResendSeconds}}">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <button class="btn btn--sm btn--primary btn--inline" type="submit">Confirm it now</button>
+        </form>
       </div>
     {{end}}
   </section>

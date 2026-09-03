@@ -25,6 +25,7 @@ const (
 	MsgEmailConfirmed       = "Your email address has been confirmed."
 	MsgPasswordChanged      = "Your password has been changed."
 	MsgWrongCurrentPassword = "Your current password isn't right"
+	MsgCodeUpdated          = "Your verification code has been updated and sent to you."
 	MsgVerifyLater          = "Confirm your email address. Without it you can't get back in if you forget your password"
 )
 
@@ -48,8 +49,4 @@ func MsgLinkLife(d time.Duration) string {
 	}
 
 	return fmt.Sprintf("%d hours", int(d.Hours()))
-}
-
-func MsgCodeResent() string {
-	return "If that code is still valid, we have sent it again."
 }

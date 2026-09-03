@@ -87,7 +87,10 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
 
         <div class="menu__panel is-hidden" data-menu-panel>
           {{if not .Verified}}
-            <a class="menu__item menu__item--warn" href="/verify">Confirm your email</a>
+            <form action="/verify/resend" method="POST" data-cooldown="{{.ResendSeconds}}">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+              <button class="menu__item menu__item--warn" type="submit">Confirm your email</button>
+            </form>
             <div class="menu__sep"></div>
           {{else if not .Pro}}
             <form action="/subscribe" method="POST">
