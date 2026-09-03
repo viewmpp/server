@@ -7,8 +7,6 @@ import (
 	"github.com/realclientip/realclientip-go"
 )
 
-const header = "X-Forwarded-For"
-
 type contextKey string
 
 const clientIPContextKey = contextKey("clientip")
@@ -31,7 +29,7 @@ func strategyFor(proxies int) (realclientip.Strategy, error) {
 		return realclientip.RemoteAddrStrategy{}, nil
 	}
 
-	trusted, err := realclientip.NewRightmostTrustedCountStrategy(header, proxies)
+	trusted, err := realclientip.NewRightmostTrustedCountStrategy("X-Forwarded-For", proxies)
 	if err != nil {
 		return nil, err
 	}

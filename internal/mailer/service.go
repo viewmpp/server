@@ -26,7 +26,7 @@ func (m *Mailer) SendVerification(email, code string) error {
 		return err
 	}
 
-	return m.send(data.Subject, html, email)
+	return m.send(data.Subject, html, email, "code", code)
 }
 
 type ResetEmailData struct {
@@ -49,7 +49,7 @@ func (m *Mailer) SendPasswordReset(email, link string) error {
 		return err
 	}
 
-	return m.send(data.Subject, html, email)
+	return m.send(data.Subject, html, email, "link", link)
 }
 
 func (m *Mailer) SendExistingAccount(email string) error {

@@ -16,7 +16,7 @@ func resolve(t *testing.T, proxies int, remote string, forwarded ...string) stri
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = remote
 	for _, value := range forwarded {
-		r.Header.Add(header, value)
+		r.Header.Add("X-Forwarded-For", value)
 	}
 
 	return res.Get(r)
