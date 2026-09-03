@@ -35,8 +35,9 @@
 </p>
 
 <p>
-  The three plans below are not decoration. Each one exists because it breaks something that
-  commonly goes wrong when a <code>.mpp</code> file is read outside Microsoft Project.
+  The plans below are not decoration. Each one exists because it breaks something that commonly
+  goes wrong when a schedule is read outside Microsoft Project. The filename under each shows the
+  format it was read from, because that is where a good many readers give up first.
 </p>
 
 <h2>What each one demonstrates</h2>
@@ -53,6 +54,13 @@
     entries in Cyrillic. Non-Latin text is where cheap converters fall over, usually producing
     rows of question marks, because the older <code>.mpp</code> generations store text in a way
     that punishes a lazy reader. Open it and the names are simply there.
+  </li>
+  <li>
+    <strong>Substation extension</strong> - read from an <code>.mpx</code>, the plain-text format
+    Microsoft dropped a quarter of a century ago and half the industry still exchanges. Fifty
+    tasks, and the critical path runs through a nine-month manufacturing lead time rather than
+    through anything happening on site - which is the answer people are usually after when they
+    ask why a job cannot be pulled forward.
   </li>
   <li>
     <strong>System rollout</strong> - not a building. Fifty-seven tasks across configuration,

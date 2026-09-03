@@ -1,0 +1,171 @@
+MPX,Microsoft Project for Windows,4.0,ANSI
+10,$,1,2,",",.
+11,2,0,1,8.00,40.00,,,0,0
+12,1,0,480,/,:,am,pm,20,20
+20,Standard,0,1,1,1,1,1,0
+25,1
+25,2,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,3,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,4,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,5,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,6,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,7
+26,03/04/26,03/04/26,0
+26,06/04/26,06/04/26,0
+26,04/05/26,04/05/26,0
+26,25/05/26,25/05/26,0
+26,31/08/26,31/08/26,0
+26,25/12/26,25/12/26,0
+30,Wraysbury substation - 132 kV bay 4 extension,,,Standard,02/02/2026,21/12/2026,0,20/07/2026
+40,Name,ID,Max Units,Unique ID
+41,1,40,41,49
+50,Hazel Okonjo,1,1,1
+50,Rob Pemberton,2,1,2
+50,Sian Marsh,3,1,3
+50,Dmitri Yalowitz,4,1,4
+50,Callum Reid,5,1,5
+50,Nina Achebe,6,1,6
+50,Gordon Laing,7,1,7
+50,Priya Venkatesh,8,1,8
+50,Marek Sobczak,9,1,9
+50,Ellen Truscott,10,1,10
+60,Name,WBS,Outline Level,% Work Complete,Duration,Baseline Duration,% Complete,Start,Finish,Baseline Start,Baseline Finish,Predecessors,Fixed,Milestone,Critical,ID,Constraint Type,Priority,Unique ID,Outline Number,Summary
+61,1,2,3,25,40,41,44,50,51,56,57,70,80,81,82,90,91,95,98,99,120
+70,Design and approvals,1,1,100%,71d,71d,100%,02/02/2026,14/05/2026,02/02/2026,14/05/2026,,No,No,No,1,As Soon As Possible,Medium,1,1,Yes
+70,Connection agreement signed,1.1,2,100%,0d,0d,100%,02/02/2026,02/02/2026,02/02/2026,02/02/2026,,No,Yes,No,2,As Soon As Possible,Medium,2,1.1
+75,1,1,,,,,,,,02/02/2026,02/02/2026,,1
+76,,0,0,NA,NA
+70,Protection and control design,1.2,2,100%,25d,25d,100%,03/02/2026,09/03/2026,03/02/2026,09/03/2026,2,No,No,No,3,As Soon As Possible,Medium,3,1.2
+75,2,1,,,,,,,,03/02/2026,09/03/2026,,2
+76,,0,0,NA,NA
+70,Design review with the network operator,1.3,2,100%,10d,10d,100%,10/03/2026,23/03/2026,10/03/2026,23/03/2026,3,No,No,No,4,As Soon As Possible,Medium,4,1.3
+75,2,1,,,,,,,,10/03/2026,23/03/2026,,2
+76,,0,0,NA,NA
+70,Design approved,1.4,2,100%,0d,0d,100%,24/03/2026,24/03/2026,24/03/2026,24/03/2026,4,No,Yes,No,5,As Soon As Possible,Medium,5,1.4
+75,1,1,,,,,,,,24/03/2026,24/03/2026,,1
+76,,0,0,NA,NA
+70,Outage application submitted,1.5,2,100%,3d,3d,100%,25/03/2026,27/03/2026,25/03/2026,27/03/2026,5,No,No,No,6,As Soon As Possible,Medium,6,1.5
+75,1,1,,,,,,,,25/03/2026,27/03/2026,,1
+76,,0,0,NA,NA
+70,Outage window confirmed,1.6,2,100%,0d,0d,100%,14/05/2026,14/05/2026,14/05/2026,14/05/2026,6FS+30d,No,Yes,No,7,As Soon As Possible,Medium,7,1.6
+75,1,1,,,,,,,,14/05/2026,14/05/2026,,1
+76,,0,0,NA,NA
+70,Long-lead procurement,2,1,79%,110d,110d,79%,25/03/2026,01/09/2026,25/03/2026,01/09/2026,,No,No,Yes,8,As Soon As Possible,Medium,8,2,Yes
+70,Circuit breaker ordered,2.1,2,100%,5d,5d,100%,25/03/2026,31/03/2026,25/03/2026,31/03/2026,5,No,No,No,9,As Soon As Possible,Medium,9,2.1
+75,3,1,,,,,,,,25/03/2026,31/03/2026,,3
+76,,0,0,NA,NA
+70,Circuit breaker manufacture,2.2,2,78%,90d,90d,78%,01/04/2026,10/08/2026,01/04/2026,10/08/2026,9,No,No,No,10,As Soon As Possible,Medium,10,2.2
+75,3,1,,,,,,,,01/04/2026,10/08/2026,,3
+76,,0,0,NA,NA
+70,Factory acceptance test,2.3,2,0%,4d,4d,0%,11/08/2026,14/08/2026,11/08/2026,14/08/2026,10,No,No,No,11,As Soon As Possible,Medium,11,2.3
+75,3,1,,,,,,,,11/08/2026,14/08/2026,,3
+76,,0,0,NA,NA
+70,Circuit breaker delivered to site,2.4,2,0%,0d,0d,0%,01/09/2026,01/09/2026,01/09/2026,01/09/2026,11FS+10d,No,Yes,Yes,12,As Soon As Possible,Medium,12,2.4
+75,3,1,,,,,,,,01/09/2026,01/09/2026,,3
+76,,0,0,NA,NA
+70,Protection panels ordered,2.5,2,100%,5d,5d,100%,25/03/2026,31/03/2026,25/03/2026,31/03/2026,5,No,No,No,13,As Soon As Possible,Medium,13,2.5
+75,3,1,,,,,,,,25/03/2026,31/03/2026,,3
+76,,0,0,NA,NA
+70,Protection panels built,2.6,2,85%,55d,55d,85%,01/04/2026,22/06/2026,01/04/2026,22/06/2026,13,No,No,No,14,As Soon As Possible,Medium,14,2.6
+75,3,1,,,,,,,,01/04/2026,22/06/2026,,3
+76,,0,0,NA,NA
+70,Protection panels delivered,2.7,2,0%,0d,0d,0%,30/06/2026,30/06/2026,30/06/2026,30/06/2026,14FS+5d,No,Yes,No,15,As Soon As Possible,Medium,15,2.7
+75,3,1,,,,,,,,30/06/2026,30/06/2026,,3
+76,,0,0,NA,NA
+70,Civil works,3,1,100%,40d,40d,100%,25/03/2026,22/05/2026,25/03/2026,22/05/2026,,No,No,No,16,As Soon As Possible,Medium,16,3,Yes
+70,Site setup and temporary access,3.1,2,100%,8d,8d,100%,25/03/2026,07/04/2026,25/03/2026,07/04/2026,5,No,No,No,17,As Soon As Possible,Medium,17,3.1
+75,4,1,,,,,,,,25/03/2026,07/04/2026,,4
+76,,0,0,NA,NA
+70,Excavation for plinths,3.2,2,100%,10d,10d,100%,08/04/2026,21/04/2026,08/04/2026,21/04/2026,17,No,No,No,18,As Soon As Possible,Medium,18,3.2
+75,4,1,,,,,,,,08/04/2026,21/04/2026,,4
+76,,0,0,NA,NA
+70,Reinforcement and shuttering,3.3,2,100%,8d,8d,100%,22/04/2026,01/05/2026,22/04/2026,01/05/2026,18,No,No,No,19,As Soon As Possible,Medium,19,3.3
+75,4,1,,,,,,,,22/04/2026,01/05/2026,,4
+76,,0,0,NA,NA
+70,Concrete poured,3.4,2,100%,3d,3d,100%,05/05/2026,07/05/2026,05/05/2026,07/05/2026,19,No,No,No,20,As Soon As Possible,Medium,20,3.4
+75,4,1,,,,,,,,05/05/2026,07/05/2026,,4
+76,,0,0,NA,NA
+70,Concrete cure,3.5,2,100%,10d,10d,100%,08/05/2026,21/05/2026,08/05/2026,21/05/2026,20,No,No,No,21,As Soon As Possible,Medium,21,3.5
+75,4,1,,,,,,,,08/05/2026,21/05/2026,,4
+76,,0,0,NA,NA
+70,Cable trench and ducts,3.6,2,100%,12d,12d,100%,22/04/2026,08/05/2026,22/04/2026,08/05/2026,18,No,No,No,22,As Soon As Possible,Medium,22,3.6
+75,5,1,,,,,,,,22/04/2026,08/05/2026,,5
+76,,0,0,NA,NA
+70,Earth grid extension,3.7,2,100%,9d,9d,100%,11/05/2026,21/05/2026,11/05/2026,21/05/2026,22,No,No,No,23,As Soon As Possible,Medium,23,3.7
+75,5,1,,,,,,,,11/05/2026,21/05/2026,,5
+76,,0,0,NA,NA
+70,Civils complete,3.8,2,100%,0d,0d,100%,22/05/2026,22/05/2026,22/05/2026,22/05/2026,"21,23",No,Yes,No,24,As Soon As Possible,Medium,24,3.8
+75,4,1,,,,,,,,22/05/2026,22/05/2026,,4
+76,,0,0,NA,NA
+70,Plant installation,4,1,23%,105d,105d,23%,26/05/2026,20/10/2026,26/05/2026,20/10/2026,,No,No,Yes,25,As Soon As Possible,Medium,25,4,Yes
+70,Steelwork erected,4.1,2,100%,7d,7d,100%,26/05/2026,03/06/2026,26/05/2026,03/06/2026,24,No,No,No,26,As Soon As Possible,Medium,26,4.1
+75,6,1,,,,,,,,26/05/2026,03/06/2026,,6
+76,,0,0,NA,NA
+70,Circuit breaker set down and aligned,4.2,2,0%,5d,5d,0%,02/09/2026,08/09/2026,02/09/2026,08/09/2026,"26,12",No,No,Yes,27,As Soon As Possible,Medium,27,4.2
+75,6,1,,,,,,,,02/09/2026,08/09/2026,,6
+76,,0,0,NA,NA
+70,Disconnectors and CTs installed,4.3,2,0%,8d,8d,0%,09/09/2026,18/09/2026,09/09/2026,18/09/2026,27,No,No,Yes,28,As Soon As Possible,Medium,28,4.3
+75,6,1,,,,,,,,09/09/2026,18/09/2026,,6
+76,,0,0,NA,NA
+70,Busbar connections made off,4.4,2,0%,6d,6d,0%,21/09/2026,28/09/2026,21/09/2026,28/09/2026,28,No,No,No,29,As Soon As Possible,Medium,29,4.4
+75,6,1,,,,,,,,21/09/2026,28/09/2026,,6
+76,,0,0,NA,NA
+70,HV cable pulled,4.5,2,100%,9d,9d,100%,04/06/2026,16/06/2026,04/06/2026,16/06/2026,"23,26",No,No,No,30,As Soon As Possible,Medium,30,4.5
+75,7,1,,,,,,,,04/06/2026,16/06/2026,,7
+76,,0,0,NA,NA
+70,HV cable terminated,4.6,2,0%,7d,7d,0%,29/09/2026,07/10/2026,29/09/2026,07/10/2026,"30,29",No,No,No,31,As Soon As Possible,Medium,31,4.6
+75,7,1,,,,,,,,29/09/2026,07/10/2026,,7
+76,,0,0,NA,NA
+70,Protection panels installed,4.7,2,0%,6d,6d,0%,01/07/2026,08/07/2026,01/07/2026,08/07/2026,"15,24",No,No,No,32,As Soon As Possible,Medium,32,4.7
+75,8,1,,,,,,,,01/07/2026,08/07/2026,,8
+76,,0,0,NA,NA
+70,Multicore cabling and glanding,4.8,2,0%,12d,12d,0%,21/09/2026,06/10/2026,21/09/2026,06/10/2026,"32,28",No,No,Yes,33,As Soon As Possible,Medium,33,4.8
+75,8,1,,,,,,,,21/09/2026,06/10/2026,,8
+76,,0,0,NA,NA
+70,Secondary wiring terminated,4.9,2,0%,10d,10d,0%,07/10/2026,20/10/2026,07/10/2026,20/10/2026,33,No,No,Yes,34,As Soon As Possible,Medium,34,4.9
+75,8,1,,,,,,,,07/10/2026,20/10/2026,,8
+76,,0,0,NA,NA
+70,Testing and commissioning,5,1,0%,32d,32d,0%,21/10/2026,03/12/2026,21/10/2026,03/12/2026,,No,No,Yes,35,As Soon As Possible,Medium,35,5,Yes
+70,Primary injection testing,5.1,2,0%,6d,6d,0%,21/10/2026,28/10/2026,21/10/2026,28/10/2026,"31,34",No,No,Yes,36,As Soon As Possible,Medium,36,5.1
+75,9,1,,,,,,,,21/10/2026,28/10/2026,,9
+76,,0,0,NA,NA
+70,Secondary injection testing,5.2,2,0%,8d,8d,0%,29/10/2026,09/11/2026,29/10/2026,09/11/2026,36,No,No,Yes,37,As Soon As Possible,Medium,37,5.2
+75,9,1,,,,,,,,29/10/2026,09/11/2026,,9
+76,,0,0,NA,NA
+70,Protection settings applied,5.3,2,0%,4d,4d,0%,10/11/2026,13/11/2026,10/11/2026,13/11/2026,37,No,No,Yes,38,As Soon As Possible,Medium,38,5.3
+75,9,1,,,,,,,,10/11/2026,13/11/2026,,9
+76,,0,0,NA,NA
+70,Interlock and trip testing,5.4,2,0%,5d,5d,0%,16/11/2026,20/11/2026,16/11/2026,20/11/2026,38,No,No,Yes,39,As Soon As Possible,Medium,39,5.4
+75,9,1,,,,,,,,16/11/2026,20/11/2026,,9
+76,,0,0,NA,NA
+70,SCADA point-to-point,5.5,2,0%,6d,6d,0%,23/11/2026,30/11/2026,23/11/2026,30/11/2026,39,No,No,Yes,40,As Soon As Possible,Medium,40,5.5
+75,10,1,,,,,,,,23/11/2026,30/11/2026,,10
+76,,0,0,NA,NA
+70,Pre-energisation inspection,5.6,2,0%,3d,3d,0%,01/12/2026,03/12/2026,01/12/2026,03/12/2026,40,No,No,Yes,41,As Soon As Possible,Medium,41,5.6
+75,10,1,,,,,,,,01/12/2026,03/12/2026,,10
+76,,0,0,NA,NA
+70,Outage and energisation,6,1,0%,12d,12d,0%,04/12/2026,21/12/2026,04/12/2026,21/12/2026,,No,No,Yes,42,As Soon As Possible,Medium,42,6,Yes
+70,Outage starts,6.1,2,0%,0d,0d,0%,04/12/2026,04/12/2026,04/12/2026,04/12/2026,"41,7",No,Yes,Yes,43,As Soon As Possible,Medium,43,6.1
+75,1,1,,,,,,,,04/12/2026,04/12/2026,,1
+76,,0,0,NA,NA
+70,Isolation and earthing,6.2,2,0%,1d,1d,0%,07/12/2026,07/12/2026,07/12/2026,07/12/2026,43,No,No,Yes,44,As Soon As Possible,Medium,44,6.2
+75,7,1,,,,,,,,07/12/2026,07/12/2026,,7
+76,,0,0,NA,NA
+70,Busbar tie-in,6.3,2,0%,3d,3d,0%,08/12/2026,10/12/2026,08/12/2026,10/12/2026,44,No,No,Yes,45,As Soon As Possible,Medium,45,6.3
+75,6,1,,,,,,,,08/12/2026,10/12/2026,,6
+76,,0,0,NA,NA
+70,Final connections and checks,6.4,2,0%,2d,2d,0%,11/12/2026,14/12/2026,11/12/2026,14/12/2026,45,No,No,Yes,46,As Soon As Possible,Medium,46,6.4
+75,9,1,,,,,,,,11/12/2026,14/12/2026,,9
+76,,0,0,NA,NA
+70,Circuit energised,6.5,2,0%,0d,0d,0%,15/12/2026,15/12/2026,15/12/2026,15/12/2026,46,No,Yes,Yes,47,As Soon As Possible,Medium,47,6.5
+75,1,1,,,,,,,,15/12/2026,15/12/2026,,1
+76,,0,0,NA,NA
+70,Outage ends,6.6,2,0%,0d,0d,0%,16/12/2026,16/12/2026,16/12/2026,16/12/2026,47,No,Yes,Yes,48,As Soon As Possible,Medium,48,6.6
+75,1,1,,,,,,,,16/12/2026,16/12/2026,,1
+76,,0,0,NA,NA
+70,24-hour soak,6.7,2,0%,2d,2d,0%,17/12/2026,18/12/2026,17/12/2026,18/12/2026,48,No,No,Yes,49,As Soon As Possible,Medium,49,6.7
+75,10,1,,,,,,,,17/12/2026,18/12/2026,,10
+76,,0,0,NA,NA
+70,Handover to operations,6.8,2,0%,0d,0d,0%,21/12/2026,21/12/2026,21/12/2026,21/12/2026,49,No,Yes,Yes,50,As Soon As Possible,Medium,50,6.8
+75,1,1,,,,,,,,21/12/2026,21/12/2026,,1
+76,,0,0,NA,NA

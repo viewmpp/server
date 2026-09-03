@@ -57,15 +57,16 @@
   <div class="samples">
     <p class="samples__lead">No file at hand? Convert a sample plan</p>
     <ul class="samples__list">
-      {{range .Examples}}
+      {{range $i, $e := .Examples}}{{if lt $i 3}}
         <li>
-          <a class="sample" href="/example/{{.Name}}">
-            <span class="sample__label">{{.Label}}</span>
-            <span class="sample__note">{{.Note}}</span>
+          <a class="sample" href="/example/{{$e.Name}}">
+            <span class="sample__label">{{$e.Label}}</span>
+            <span class="sample__note">{{$e.Note}}</span>
           </a>
         </li>
-      {{end}}
+      {{end}}{{end}}
     </ul>
+    {{if gt (len .Examples) 3}}<p class="samples__more"><a href="/examples">See all examples</a></p>{{end}}
   </div>
 
   <section class="prose">
