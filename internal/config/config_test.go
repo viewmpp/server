@@ -5,72 +5,108 @@ import (
 	"testing"
 )
 
-func TestValidateRefusesLocalhostInProduction(t *testing.T) {
+func validProd() Config {
+	var cfg Config
+
+	cfg.AppEnv = "prod"
+	cfg.AppProxies = 1
+	cfg.AppBaseURL = "https://viewmpp.com"
+	cfg.SessionSecretKey = strings.Repeat("k", MinSecretKeyLength)
+	cfg.DiagAddr = "127.0.0.1:6060"
+
+	return cfg
+}
+
+func TestAGoodProductionConfigStarts(t *testing.T) {
+	cfg := validProd()
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("a valid production configuration was rejected: %v", err)
+	}
+}
+
+func TestOutsideProductionNothingIsChecked(t *testing.T) {
+	for _, env := range []string{"dev", "stage"} {
+		t.Run(env, func(t *testing.T) {
+			var cfg Config
+			cfg.AppEnv = env
+			cfg.AppBaseURL = "http://localhost:4000"
+			cfg.DiagAddr = ":6060"
+
+			if err := cfg.Validate(); err != nil {
+				t.Fatalf("%s was held to production rules: %v", env, err)
+			}
+		})
+	}
+}
+
+func TestProductionRefusesAnUnreachableBaseURL(t *testing.T) {
 	cases := []struct {
-		name     string
-		env      string
-		baseURL  string
-		diagAddr string
-		wantErr  bool
+		name    string
+		baseURL string
 	}{
-		{"dev keeps localhost", "dev", "http://localhost:4000", ":6060", false},
-		{"stage keeps localhost", "stage", "http://localhost:4000", ":6060", false},
-		{"prod refuses localhost", "prod", "http://localhost:4000", ":6060", true},
-		{"prod refuses loopback", "prod", "http://127.0.0.1:4000", ":6060", true},
-		{"prod refuses empty base url", "prod", "", ":6060", true},
-		{"prod refuses plain http", "prod", "http://viewmpp.com", ":6060", true},
-		{"prod refuses https with diagnostics address ipv4", "prod", "https://viewmpp.com", "127.0.0.1:6060", true},
-		{"prod refuses https with diagnostics address localhost", "prod", "https://viewmpp.com", "localhost:6060", true},
-		{"prod refuses empty diagnostics address", "prod", "https://viewmpp.com", "", true},
-		{"prod refuses diagnostics illegal port 4000", "prod", "https://viewmpp.com", ":4000", true},
-		{"prod refuses diagnostics illegal port 5432", "prod", "https://viewmpp.com", ":5432", true},
-		{"prod refuses diagnostics illegal port 8080", "prod", "https://viewmpp.com", ":8080", true},
+		{"empty", ""},
+		{"localhost", "http://localhost:4000"},
+		{"loopback", "http://127.0.0.1:4000"},
+		{"plain http", "http://viewmpp.com"},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var cfg Config
-			cfg.AppEnv = tc.env
-			cfg.AppProxies = 1
+			cfg := validProd()
 			cfg.AppBaseURL = tc.baseURL
-			cfg.SessionSecretKey = strings.Repeat("k", MinSecretKeyLength)
+
+			if cfg.Validate() == nil {
+				t.Fatalf("prod accepted BASE_URL %q: it signs every reset link and the whole sitemap", tc.baseURL)
+			}
+		})
+	}
+}
+
+func TestProductionKeepsDiagnosticsOnLoopback(t *testing.T) {
+	cases := []struct {
+		name     string
+		diagAddr string
+		wantErr  bool
+	}{
+		{"loopback address", "127.0.0.1:6060", false},
+		{"localhost name", "localhost:6060", false},
+		{"every interface", ":6060", true},
+		{"public interface", "0.0.0.0:6060", true},
+		{"empty", "", true},
+		{"the application port", "127.0.0.1:4000", true},
+		{"the database port", "127.0.0.1:5432", true},
+		{"the parser port", "127.0.0.1:8080", true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := validProd()
 			cfg.DiagAddr = tc.diagAddr
 
 			err := cfg.Validate()
 
 			if tc.wantErr && err == nil {
-				t.Fatalf("Validate() accepted BASE_URL %q in %s: a launch would publish a sitemap of unreachable URLs", tc.baseURL, tc.env)
+				t.Fatalf("prod accepted diagnostics on %q: expvar would answer to whoever can reach it", tc.diagAddr)
 			}
 			if !tc.wantErr && err != nil {
-				t.Fatalf("Validate() rejected a valid configuration: %v", err)
+				t.Fatalf("prod rejected diagnostics on %q: %v", tc.diagAddr, err)
 			}
 		})
 	}
 }
 
 func TestProductionNeedsASecretKey(t *testing.T) {
-	cfg := Config{}
-	cfg.AppEnv = "prod"
-	cfg.AppProxies = 1
-	cfg.AppBaseURL = "https://viewmpp.com"
-	cfg.DiagAddr = ":6060"
+	cfg := validProd()
+	cfg.SessionSecretKey = ""
 
 	if cfg.Validate() == nil {
 		t.Error("prod started without SECRET_KEY: every restart would invalidate the forms people have open")
 	}
-
-	cfg.SessionSecretKey = strings.Repeat("k", MinSecretKeyLength)
-
-	if err := cfg.Validate(); err != nil {
-		t.Errorf("a configured key was still rejected: %v", err)
-	}
 }
 
 func TestAShortSecretKeyIsRefused(t *testing.T) {
-	cfg := Config{}
-	cfg.AppEnv = "prod"
-	cfg.AppProxies = 1
-	cfg.AppBaseURL = "https://viewmpp.com"
+	cfg := validProd()
 	cfg.SessionSecretKey = "abc"
 
 	if cfg.Validate() == nil {
@@ -78,24 +114,22 @@ func TestAShortSecretKeyIsRefused(t *testing.T) {
 	}
 }
 
+func TestProductionNeedsAProxyCount(t *testing.T) {
+	cfg := validProd()
+	cfg.AppProxies = 0
+
+	if cfg.Validate() == nil {
+		t.Error("prod accepted PROXIES 0: every visitor would resolve to the proxy and share one rate limit")
+	}
+}
+
 func TestOnlyProductionInsistsOnAKey(t *testing.T) {
-	cfg := Config{}
+	var cfg Config
 	cfg.AppEnv = "dev"
 
 	cfg.fillSecretKey()
 
 	if cfg.SessionSecretKey == "" {
 		t.Error("dev was left without a key: csrf tokens could not be signed at all")
-	}
-}
-
-func TestProductionNeedsAProxyCount(t *testing.T) {
-	cfg := Config{}
-	cfg.AppEnv = "prod"
-	cfg.AppBaseURL = "https://viewmpp.com"
-	cfg.SessionSecretKey = strings.Repeat("k", MinSecretKeyLength)
-
-	if cfg.Validate() == nil {
-		t.Error("prod accepted PROXIES 0: every visitor would resolve to the proxy and share one rate limit")
 	}
 }

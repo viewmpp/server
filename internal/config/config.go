@@ -58,14 +58,13 @@ func (cfg *Config) Validate() error {
 		strings.Contains(cfg.AppBaseURL, "127.0.0.1"):
 		return errors.New("prod server started with empty or localhost base url")
 	case !strings.HasPrefix(cfg.AppBaseURL, "https://"):
-		return errors.New("prod started with ")
+		return errors.New("prod server started with a base url that is not https")
 	case cfg.DiagAddr == "" ||
-		strings.Contains(cfg.DiagAddr, "localhost") ||
-		strings.Contains(cfg.DiagAddr, "127.0.0.1") ||
+		(!strings.Contains(cfg.DiagAddr, "localhost") && !strings.Contains(cfg.DiagAddr, "127.0.0.1")) ||
 		strings.Contains(cfg.DiagAddr, "4000") ||
 		strings.Contains(cfg.DiagAddr, "5432") ||
 		strings.Contains(cfg.DiagAddr, "8080"):
-		return errors.New("prod diagnostic server started with empty or localhost address, or using illegal ports (:4000, :5432, :8080)")
+		return errors.New("prod diagnostic server must listen on loopback, and not on 4000, 5432 or 8080")
 	default:
 		return nil
 	}

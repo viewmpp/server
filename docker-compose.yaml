@@ -87,8 +87,6 @@ services:
       DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@server-db:5432/${POSTGRES_DB}?sslmode=disable
       PARSER_URL: http://parser:8080/parse
     stop_grace_period: 40s
-    ports:
-      - "127.0.0.1:6060:6060"
     depends_on:
       server-db:
         condition: service_healthy
