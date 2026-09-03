@@ -13,16 +13,18 @@ func TestValidateRefusesLocalhostInProduction(t *testing.T) {
 		diagAddr string
 		wantErr  bool
 	}{
-		{"dev keeps localhost", "dev", "http://localhost:4000", "127.0.0.1:6060", false},
-		{"stage keeps localhost", "stage", "http://localhost:4000", "127.0.0.1:6060", false},
-		{"prod refuses localhost", "prod", "http://localhost:4000", "127.0.0.1:6060", true},
-		{"prod refuses loopback", "prod", "http://127.0.0.1:4000", "127.0.0.1:6060", true},
-		{"prod refuses empty base url", "prod", "", "127.0.0.1:6060", true},
-		{"prod refuses plain http", "prod", "http://viewmpp.com", "127.0.0.1:6060", true},
-		{"prod accepts https with diagnostics address ipv4", "prod", "https://viewmpp.com", "127.0.0.1:6060", false},
-		{"prod accepts https with diagnostics address localhost", "prod", "https://viewmpp.com", "localhost:6060", false},
+		{"dev keeps localhost", "dev", "http://localhost:4000", ":6060", false},
+		{"stage keeps localhost", "stage", "http://localhost:4000", ":6060", false},
+		{"prod refuses localhost", "prod", "http://localhost:4000", ":6060", true},
+		{"prod refuses loopback", "prod", "http://127.0.0.1:4000", ":6060", true},
+		{"prod refuses empty base url", "prod", "", ":6060", true},
+		{"prod refuses plain http", "prod", "http://viewmpp.com", ":6060", true},
+		{"prod refuses https with diagnostics address ipv4", "prod", "https://viewmpp.com", "127.0.0.1:6060", true},
+		{"prod refuses https with diagnostics address localhost", "prod", "https://viewmpp.com", "localhost:6060", true},
 		{"prod refuses empty diagnostics address", "prod", "https://viewmpp.com", "", true},
-		{"prod refuses diagnostics illegal port", "prod", "https://viewmpp.com", "127.0.0.1:4000", true},
+		{"prod refuses diagnostics illegal port 4000", "prod", "https://viewmpp.com", ":4000", true},
+		{"prod refuses diagnostics illegal port 5432", "prod", "https://viewmpp.com", ":5432", true},
+		{"prod refuses diagnostics illegal port 8080", "prod", "https://viewmpp.com", ":8080", true},
 	}
 
 	for _, tc := range cases {
@@ -51,7 +53,7 @@ func TestProductionNeedsASecretKey(t *testing.T) {
 	cfg.AppEnv = "prod"
 	cfg.AppProxies = 1
 	cfg.AppBaseURL = "https://viewmpp.com"
-	cfg.DiagAddr = "127.0.0.1:6060"
+	cfg.DiagAddr = ":6060"
 
 	if cfg.Validate() == nil {
 		t.Error("prod started without SECRET_KEY: every restart would invalidate the forms people have open")

@@ -2,23 +2,22 @@ package diagnostics
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net"
 	"net/http"
-	"server/internal/config"
 	"time"
 )
 
 type Server struct {
 	srv    *http.Server
-	cfg    *config.Config
 	logger *slog.Logger
 }
 
-func New(cfg *config.Config, logger *slog.Logger) *Server {
+func New(addr string, logger *slog.Logger) *Server {
 
 	srv := &http.Server{
-		Addr:              cfg.DiagAddr,
+		Addr:              addr,
 		Handler:           route(),
 		ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		WriteTimeout:      2 * time.Minute,
@@ -29,24 +28,27 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 
 	return &Server{
 		srv:    srv,
-		cfg:    cfg,
 		logger: logger,
 	}
 }
 
 func (s *Server) ListenAndServe() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	listener, err := net.Listen("tcp", s.srv.Addr)
 	if err != nil {
-		s.logger.Error("something went wrong while establishing tcp connection")
+		s.logger.Error("failed to start diagnostics listener", "err", err)
+		_ = s.Shutdown(ctx)
 		return
 	}
 	defer listener.Close()
 
 	s.logger.Info("starting diagnostic server listener", "addr", listener.Addr())
 
-	err = s.srv.Serve(listener)
-	if err != nil {
+	if err = s.srv.Serve(listener); errors.Is(err, http.ErrServerClosed) {
 		s.logger.Error("diagnostics server failed", "error", err)
+		_ = s.Shutdown(ctx)
 		return
 	}
 }

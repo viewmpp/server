@@ -42,7 +42,7 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Level()}))
 
-	diag := diagnostics.New(&cfg, logger)
+	diag := diagnostics.New(cfg.DiagAddr, logger)
 
 	go diag.ListenAndServe()
 

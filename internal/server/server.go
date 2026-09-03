@@ -90,7 +90,7 @@ func (s *Server) Serve() error {
 		IdleTimeout:       time.Minute,
 	}
 
-	shutdownError := make(chan error)
+	shutdownError := make(chan error, 1)
 
 	go func() {
 		quit := make(chan os.Signal, 1)
@@ -102,17 +102,10 @@ func (s *Server) Serve() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 
-		err := s.diagnostics.Shutdown(ctx)
-		if err != nil {
-			shutdownError <- err
-			return
-		}
+		diagErr := s.diagnostics.Shutdown(ctx)
+		appErr := srv.Shutdown(ctx)
 
-		err = srv.Shutdown(ctx)
-		if err != nil {
-			shutdownError <- err
-			return
-		}
+		shutdownError <- errors.Join(diagErr, appErr)
 
 		s.throttleNotice.Close()
 
