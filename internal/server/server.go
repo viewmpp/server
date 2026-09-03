@@ -102,10 +102,8 @@ func (s *Server) Serve() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 
-		diagErr := s.diagnostics.Shutdown(ctx)
 		appErr := srv.Shutdown(ctx)
-
-		shutdownError <- errors.Join(diagErr, appErr)
+		diagErr := s.diagnostics.Shutdown(ctx)
 
 		s.throttleNotice.Close()
 
@@ -115,7 +113,7 @@ func (s *Server) Serve() error {
 
 		s.logger.Info("stopped server")
 
-		shutdownError <- nil
+		shutdownError <- errors.Join(appErr, diagErr)
 	}()
 
 	ln, err := net.Listen("tcp", srv.Addr)

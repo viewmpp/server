@@ -33,23 +33,18 @@ func New(addr string, logger *slog.Logger) *Server {
 }
 
 func (s *Server) ListenAndServe() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	listener, err := net.Listen("tcp", s.srv.Addr)
 	if err != nil {
-		s.logger.Error("failed to start diagnostics listener", "err", err)
-		_ = s.Shutdown(ctx)
+		s.logger.Error("failed to start diagnostics listener", "error", err)
 		return
 	}
 	defer listener.Close()
 
-	s.logger.Info("starting diagnostic server listener", "addr", listener.Addr())
+	s.logger.Info("starting diagnostics server", "addr", listener.Addr())
 
-	if err = s.srv.Serve(listener); errors.Is(err, http.ErrServerClosed) {
+	err = s.srv.Serve(listener)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		s.logger.Error("diagnostics server failed", "error", err)
-		_ = s.Shutdown(ctx)
-		return
 	}
 }
 
