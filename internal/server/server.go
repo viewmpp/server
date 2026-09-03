@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"server/internal/clientip"
 	"server/internal/config"
+	"server/internal/diagnostics"
 	"server/internal/export"
 	"server/internal/project"
 	"server/internal/ratelimit"
@@ -25,6 +26,7 @@ import (
 
 type Server struct {
 	cfg            config.Config
+	diagnostics    *diagnostics.Server
 	resolver       *clientip.Resolver
 	readLimiter    *ratelimit.Limiter
 	exportLimiter  *ratelimit.Limiter
@@ -44,6 +46,7 @@ const throttleNoticeWindow = time.Minute
 
 func New(
 	cfg config.Config,
+	diagnostics *diagnostics.Server,
 	resolver *clientip.Resolver,
 	readLimiter *ratelimit.Limiter,
 	exportLimiter *ratelimit.Limiter,
@@ -59,6 +62,7 @@ func New(
 ) *Server {
 	return &Server{
 		cfg:            cfg,
+		diagnostics:    diagnostics,
 		resolver:       resolver,
 		readLimiter:    readLimiter,
 		exportLimiter:  exportLimiter,
@@ -77,7 +81,7 @@ func New(
 
 func (s *Server) Serve() error {
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%d", s.cfg.Port),
+		Addr:              fmt.Sprintf(":%d", s.cfg.AppPort),
 		Handler:           s.routes(),
 		ErrorLog:          slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
 		WriteTimeout:      2 * time.Minute,
@@ -98,7 +102,13 @@ func (s *Server) Serve() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 
-		err := srv.Shutdown(ctx)
+		err := s.diagnostics.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
+			return
+		}
+
+		err = srv.Shutdown(ctx)
 		if err != nil {
 			shutdownError <- err
 			return
@@ -120,7 +130,7 @@ func (s *Server) Serve() error {
 		return err
 	}
 
-	s.logger.Info("starting server", "addr", ln.Addr(), "env", s.cfg.Env)
+	s.logger.Info("starting server", "addr", ln.Addr(), "env", s.cfg.AppEnv)
 
 	err = srv.Serve(ln)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {

@@ -1,12 +1,11 @@
-package debug
+package diagnostics
 
 import (
 	"expvar"
 	"net/http"
 )
 
-func (s *Server) route() http.Handler {
-
+func route() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /debug/vars", expvar.Handler())

@@ -35,7 +35,7 @@ func sitemapPaths() []string {
 }
 
 func (s *Server) sitemap(w http.ResponseWriter, r *http.Request) {
-	base := strings.TrimSuffix(s.cfg.BaseURL, "/")
+	base := strings.TrimSuffix(s.cfg.AppBaseURL, "/")
 
 	set := urlset{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 

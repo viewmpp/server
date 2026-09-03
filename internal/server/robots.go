@@ -26,7 +26,7 @@ func (s *Server) robots(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b.WriteString("\n")
-	_, _ = fmt.Fprintf(&b, "Sitemap: %s/sitemap.xml\n", strings.TrimSuffix(s.cfg.BaseURL, "/"))
+	_, _ = fmt.Fprintf(&b, "Sitemap: %s/sitemap.xml\n", strings.TrimSuffix(s.cfg.AppBaseURL, "/"))
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=86400")

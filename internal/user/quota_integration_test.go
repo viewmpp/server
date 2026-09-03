@@ -79,10 +79,10 @@ func openSeatQuotaTestDB(t *testing.T) *sql.DB {
 	}
 
 	db, err := postgres.Open(config.DB{
-		DBDSN:        dsn,
-		MaxOpenConns: 16,
-		MaxIdleConns: 16,
-		MaxIdleTime:  time.Minute,
+		DBDSN:          dsn,
+		DBMaxOpenConns: 16,
+		DBMaxIdleConns: 16,
+		DBMaxIdleTime:  time.Minute,
 	})
 	if err != nil {
 		t.Fatalf("open test database: %v", err)

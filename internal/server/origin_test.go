@@ -30,7 +30,7 @@ func originServer(t *testing.T) *Server {
 	t.Helper()
 
 	s := newTestServer(t)
-	s.cfg.BaseURL = "https://viewmpp.com"
+	s.cfg.AppBaseURL = "https://viewmpp.com"
 
 	return s
 }

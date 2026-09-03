@@ -19,7 +19,7 @@ type healthcheck struct {
 func (s *Server) healthcheck(w http.ResponseWriter, r *http.Request) {
 	hc := healthcheck{
 		Status:  "OK",
-		Env:     s.cfg.Env,
+		Env:     s.cfg.AppEnv,
 		Version: vcs.Version(),
 	}
 
@@ -33,7 +33,7 @@ func (s *Server) static() http.Handler {
 	files := http.FileServerFS(ui.Files)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch s.cfg.Env {
+		switch s.cfg.AppEnv {
 		case "dev":
 			w.Header().Set("Cache-Control", "no-store")
 		default:

@@ -30,8 +30,8 @@ func New(
 	}
 
 	return &Mailer{
-		client:    resend.NewClient(config.APIKey),
-		sender:    config.Sender,
+		client:    resend.NewClient(config.ResendAPIKey),
+		sender:    config.ResendSender,
 		templates: templates,
 		logger:    logger,
 		prod:      prod,

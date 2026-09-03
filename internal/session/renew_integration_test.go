@@ -107,10 +107,10 @@ func openRenewTestDB(t *testing.T) *sql.DB {
 	}
 
 	db, err := postgres.Open(config.DB{
-		DBDSN:        dsn,
-		MaxOpenConns: 4,
-		MaxIdleConns: 4,
-		MaxIdleTime:  time.Minute,
+		DBDSN:          dsn,
+		DBMaxOpenConns: 4,
+		DBMaxIdleConns: 4,
+		DBMaxIdleTime:  time.Minute,
 	})
 	if err != nil {
 		t.Fatalf("open test database: %v", err)

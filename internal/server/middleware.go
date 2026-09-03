@@ -89,7 +89,7 @@ func (s *Server) recoverPanic(next http.Handler) http.Handler {
 }
 
 func (s *Server) noStore(next http.Handler) http.Handler {
-	if s.cfg.Env != "dev" {
+	if s.cfg.AppEnv != "dev" {
 		return next
 	}
 
@@ -168,7 +168,7 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 		header.Set("X-Frame-Options", "DENY")
 		header.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
-		if s.cfg.Env == "prod" {
+		if s.cfg.AppEnv == "prod" {
 			header.Set("Strict-Transport-Security", "max-age=31536000")
 		}
 
@@ -210,7 +210,7 @@ func (s *Server) fromOwnSite(r *http.Request) bool {
 		return true
 	}
 
-	return origin == strings.TrimSuffix(s.cfg.BaseURL, "/")
+	return origin == strings.TrimSuffix(s.cfg.AppBaseURL, "/")
 }
 
 func originOf(reference string) string {
