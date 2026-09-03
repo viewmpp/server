@@ -25,7 +25,7 @@ func render(t *testing.T, store *Store, r *http.Request, token string) (string, 
 	return sess.CSRF(), w
 }
 
-func submit(t *testing.T, store *Store, cookie, field, token string) bool {
+func submit(t *testing.T, store *Store, cookie, field, token string, userID *int64) bool {
 	t.Helper()
 
 	r := httptest.NewRequest(http.MethodPost, "/signin", strings.NewReader(CSRFField+"="+field))
@@ -35,7 +35,7 @@ func submit(t *testing.T, store *Store, cookie, field, token string) bool {
 		r.AddCookie(&http.Cookie{Name: store.csrfName(), Value: cookie})
 	}
 
-	sess := &Session{Data: map[string]string{}, store: store, csrf: store.readCSRF(r), Token: token}
+	sess := &Session{Data: map[string]string{}, store: store, csrf: store.readCSRF(r), Token: token, UserID: userID}
 
 	return VerifyCSRF(sess, r)
 }
@@ -55,12 +55,12 @@ func TestTheFormCarriesASignatureAndTheCookieCarriesTheSecretHalf(t *testing.T) 
 		t.Error("the csrf cookie is readable from javascript")
 	}
 
-	if !submit(t, store, cookie.Value, field, "") {
+	if !submit(t, store, cookie.Value, field, "", nil) {
 		t.Error("the pair a form was rendered with does not verify")
 	}
 }
 
-func TestRenderingAFormEstablishesTheSessionItIsSignedAgainst(t *testing.T) {
+func TestRenderingAnAnonymousFormDoesNotEstablishASession(t *testing.T) {
 	store := newTestStore(false)
 	w := httptest.NewRecorder()
 	sess := &Session{Data: map[string]string{}, store: store, w: w}
@@ -71,8 +71,8 @@ func TestRenderingAFormEstablishesTheSessionItIsSignedAgainst(t *testing.T) {
 		t.Errorf("session data holds %v: a form page must not write application state", sess.Data)
 	}
 
-	if !sess.Unsaved() {
-		t.Error("the form is signed against a session that never reaches the database, so the next request cannot verify it")
+	if sess.Unsaved() {
+		t.Error("the form marked the anonymous session for persistence")
 	}
 
 	var issued []string
@@ -80,8 +80,8 @@ func TestRenderingAFormEstablishesTheSessionItIsSignedAgainst(t *testing.T) {
 		issued = append(issued, c.Name)
 	}
 
-	if len(issued) != 2 {
-		t.Errorf("cookies issued: %v, want the session and the csrf cookie together", issued)
+	if len(issued) != 1 || issued[0] != store.csrfName() {
+		t.Errorf("cookies issued: %v, want only %s", issued, store.csrfName())
 	}
 }
 
@@ -109,39 +109,44 @@ func TestWhatIsAcceptedAndWhatIsNot(t *testing.T) {
 	other := newTestStore(false)
 	other.secret = []byte("stolen-guess")
 
-	_, signedIn := render(t, store, httptest.NewRequest(http.MethodGet, "/account", nil), "session-abc")
-	boundValue := signedIn.Result().Cookies()[0].Value
+	userID := int64(42)
+	boundWriter := httptest.NewRecorder()
+	boundSession := &Session{Data: map[string]string{}, store: store, w: boundWriter, Token: "session-abc", UserID: &userID, sent: true, stored: true}
+	boundField := boundSession.CSRF()
+	boundValue := boundWriter.Result().Cookies()[0].Value
 
 	tests := []struct {
 		name   string
 		cookie string
 		field  string
 		token  string
+		userID *int64
 		want   bool
 	}{
-		{"the pair the form was rendered with", value, field, "", true},
-		{"signature invented", value, "not-a-signature", "", false},
-		{"cookie replaced by an attacker who can write cookies", "planted-value", field, "", false},
-		{"signature made with another secret", value, mustSign(other, value, ""), "", false},
-		{"a signature made for a different cookie", boundValue, field, "", false},
-		{"a token minted for a signed in session, replayed anonymously", boundValue, mustSign(store, boundValue, "session-abc"), "", false},
-		{"a token minted for another visitor's session", boundValue, mustSign(store, boundValue, "session-xyz"), "session-abc", false},
-		{"a token minted for this very session", boundValue, mustSign(store, boundValue, "session-abc"), "session-abc", true},
-		{"no cookie", "", field, "", false},
-		{"no form field", value, "", "", false},
+		{"the anonymous pair the form was rendered with", value, field, "", nil, true},
+		{"signature invented", value, "not-a-signature", "", nil, false},
+		{"cookie replaced by an attacker who can write cookies", "planted-value", field, "", nil, false},
+		{"signature made with another secret", value, mustSign(other, value, "", nil), "", nil, false},
+		{"an anonymous signature used after sign in", value, field, "session-abc", &userID, false},
+		{"a signature made for a different cookie", boundValue, field, "", nil, false},
+		{"an authenticated token replayed anonymously", boundValue, boundField, "", nil, false},
+		{"a token minted for another visitor's session", boundValue, mustSign(store, boundValue, "session-xyz", &userID), "session-abc", &userID, false},
+		{"a token minted for this authenticated session", boundValue, boundField, "session-abc", &userID, true},
+		{"no cookie", "", field, "", nil, false},
+		{"no form field", value, "", "", nil, false},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := submit(t, store, tc.cookie, tc.field, tc.token); got != tc.want {
+			if got := submit(t, store, tc.cookie, tc.field, tc.token, tc.userID); got != tc.want {
 				t.Errorf("accepted = %v, want %v", got, tc.want)
 			}
 		})
 	}
 }
 
-func mustSign(store *Store, value, token string) string {
-	return (&Session{store: store, Token: token}).sign(value)
+func mustSign(store *Store, value, token string, userID *int64) string {
+	return (&Session{store: store, Token: token, UserID: userID}).sign(value)
 }
 
 func TestAPageThatShowsAFormIsFlagged(t *testing.T) {
@@ -189,18 +194,20 @@ func TestSigningInInvalidatesAFormRenderedBeforeIt(t *testing.T) {
 	staleCookie := w.Result().Cookies()[0].Value
 
 	const token = "a-freshly-issued-session-token"
+	userID := int64(42)
 
 	renewed := httptest.NewRecorder()
 	sess.rotate(token)
+	sess.UserID = &userID
 	store.rotateCSRF(renewed, sess)
 
 	freshCookie := renewed.Result().Cookies()[0].Value
 
-	if submit(t, store, freshCookie, stale, token) {
+	if submit(t, store, freshCookie, stale, token, &userID) {
 		t.Error("a form rendered before sign in still verifies afterwards: the security context changed and the old token must die with it")
 	}
 
-	if submit(t, store, staleCookie, stale, token) {
+	if submit(t, store, staleCookie, stale, token, &userID) {
 		t.Error("the old pair verifies against the new session: binding is not in force")
 	}
 }
@@ -213,6 +220,8 @@ func TestRenewalHandsOutAFreshPair(t *testing.T) {
 
 	before := sess.CSRF()
 	sess.rotate("new-session-token")
+	userID := int64(42)
+	sess.UserID = &userID
 
 	renewed := httptest.NewRecorder()
 	store.rotateCSRF(renewed, sess)
@@ -228,7 +237,7 @@ func TestRenewalHandsOutAFreshPair(t *testing.T) {
 		t.Error("the token survived renewal unchanged")
 	}
 
-	if !submit(t, store, cookies[0].Value, after, sess.Token) {
+	if !submit(t, store, cookies[0].Value, after, sess.Token, &userID) {
 		t.Error("the pair issued during renewal does not verify")
 	}
 }
