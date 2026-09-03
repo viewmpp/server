@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Application
+	Diagnostics
 	Upload
 	Project
 	Read
@@ -25,6 +26,7 @@ func Load() Config {
 	var cfg Config
 
 	cfg.loadApplication()
+	cfg.loadDiagnostics()
 	cfg.loadUpload()
 	cfg.loadProject()
 	cfg.loadRead()
@@ -45,16 +47,20 @@ func Load() Config {
 
 func (cfg *Config) Validate() error {
 	switch {
-	case cfg.Env != "prod":
+	case cfg.AppEnv != "prod":
 		return nil
-	case cfg.Proxies < 1:
+	case cfg.AppProxies < 1:
 		return errors.New("prod started with 0 proxies")
-	case len(cfg.SecretKey) < MinSecretKeyLength:
+	case len(cfg.SessionSecretKey) < MinSecretKeyLength:
 		return errors.New("prod started without SECRET_KEY")
-	case cfg.BaseURL == "" || strings.Contains(cfg.BaseURL, "localhost") || strings.Contains(cfg.BaseURL, "127.0.0.1"):
-		return errors.New("")
-	case !strings.HasPrefix(cfg.BaseURL, "https://"):
-		return errors.New("")
+	case cfg.AppBaseURL == "" || strings.Contains(cfg.AppBaseURL, "localhost") || strings.Contains(cfg.AppBaseURL, "127.0.0.1"):
+		return errors.New("prod server started with empty or localhost base url")
+	case !strings.HasPrefix(cfg.AppBaseURL, "https://"):
+		return errors.New("prod started with ")
+	case cfg.DiagAddr == "" ||
+		(!strings.Contains(cfg.DiagAddr, "localhost") && !strings.Contains(cfg.DiagAddr, "127.0.0.1")) ||
+		strings.Contains(cfg.DiagAddr, "4000"):
+		return errors.New("prod diagnostic server started with empty or non-localhost address or using illegal port (:4000)")
 	default:
 		return nil
 	}

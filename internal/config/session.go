@@ -11,18 +11,18 @@ import (
 const MinSecretKeyLength = 32
 
 type Session struct {
-	SessionLifetime time.Duration
-	SecretKey       string
+	SessionLifetime  time.Duration
+	SessionSecretKey string
 }
 
 func (cfg *Config) loadSession() {
 	flag.DurationVar(&cfg.SessionLifetime, "session-lifetime", env.GetDuration("SESSION_LIFETIME", 12*time.Hour), "session lifetime")
-	flag.StringVar(&cfg.SecretKey, "secret-key", env.GetString("SECRET_KEY", ""),
+	flag.StringVar(&cfg.SessionSecretKey, "secret-key", env.GetString("SECRET_KEY", ""),
 		"key signing csrf tokens; required in prod, generated on every start elsewhere")
 }
 
 func (cfg *Config) fillSecretKey() {
-	if cfg.SecretKey != "" || cfg.Env == "prod" {
+	if cfg.SessionSecretKey != "" || cfg.AppEnv == "prod" {
 		return
 	}
 
@@ -31,5 +31,5 @@ func (cfg *Config) fillSecretKey() {
 		return
 	}
 
-	cfg.SecretKey = hex.EncodeToString(raw)
+	cfg.SessionSecretKey = hex.EncodeToString(raw)
 }
