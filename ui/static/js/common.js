@@ -131,6 +131,44 @@
     button.setAttribute('aria-busy', 'true');
   });
 
+  coolDownResend();
+
+  function coolDownResend() {
+    var form = document.querySelector('[data-cooldown]');
+    if (!form) { return; }
+
+    var button = form.querySelector('button[type="submit"]');
+    if (!button) { return; }
+
+    var seconds = Number(form.dataset.cooldown);
+    if (!seconds) { return; }
+
+    var label = button.textContent;
+    var until = 0;
+
+    try { until = Number(sessionStorage.getItem('resend-until')) || 0; } catch (err) { until = 0; }
+
+    form.addEventListener('submit', function () {
+      try { sessionStorage.setItem('resend-until', String(Date.now() + seconds * 1000)); } catch (err) { /* private mode */ }
+    });
+
+    tick();
+
+    function tick() {
+      var left = Math.ceil((until - Date.now()) / 1000);
+
+      if (left <= 0) {
+        button.disabled = false;
+        button.textContent = label;
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = label + ' (' + left + ')';
+      window.setTimeout(tick, 1000);
+    }
+  }
+
   window.addEventListener('pageshow', function () {
     document.querySelectorAll('[aria-busy="true"]').forEach(function (element) {
       element.removeAttribute('aria-busy');

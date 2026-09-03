@@ -12,7 +12,7 @@
     <p class="lead">Enter the code from the email.</p>
   {{end}}
 
-  <form action="/verify" method="POST" novalidate>
+  <form action="/verify" method="POST" novalidate data-busy>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
     <div class="field">
@@ -29,7 +29,7 @@
   <div class="auth__foot">
     <div class="auth__row">
       <span>Didn't get it?</span>
-      <form action="/verify/resend" method="POST">
+      <form action="/verify/resend" method="POST" data-busy data-cooldown="{{.ResendSeconds}}">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <button class="linkish" type="submit">Send the code again</button>
       </form>

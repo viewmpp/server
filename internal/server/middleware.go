@@ -1,8 +1,6 @@
 package server
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -109,19 +107,6 @@ func sideRequest(path string) bool {
 	return strings.HasPrefix(path, "/static/")
 }
 
-func visitorKey(r *http.Request, prefix string) string {
-	if u := user.GetUserContext(r); !u.IsAnonymous() {
-		return prefix + "user:" + strconv.FormatInt(u.ID, 10)
-	}
-
-	if sess := session.FromContext(r); sess.Established() {
-		sum := sha256.Sum256([]byte(sess.Token))
-		return prefix + "sess:" + base64.RawURLEncoding.EncodeToString(sum[:12])
-	}
-
-	return prefix + "ip:" + clientip.From(r)
-}
-
 func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		address := "address:" + clientip.From(r)
@@ -131,7 +116,7 @@ func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.H
 			return
 		}
 
-		key := visitorKey(r, prefix)
+		key := user.VisitorKey(r, prefix)
 
 		if !limiter.Take(key) {
 			s.refuse(w, r, key, limiter.Window())

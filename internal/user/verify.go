@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"server/internal/clientip"
 	"server/internal/htmlutil"
+	"server/internal/safelog"
 	"server/internal/session"
 	"server/internal/token"
 	"time"
@@ -18,7 +18,14 @@ type VerifyForm struct {
 
 func (h *Handler) VerifyPage(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r)
-	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Verify, NewPage(r, VerifyForm{Email: sess.Get("pending_email")}), h.logger)
+	h.writeVerify(w, r, http.StatusOK, VerifyForm{Email: sess.Get("pending_email")})
+}
+
+func (h *Handler) writeVerify(w http.ResponseWriter, r *http.Request, status int, form VerifyForm) {
+	page := NewPage(r, form)
+	page.ResendSeconds = int(h.verificationRC.Seconds())
+
+	htmlutil.WriteHTML(w, r, status, h.templates.Verify, page, h.logger)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -30,17 +37,17 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	form := VerifyForm{Email: sess.Get("pending_email")}
 	code := NormalizeCode(r.PostFormValue("code"))
 
-	ipKey := "verify-ip:" + clientip.From(r)
+	ipKey := VisitorKey(r, "verify:")
 	if !h.limiter.Allow(ipKey) {
-		h.logger.Warn("verify throttled", "key", ipKey)
+		h.logger.Warn("verify throttled", "key", safelog.Key(ipKey))
 		form.FieldErrors = map[string]string{"code": MsgTooManyTries}
-		htmlutil.WriteHTML(w, r, http.StatusTooManyRequests, h.templates.Verify, NewPage(r, form), h.logger)
+		h.writeVerify(w, r, http.StatusTooManyRequests, form)
 		return
 	}
 
 	if code == "" {
 		form.FieldErrors = map[string]string{"code": MsgCodeRequired}
-		htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
+		h.writeVerify(w, r, http.StatusUnprocessableEntity, form)
 		return
 	}
 
@@ -49,7 +56,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, ErrUserNotFound) {
 			h.limiter.Count(ipKey)
 			form.FieldErrors = map[string]string{"code": MsgCodeInvalid}
-			htmlutil.WriteHTML(w, r, http.StatusUnprocessableEntity, h.templates.Verify, NewPage(r, form), h.logger)
+			h.writeVerify(w, r, http.StatusUnprocessableEntity, form)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -63,7 +70,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	if err = h.store.Update(r.Context(), u); err != nil {
 		if errors.Is(err, ErrEditConflict) {
 			form.FieldErrors = map[string]string{"code": MsgVerifyRetry}
-			htmlutil.WriteHTML(w, r, http.StatusConflict, h.templates.Verify, NewPage(r, form), h.logger)
+			h.writeVerify(w, r, http.StatusConflict, form)
 			return
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
@@ -99,6 +106,15 @@ func (h *Handler) ResendCode(w http.ResponseWriter, r *http.Request) {
 	email := sess.Get("pending_email")
 	if email == "" {
 		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		return
+	}
+
+	key := VisitorKey(r, "resend:")
+	if !h.limiter.Take(key) {
+		h.logger.Warn("resend throttled", "key", safelog.Key(key))
+
+		form := VerifyForm{Email: email, FieldErrors: map[string]string{"code": MsgTooManyTries}}
+		h.writeVerify(w, r, http.StatusTooManyRequests, form)
 		return
 	}
 

@@ -48,6 +48,7 @@ type Page struct {
 	CanProtect        bool
 	MaxPublicFree     int
 	MinPasswordLength int
+	ResendSeconds     int
 	MaxPasswordLength int
 
 	sess *session.Session
