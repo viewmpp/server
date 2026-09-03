@@ -41,10 +41,6 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Level()}))
 
-	for _, warning := range cfg.Warnings() {
-		logger.Warn(warning)
-	}
-
 	client := &parser.Client{
 		URL:  cfg.ParserURL,
 		HTTP: &http.Client{Timeout: cfg.ClientTimeout},
@@ -95,7 +91,7 @@ func run() error {
 	background.Sweep(stop, logger, "tokens", cfg.SweepRepetition, cfg.SweepTimeout, s.Tokens.DeleteExpired)
 	background.Sweep(stop, logger, "protected links", cfg.SweepRepetition, cfg.SweepTimeout, s.Projects.DemoteExpiredProtected)
 
-	mail := mailer.New(cfg.Resend, templates, logger)
+	mail := mailer.New(cfg.Resend, templates, logger, cfg.Env == "prod")
 
 	viewerHandler := viewer.NewHandler(templates, cfg.BaseURL, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
