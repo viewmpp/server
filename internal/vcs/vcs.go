@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-func Version() string {
+var Version = getRevision()
+
+func getRevision() string {
 	var revision string
 	var modified bool
 	bi, ok := debug.ReadBuildInfo()

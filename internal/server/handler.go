@@ -20,7 +20,7 @@ func (s *Server) healthcheck(w http.ResponseWriter, r *http.Request) {
 	hc := healthcheck{
 		Status:  "OK",
 		Env:     s.cfg.AppEnv,
-		Version: vcs.Version(),
+		Version: vcs.Version,
 	}
 
 	err := jsonutil.WriteJSON(w, http.StatusOK, hc, nil)

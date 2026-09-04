@@ -1,6 +1,7 @@
 package main
 
 import (
+	"expvar"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"server/internal/store"
 	"server/internal/upload"
 	"server/internal/user"
+	"server/internal/vcs"
 	"server/internal/viewer"
 	"sync"
 )
@@ -46,6 +48,8 @@ func run() error {
 
 	go diag.ListenAndServe()
 
+	expvar.NewString("version").Set(vcs.Version)
+
 	client := &parser.Client{
 		URL:  cfg.ParserURL,
 		HTTP: &http.Client{Timeout: cfg.ClientTimeout},
@@ -61,6 +65,10 @@ func run() error {
 		return err
 	}
 	defer db.Close()
+
+	expvar.Publish("database_stats", expvar.Func(func() any {
+		return db.Stats()
+	}))
 
 	htmlutil.SetBaseURL(cfg.AppBaseURL)
 

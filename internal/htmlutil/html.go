@@ -80,7 +80,7 @@ func AcceptPost(w http.ResponseWriter, r *http.Request, logger *slog.Logger) (*s
 func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.Template, page Page, logger *slog.Logger) {
 	sess := session.FromContext(r)
 
-	page.Version = url.QueryEscape(vcs.Version())
+	page.Version = url.QueryEscape(vcs.Version)
 	page.Flash = sess.Pop("flash")
 	page.sess = sess
 

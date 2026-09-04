@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"expvar"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -39,6 +40,13 @@ func (w *noStoreWriter) WriteHeader(code int) {
 }
 
 func (s *Server) logRequest(next http.Handler) http.Handler {
+	var (
+		totalRequestsReceived           = expvar.NewInt("total_requests_received")
+		totalResponsesSent              = expvar.NewInt("total_responses_sent")
+		totalProcessingTimeMicroseconds = expvar.NewInt("total_processing_time_μs")
+		totalResponsesSentByStatus      = expvar.NewMap("total_responses_sent_by_status")
+	)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		starts := time.Now()
 
@@ -47,9 +55,18 @@ func (s *Server) logRequest(next http.Handler) http.Handler {
 			statusCode:     http.StatusOK,
 		}
 
+		totalRequestsReceived.Add(1)
+
 		next.ServeHTTP(cw, r)
 
+		totalResponsesSent.Add(1)
+
+		duration := time.Since(starts).Microseconds()
+		totalProcessingTimeMicroseconds.Add(duration)
+
 		status := cw.statusCode
+
+		totalResponsesSentByStatus.Add(strconv.Itoa(status), 1)
 
 		args := []any{
 			slog.String("method", r.Method),
