@@ -8,76 +8,112 @@
 
   {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
-  <section class="card-block">
-    <div class="card-block__head">
-      <h2>Email</h2>
+  <section class="settings">
+    <h2 class="settings__title">Account</h2>
+
+    <div class="setting">
+      <span class="setting__label">Email</span>
+      <span class="setting__value setting__strong">{{.UserEmail}}</span>
       {{if .Verified}}
-        <span class="tag tag--ok card-block__action">Confirmed</span>
+        <span class="tag tag--ok">Confirmed</span>
       {{else}}
-        <span class="tag tag--warn card-block__action">Not confirmed</span>
+        <span class="tag tag--warn">Not confirmed</span>
       {{end}}
-      <p class="card-block__value">{{.UserEmail}}</p>
     </div>
 
     {{if not .Verified}}
-      <div class="card-block__foot">
-        <p class="card-block__hint">
-          Not confirmed yet, so a forgotten password cannot be recovered and sharing stays off.
-        </p>
+      <div class="setting">
+        <span class="setting__label"></span>
+        <span class="setting__value setting__note">
+          Until it is confirmed a forgotten password cannot be recovered and sharing stays off.
+        </span>
         <form action="/verify/resend" method="POST" data-cooldown="{{.ResendSeconds}}">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <button class="btn btn--sm btn--primary btn--inline" type="submit">Confirm it now</button>
         </form>
       </div>
     {{end}}
-  </section>
 
-  <section class="card-block">
-    <div class="card-block__head">
-      <h2>Plan</h2>
-      {{if .Pro}}
-        <span class="tag tag--ok card-block__action">Pro</span>
-        <p class="card-block__note">
-          {{.SavedCount}} plans saved, {{.SharedCount}} share links live. No limit on either, uploads up to 50 MB.
-          {{with .ProUntil}}<br>Pro until <strong>{{.}}</strong>.{{end}}{{with .ProWarning}} Password-protected links turn private then, and renewing is one click.{{end}}
-        </p>
-      {{else}}
-        <span class="tag tag--muted card-block__action">Free</span>
-        <p class="card-block__note">
-          {{.SavedCount}} of 20 saved plans used, {{.SharedCount}} of 2 share links live, uploads up to 10 MB.
+    <div class="setting">
+      <span class="setting__label">Plan</span>
+      <span class="setting__value">
+        <span class="setting__strong">{{if .Pro}}Pro{{else}}Free{{end}}</span>
+        {{if .Pro}}
+          {{with .ProUntil}}<span class="setting__note">until {{.}}</span>{{end}}
+        {{else}}
           <a href="/pricing">See what Pro adds</a>
-        </p>
-      {{end}}
-    </div>
-
-    {{if not .Pro}}
-      <form action="/subscribe" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <div class="card-block__foot">
-          <p class="card-block__hint">
-            {{if .ProUntil}}Your Pro ended on {{.ProUntil}}.
-            {{else}}Unlimited saved plans and share links, password-protected links, uploads to 50 MB.{{end}}
-          </p>
+        {{end}}
+      </span>
+      {{if not .Pro}}
+        <form action="/subscribe" method="POST">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <button class="btn btn--sm btn--primary btn--inline" type="submit">
             {{if .ProUntil}}Renew Pro{{else}}Upgrade to Pro{{end}}
           </button>
-        </div>
-      </form>
-    {{end}}
-  </section>
-
-  {{$pwError := or (index .Form.FieldErrors "current") (index .Form.FieldErrors "password")}}
-  <section class="card-block">
-    <div class="card-block__head">
-      <h2>Change password</h2>
-      <p class="card-block__note">Signing in elsewhere will be required again.</p>
+        </form>
+      {{end}}
     </div>
 
-    <form action="/account/password" method="POST" novalidate data-reveal>
+    <div class="setting">
+      <span class="setting__label">Saved plans</span>
+      <span class="setting__value">
+        {{if .Pro}}{{.SavedCount}}, no limit{{else}}
+          {{.SavedCount}} of {{.MaxSavedFree}}
+          <span class="quota__track">
+            <span class="quota__fill {{quotaState .SavedCount .MaxSavedFree}}" style="width:{{percent .SavedCount .MaxSavedFree}}%"></span>
+          </span>
+        {{end}}
+      </span>
+    </div>
+
+    <div class="setting">
+      <span class="setting__label">Share links</span>
+      <span class="setting__value">
+        {{if .Pro}}{{.SharedCount}} live, no limit{{else}}
+          {{.SharedCount}} of {{.MaxPublicFree}} live
+          <span class="quota__track">
+            <span class="quota__fill {{quotaState .SharedCount .MaxPublicFree}}" style="width:{{percent .SharedCount .MaxPublicFree}}%"></span>
+          </span>
+        {{end}}
+      </span>
+    </div>
+
+    <div class="setting">
+      <span class="setting__label">Largest upload</span>
+      <span class="setting__value">{{.MaxUploadLabel}}</span>
+    </div>
+
+    {{if .Pro}}{{with .ProWarning}}
+      <div class="setting">
+        <span class="setting__label"></span>
+        <span class="setting__value setting__note">
+          Password-protected links turn private when Pro ends, and renewing is one click.
+        </span>
+      </div>
+    {{end}}{{end}}
+  </section>
+
+  <section class="settings">
+    <h2 class="settings__title">Security</h2>
+
+    {{$pwError := or (index .Form.FieldErrors "current") (index .Form.FieldErrors "password")}}
+    <form action="/account/password" method="POST" novalidate data-reveal class="setting">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-      <div class="card-block__body{{if not $pwError}} is-collapsed{{end}}" data-reveal-body>
-        <div class="card-block__inner">
+      <span class="setting__label">Password</span>
+      <span class="setting__value setting__note">Changing it signs you out everywhere else</span>
+
+      <span class="setting__actions">
+        <button class="btn btn--sm btn--inline{{if $pwError}} is-hidden{{end}}"
+                type="button" data-reveal-toggle>Change password</button>
+        <button class="btn btn--sm btn--inline{{if not $pwError}} is-hidden{{end}}"
+                type="button" data-reveal-cancel>Cancel</button>
+        <button class="btn btn--sm btn--primary btn--inline{{if not $pwError}} is-hidden{{end}}"
+                type="submit" data-reveal-submit>Save password</button>
+      </span>
+
+      <div class="setting__body{{if not $pwError}} is-collapsed{{end}}" data-reveal-body>
+        <div class="setting__inner">
           <div class="field">
             <label for="current">Current password</label>
             {{with index .Form.FieldErrors "current"}}<span class="field__error">{{.}}</span>{{end}}
@@ -90,37 +126,30 @@
             {{with index .Form.FieldErrors "password"}}<span class="field__error">{{.}}</span>{{end}}
             <input id="password" type="password" name="password" autocomplete="new-password"
                    {{if $pwError}}required{{end}}>
+            <p class="field__hint">At least {{.MinPasswordLength}} characters.</p>
           </div>
         </div>
       </div>
-
-      <div class="card-block__foot">
-        <p class="card-block__hint">At least 8 characters.</p>
-        <button class="btn btn--sm btn--primary btn--inline{{if $pwError}} is-hidden{{end}}"
-                type="button" data-reveal-toggle>Change password</button>
-        <button class="btn btn--sm btn--inline{{if not $pwError}} is-hidden{{end}}"
-                type="button" data-reveal-cancel>Cancel</button>
-        <button class="btn btn--sm btn--primary btn--inline{{if not $pwError}} is-hidden{{end}}"
-                type="submit" data-reveal-submit>Change password</button>
-      </div>
     </form>
-  </section>
 
-  {{$confirmError := index .Form.FieldErrors "confirm"}}
-  <section class="card-block card-block--danger">
-    <div class="card-block__head">
-      <h2>Delete account</h2>
-      <p class="card-block__note">
-        This removes the account, every saved plan and every share link. Links you have sent to
-        other people stop working. It cannot be undone.
-      </p>
-    </div>
-
-    <form action="/account/delete" method="POST" novalidate data-reveal>
+    {{$confirmError := index .Form.FieldErrors "confirm"}}
+    <form action="/account/delete" method="POST" novalidate data-reveal class="setting">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-      <div class="card-block__body{{if not $confirmError}} is-collapsed{{end}}" data-reveal-body>
-        <div class="card-block__inner">
+      <span class="setting__label">Delete account</span>
+      <span class="setting__value setting__note">Removes every saved plan and share link, cannot be undone</span>
+
+      <span class="setting__actions">
+        <button class="btn btn--sm btn--inline{{if $confirmError}} is-hidden{{end}}"
+                type="button" data-reveal-toggle>Delete account</button>
+        <button class="btn btn--sm btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                type="button" data-reveal-cancel>Cancel</button>
+        <button class="btn btn--sm btn--danger btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                type="submit" data-reveal-submit>Delete for good</button>
+      </span>
+
+      <div class="setting__body{{if not $confirmError}} is-collapsed{{end}}" data-reveal-body>
+        <div class="setting__inner">
           <div class="field">
             <label for="confirm">Your password</label>
             {{with $confirmError}}<span class="field__error">{{.}}</span>{{end}}
@@ -128,16 +157,6 @@
                    {{if $confirmError}}required{{end}}>
           </div>
         </div>
-      </div>
-
-      <div class="card-block__foot">
-        <p class="card-block__hint">This cannot be undone.</p>
-        <button class="btn btn--sm btn--danger btn--inline{{if $confirmError}} is-hidden{{end}}"
-                type="button" data-reveal-toggle>Delete account</button>
-        <button class="btn btn--sm btn--inline{{if not $confirmError}} is-hidden{{end}}"
-                type="button" data-reveal-cancel>Cancel</button>
-        <button class="btn btn--sm btn--danger btn--inline{{if not $confirmError}} is-hidden{{end}}"
-                type="submit" data-reveal-submit>Delete account</button>
       </div>
     </form>
   </section>

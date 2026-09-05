@@ -47,6 +47,7 @@ type Page struct {
 	CanShare          bool
 	CanProtect        bool
 	MaxPublicFree     int
+	MaxSavedFree      int
 	MinPasswordLength int
 	ResendSeconds     int
 	MaxPasswordLength int

@@ -28,7 +28,13 @@ func GetUserContext(r *http.Request) *User {
 func NewPage(r *http.Request, form any) htmlutil.Page {
 	u := GetUserContext(r)
 
-	page := htmlutil.Page{Form: form, MaxUpload: u.MaxUploadBytes()}
+	page := htmlutil.Page{
+		Form:              form,
+		MaxUpload:         u.MaxUploadBytes(),
+		MaxPublicFree:     MaxPublicFree,
+		MaxSavedFree:      MaxSavedFree,
+		MinPasswordLength: MinPasswordLength,
+	}
 	if !u.IsAnonymous() {
 		page.UserEmail = u.Email
 		page.Verified = u.Verified

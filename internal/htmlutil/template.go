@@ -191,7 +191,34 @@ func NewEmails() (*Emails, error) {
 	}, nil
 }
 
-var funcs = template.FuncMap{"footerLinks": landing.Footer}
+var funcs = template.FuncMap{
+	"footerLinks": landing.Footer,
+	"percent":     percent,
+	"quotaState":  quotaState,
+}
+
+func percent(used, limit int) int {
+	if limit <= 0 || used <= 0 {
+		return 0
+	}
+	if used >= limit {
+		return 100
+	}
+	return used * 100 / limit
+}
+
+func quotaState(used, limit int) string {
+	switch {
+	case limit <= 0:
+		return ""
+	case used >= limit:
+		return "is-full"
+	case used*100/limit >= 75:
+		return "is-warning"
+	default:
+		return ""
+	}
+}
 
 func parsePage(name string) (*template.Template, error) {
 	return template.New(name).Funcs(funcs).ParseFS(ui.Files,
