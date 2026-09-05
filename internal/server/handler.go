@@ -67,6 +67,12 @@ func (s *Server) icon(name string) http.HandlerFunc {
 	}
 }
 
+func (s *Server) redirect(to string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, to, http.StatusSeeOther)
+	}
+}
+
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.URL.Path, "/api/") {
 		jsonutil.NotFoundResponse(w)

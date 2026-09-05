@@ -284,7 +284,7 @@
 
   document.querySelectorAll('[data-reveal]').forEach(function (form) {
     var body = form.querySelector('[data-reveal-body]');
-    var field = body.querySelector('input');
+    var fields = body.querySelectorAll('input');
     var toggle = form.querySelector('[data-reveal-toggle]');
     var cancel = form.querySelector('[data-reveal-cancel]');
     var submit = form.querySelector('[data-reveal-submit]');
@@ -297,11 +297,13 @@
       submit.classList.toggle('is-hidden', !on);
 
       if (on) {
-        field.setAttribute('required', 'required');
-        field.focus();
+        fields.forEach(function (input) { input.setAttribute('required', 'required'); });
+        fields[0].focus();
       } else {
-        field.removeAttribute('required');
-        field.value = '';
+        fields.forEach(function (input) {
+          input.removeAttribute('required');
+          input.value = '';
+        });
       }
     }
 

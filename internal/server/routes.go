@@ -65,7 +65,9 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("POST /signout", s.userHandler.Signout)
 
 	mux.HandleFunc("GET /account", s.userHandler.AccountPage)
+	mux.HandleFunc("GET /account/password", s.redirect("/account"))
 	mux.HandleFunc("POST /account/password", s.userHandler.ChangePassword)
+	mux.HandleFunc("GET /account/delete", s.redirect("/account"))
 	mux.HandleFunc("POST /account/delete", s.userHandler.DeleteAccount)
 
 	mux.HandleFunc("POST /subscribe", s.userHandler.Subscribe)

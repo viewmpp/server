@@ -1704,6 +1704,7 @@ input:-webkit-autofill:focus {
 
 .card-block__body { padding: 0 calc(var(--unit) * 3) calc(var(--unit) * 3); }
 .card-block__body .field:last-child { margin-bottom: 0; }
+.card-block__inner > .field:last-child { margin-bottom: 0; }
 
 .card-block__foot {
   display: flex;

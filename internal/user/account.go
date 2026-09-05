@@ -5,6 +5,7 @@ import (
 	"server/internal/clientip"
 	"server/internal/htmlutil"
 	"server/internal/safelog"
+	"server/internal/session"
 	"server/internal/validator"
 	"strconv"
 )
@@ -32,7 +33,14 @@ func (h *Handler) AccountPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewPage(r, AccountForm{})
+	form := AccountForm{}
+
+	sess := session.FromContext(r)
+	if field := sess.Pop(accountErrorField); field != "" {
+		form.FieldErrors = map[string]string{field: sess.Pop(accountErrorMessage)}
+	}
+
+	page := NewPage(r, form)
 	page.NoIndex = true
 	page.SavedCount = saved
 	page.SharedCount = shared
@@ -63,7 +71,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {
 		h.logger.Warn("password change throttled", "limit", safelog.Key(key))
-		h.accountError(w, r, "current", MsgTooManyTries, http.StatusTooManyRequests)
+		h.accountError(w, r, "current", MsgTooManyTries)
 		return
 	}
 
@@ -74,7 +82,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	CheckPassword(v, "password", next)
 
 	if !v.Valid() {
-		h.accountError(w, r, "password", v.Errors["password"], http.StatusUnprocessableEntity)
+		h.accountError(w, r, "password", v.Errors["password"])
 		return
 	}
 
@@ -86,7 +94,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	if !matches {
 		h.limiter.CountAll(keys)
-		h.accountError(w, r, "current", MsgWrongCurrentPassword, http.StatusUnprocessableEntity)
+		h.accountError(w, r, "current", MsgWrongCurrentPassword)
 		return
 	}
 
@@ -136,7 +144,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	if key, allowed := h.limiter.AllowAll(keys); !allowed {
 		h.logger.Warn("account deletion throttled", "limit", safelog.Key(key))
-		h.accountError(w, r, "confirm", MsgTooManyTries, http.StatusTooManyRequests)
+		h.accountError(w, r, "confirm", MsgTooManyTries)
 		return
 	}
 
@@ -148,7 +156,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	if !matches {
 		h.limiter.CountAll(keys)
-		h.accountError(w, r, "confirm", MsgWrongCurrentPassword, http.StatusUnprocessableEntity)
+		h.accountError(w, r, "confirm", MsgWrongCurrentPassword)
 		return
 	}
 
@@ -165,9 +173,15 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (h *Handler) accountError(w http.ResponseWriter, r *http.Request, field, message string, status int) {
-	page := NewPage(r, AccountForm{FieldErrors: map[string]string{field: message}})
-	page.NoIndex = true
+const (
+	accountErrorField   = "account_error_field"
+	accountErrorMessage = "account_error_message"
+)
 
-	htmlutil.WriteHTML(w, r, status, h.templates.Account, page, h.logger)
+func (h *Handler) accountError(w http.ResponseWriter, r *http.Request, field, message string) {
+	sess := session.FromContext(r)
+	sess.Put(accountErrorField, field)
+	sess.Put(accountErrorMessage, message)
+
+	http.Redirect(w, r, "/account", http.StatusSeeOther)
 }
