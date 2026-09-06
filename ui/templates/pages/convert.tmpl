@@ -39,15 +39,16 @@
       {{if .Form}}
         <p class="saved__lead">Or convert a plan you already saved</p>
         <ul class="saved__list">
-          {{range .Form}}
+          {{range $i, $p := .Form}}{{if lt $i 3}}
             <li>
-              <a class="sample" href="/p/{{.PublicID}}/xlsx">
-                <span class="sample__label">{{.FileName}}</span>
-                <span class="sample__note">{{.CreatedAt.Format "2 Jan 2006"}}</span>
+              <a class="sample" href="/p/{{$p.PublicID}}/xlsx">
+                <span class="sample__label">{{$p.FileName}}</span>
+                <span class="sample__note">{{$p.CreatedAt.Format "2 Jan 2006"}}</span>
               </a>
             </li>
-          {{end}}
+          {{end}}{{end}}
         </ul>
+        {{if gt (len .Form) 3}}<p class="samples__more"><a href="/projects">See all your projects</a></p>{{end}}
       {{else}}
         <p class="saved__lead">Plans you save will show up here, ready to convert in one click.</p>
       {{end}}

@@ -12,14 +12,16 @@
     Each one shows the Gantt chart, the task table and the dependencies exactly as the viewer draws them.
   </p>
 
-  <ul class="cards">
+  <ul class="cards cards--flat">
     {{range .Form}}
       <li class="card card--stack">
-        <div class="card__main">
-          <a class="card__name" href="/example/{{.Name}}">{{.Label}}</a>
-          <span class="card__note">{{.Note}}</span>
-        </div>
-        <code>{{.FileName}}</code>
+        <a class="card__link" href="/example/{{.Name}}">
+          <span class="card__main">
+            <span class="card__name">{{.Label}}</span>
+            <span class="card__note">{{.Note}}</span>
+          </span>
+          <code>{{.FileName}}</code>
+        </a>
       </li>
     {{end}}
   </ul>
