@@ -38,12 +38,14 @@
     {{if .UserEmail}}
       {{if .Form}}
         <p class="saved__lead">Or convert a plan you already saved</p>
-        <ul class="saved__list">
+        <ul class="cards cards--flat">
           {{range $i, $p := .Form}}{{if lt $i 3}}
-            <li>
-              <a class="sample" href="/p/{{$p.PublicID}}/xlsx">
-                <span class="sample__label">{{$p.FileName}}</span>
-                <span class="sample__note">{{$p.CreatedAt.Format "2 Jan 2006"}}</span>
+            <li class="card">
+              <a class="card__link" href="/p/{{$p.PublicID}}/xlsx">
+                <span class="card__main">
+                  <span class="card__name">{{$p.FileName}}</span>
+                </span>
+                <time datetime="{{$p.CreatedAt.Format "2006-01-02"}}">{{$p.CreatedAt.Format "2 Jan 2006"}}</time>
               </a>
             </li>
           {{end}}{{end}}
@@ -57,12 +59,15 @@
 
   <div class="samples">
     <p class="samples__lead">No file at hand? Convert a sample plan</p>
-    <ul class="samples__list">
+    <ul class="cards cards--flat">
       {{range $i, $e := .Examples}}{{if lt $i 3}}
-        <li>
-          <a class="sample" href="/example/{{$e.Name}}">
-            <span class="sample__label">{{$e.Label}}</span>
-            <span class="sample__note">{{$e.Note}}</span>
+        <li class="card card--stack">
+          <a class="card__link" href="/example/{{$e.Name}}">
+            <span class="card__main">
+              <span class="card__name">{{$e.Label}}</span>
+              <span class="card__note">{{$e.Note}}</span>
+            </span>
+            <code>{{$e.FileName}}</code>
           </a>
         </li>
       {{end}}{{end}}
