@@ -1,5 +1,5 @@
 [Unit]
-Description=Nightly MPP Viewer database backup
+Description=Nightly View MPP database backup
 
 [Timer]
 OnCalendar=*-*-* 03:30:00

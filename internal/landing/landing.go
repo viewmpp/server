@@ -54,18 +54,18 @@ var pages = []Page{
 		Description: "Sent an .mpp file and have no Microsoft Project? What is inside that file, why a text editor cannot show it, and how to read it in your browser.",
 	},
 	{
-		Slug:        "/mpp-viewer-mac",
+		Slug:        "/open-mpp-file-on-mac",
 		Group:       GroupView,
 		Label:       "Open .mpp on a Mac",
 		Description: "Microsoft Project has no macOS version at all. What that leaves you with, what a virtual machine really costs, and how to read .mpp on a Mac instead.",
 	},
 	{
 		Slug:        "/privacy",
-		Description: "What MPP Viewer stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
+		Description: "What View MPP stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
 	},
 	{
 		Slug:        "/terms",
-		Description: "The terms for using MPP Viewer: what the service does, what you may upload, how sharing works and what the limits are.",
+		Description: "The terms for using View MPP: what the service does, what you may upload, how sharing works and what the limits are.",
 	},
 }
 

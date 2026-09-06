@@ -45,7 +45,7 @@ func (s *Server) static() http.Handler {
 
 const appHeader = "X-Requested-With"
 
-const appHeaderValue = "mpp-viewer"
+const appHeaderValue = "viewmpp"
 
 func (s *Server) fromApp(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +70,12 @@ func (s *Server) icon(name string) http.HandlerFunc {
 func (s *Server) redirect(to string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, to, http.StatusSeeOther)
+	}
+}
+
+func (s *Server) moved(to string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, to, http.StatusMovedPermanently)
 	}
 }
 

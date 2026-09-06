@@ -241,12 +241,12 @@ The database is the only state that matters. A stored contract cannot be
 regenerated - the uploaded `.mpp` is deleted immediately after parsing, so for a
 signed-in user the row in Postgres is the only remaining copy.
 
-Nothing is being backed up right now. `remote/production/mpp-backup.service` and
-`mpp-backup.timer` are in the repository but have never been installed, and they
-would fail if they were: they point at `/home/dzenthai/mpp-viewer` while `init.sh`
-creates `/viewmpp`, and their `ExecStart` names `remote/production/backup.sh`,
-which does not exist. The script has to be written and the paths fixed before the
-timer means anything.
+Nothing is being backed up right now. `remote/production/viewmpp-backup.service`
+and `viewmpp-backup.timer` are in the repository but have never been installed,
+and they would still fail if they were: their `ExecStart` names
+`remote/production/backup.sh`, which does not exist. The paths now match the
+`/viewmpp` that `init.sh` creates, so the script is the only thing missing before
+the timer means anything.
 
 Logs
 ----

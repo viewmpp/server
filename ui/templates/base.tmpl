@@ -8,7 +8,7 @@
 {{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}">
 {{end}}<title>{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}</title>
 {{if .Description}}<meta property="og:type" content="website">
-<meta property="og:site_name" content="MPP Viewer">
+<meta property="og:site_name" content="View MPP">
 <meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{template "title" .}}{{end}}">
 <meta property="og:description" content="{{.Description}}">
 {{if .Canonical}}<meta property="og:url" content="{{.Canonical}}">
@@ -31,7 +31,7 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
 </head>
 <body>
 <aside class="side">
-  <a class="side__brand" href="/">MPP&nbsp;Viewer</a>
+  <a class="side__brand" href="/">View&nbsp;MPP</a>
 
   <nav class="side__nav">
     <a href="/">

@@ -1,4 +1,4 @@
-name: mpp-viewer
+name: viewmpp
 
 x-logging: &logging
   driver: json-file

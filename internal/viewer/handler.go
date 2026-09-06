@@ -111,7 +111,7 @@ func (h *Handler) WithoutProjectPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) MacPage(w http.ResponseWriter, r *http.Request) {
-	h.landing(w, r, "/mpp-viewer-mac", h.templates.Mac)
+	h.landing(w, r, "/open-mpp-file-on-mac", h.templates.Mac)
 }
 
 func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {

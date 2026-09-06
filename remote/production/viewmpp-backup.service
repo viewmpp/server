@@ -1,0 +1,10 @@
+[Unit]
+Description=View MPP database backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=dzenthai
+Environment=PROJECT_DIR=/viewmpp
+ExecStart=/viewmpp/server/remote/production/backup.sh

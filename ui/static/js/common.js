@@ -10,7 +10,7 @@
     xlsx: function (contract, fileName) {
       return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'mpp-viewer' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
         body: JSON.stringify(contract)
       }).then(function (response) {
         if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
@@ -27,7 +27,7 @@
     save: function (contract, fileName) {
       return fetch('/api/v1/projects?name=' + encodeURIComponent(fileName || ''), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'mpp-viewer' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
         body: JSON.stringify(contract)
       }).then(function (response) {
         if (!response.ok) {
@@ -82,7 +82,7 @@
 
         fetch('/api/v1/upload?name=' + encodeURIComponent(file.name), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/octet-stream', 'X-Requested-With': 'mpp-viewer' },
+          headers: { 'Content-Type': 'application/octet-stream', 'X-Requested-With': 'viewmpp' },
           body: file
         })
           .then(function (response) {
