@@ -3,7 +3,9 @@ package user
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"server/internal/htmlutil"
+	"strings"
 	"time"
 )
 
@@ -19,10 +21,7 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	back := r.Header.Get("Referer")
-	if back == "" {
-		back = "/"
-	}
+	back := h.backTo(r)
 
 	if u.HasSubscription() {
 		http.Redirect(w, r, back, http.StatusSeeOther)
@@ -53,4 +52,13 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	sess.Put("flash", MsgEarlyAccessGranted(seat, until))
 
 	http.Redirect(w, r, back, http.StatusSeeOther)
+}
+
+func (h *Handler) backTo(r *http.Request) string {
+	reference, err := url.Parse(r.Header.Get("Referer"))
+	if err != nil || reference.Scheme+"://"+reference.Host != strings.TrimSuffix(h.baseURL, "/") {
+		return "/"
+	}
+
+	return reference.RequestURI()
 }

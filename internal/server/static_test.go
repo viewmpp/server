@@ -41,11 +41,11 @@ func TestStaticRefusesEverythingOutsideItsOwnDirectory(t *testing.T) {
 	}
 }
 
-func TestStaticRefusesDirectories(t *testing.T) {
-	for _, target := range []string{"/static/", "/static/js/", "/static/icons/"} {
+func TestStaticRefusesAnythingThatIsNotAPlainFile(t *testing.T) {
+	for _, target := range []string{"/static/", "/static/js/", "/static/icons/", "/static/js/app.js/"} {
 		t.Run(target, func(t *testing.T) {
 			if code := serveStatic(t, target).Code; code != http.StatusNotFound {
-				t.Errorf("status = %d, want 404: a directory listing was served", code)
+				t.Errorf("status = %d, want 404: only an exact path to a regular file may be served", code)
 			}
 		})
 	}

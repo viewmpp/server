@@ -36,7 +36,7 @@ func (s *Server) static() http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
-		if !strings.HasPrefix(name, "static/") {
+		if !strings.HasPrefix(name, "static/") || strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return
 		}
