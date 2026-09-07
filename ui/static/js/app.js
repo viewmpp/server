@@ -15,6 +15,7 @@
     projectName: document.getElementById('project-name'),
     stats: document.getElementById('stats'),
     chart: document.getElementById('gantt-here'),
+    gridToggle: document.getElementById('grid-toggle'),
     details: document.getElementById('details'),
     detailsBody: document.getElementById('details-body'),
     search: document.getElementById('search'),
@@ -482,6 +483,7 @@
 
     bindWheel();
     bindPan();
+    bindGridToggle();
 
     gantt.config.link_line_width = 1;
     gantt.config.link_radius = 6;
@@ -498,6 +500,48 @@
       document.dispatchEvent(new CustomEvent('mpp:task'));
       return true;
     });
+  }
+
+  function bindGridToggle() {
+    var width = gantt.config.grid_width;
+
+    function position() {
+      var chart = ui.chart.getBoundingClientRect();
+      var edge = gantt.config.show_grid ? gantt.$grid.getBoundingClientRect().right - chart.left : 0;
+      ui.gridToggle.style.setProperty('--grid-edge', edge + 'px');
+    }
+
+    gantt.$grid.id = 'task-grid';
+
+    var observer = new ResizeObserver(position);
+    observer.observe(ui.chart);
+    observer.observe(gantt.$grid);
+    gantt.attachEvent('onGanttRender', position);
+
+    ui.gridToggle.addEventListener('click', function () {
+      stopGlide();
+      var scroll = gantt.getScrollState();
+      var show = !gantt.config.show_grid;
+
+      if (show) {
+        gantt.config.grid_width = width;
+      } else {
+        width = gantt.config.grid_width;
+      }
+
+      gantt.config.show_grid = show;
+      gantt.render();
+      gantt.scrollTo(scroll.x, scroll.y);
+
+      var label = show ? 'Hide task table' : 'Show task table';
+      ui.gridToggle.firstElementChild.textContent = show ? '<<' : '>>';
+      ui.gridToggle.setAttribute('aria-expanded', String(show));
+      ui.gridToggle.setAttribute('aria-label', label);
+      ui.gridToggle.title = label;
+      position();
+    });
+
+    position();
   }
 
   function describe(contract, fileName) {

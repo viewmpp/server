@@ -215,7 +215,12 @@
   <div class="summary is-hidden" id="summary"></div>
 
   <div class="workspace">
-    <div id="gantt-here"></div>
+    <div class="chart">
+      <div id="gantt-here"></div>
+      <button class="grid-toggle" id="grid-toggle" type="button"
+              aria-label="Hide task table" aria-expanded="true" aria-controls="task-grid"
+              title="Hide task table"><span aria-hidden="true">&lt;&lt;</span></button>
+    </div>
 
     <div class="sizer" id="sizer">
       <input class="sizer__range" type="range" id="size-range"

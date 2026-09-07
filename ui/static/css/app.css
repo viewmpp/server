@@ -1165,7 +1165,36 @@ input:-webkit-autofill:focus {
 .loading__text { max-width: 40ch; text-align: center; overflow-wrap: anywhere; }
 
 .workspace { position: relative; flex: 1; min-height: 0; display: flex; }
+.chart { position: relative; display: flex; flex: 1; min-width: 0; min-height: 0; }
 #gantt-here { flex: 1; min-width: 0; }
+.grid-toggle {
+  position: absolute;
+  top: 50%;
+  left: clamp(22px, var(--grid-edge, 0px), calc(100% - 22px));
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--border-hover);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+  font: 600 12px/1 ui-monospace, Menlo, Consolas, monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+  opacity: .45;
+  transition: opacity .16s ease;
+}
+.grid-toggle:hover, .grid-toggle:focus-within { opacity: 1; }
+.grid-toggle:hover { background: var(--bg-hover); color: var(--text); }
+.grid-toggle:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
+@media (pointer: coarse) {
+  .grid-toggle { width: 40px; height: 40px; }
+}
 .gantt_hor_scroll, .gantt_ver_scroll {
   scrollbar-width: auto;
   scrollbar-color: var(--disabled) var(--bg-hover);
