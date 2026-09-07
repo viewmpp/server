@@ -1,7 +1,9 @@
 package server
 
 import (
+	"io/fs"
 	"net/http"
+	"path"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/safelog"
@@ -33,6 +35,12 @@ func (s *Server) static() http.Handler {
 	files := http.FileServerFS(ui.Files)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		info, err := fs.Stat(ui.Files, strings.TrimPrefix(path.Clean(r.URL.Path), "/"))
+		if err != nil || info.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+
 		switch s.cfg.AppEnv {
 		case "dev":
 			w.Header().Set("Cache-Control", "no-store")
