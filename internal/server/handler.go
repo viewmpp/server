@@ -35,7 +35,13 @@ func (s *Server) static() http.Handler {
 	files := http.FileServerFS(ui.Files)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		info, err := fs.Stat(ui.Files, strings.TrimPrefix(path.Clean(r.URL.Path), "/"))
+		name := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
+		if !strings.HasPrefix(name, "static/") {
+			http.NotFound(w, r)
+			return
+		}
+
+		info, err := fs.Stat(ui.Files, name)
 		if err != nil || info.IsDir() {
 			http.NotFound(w, r)
 			return

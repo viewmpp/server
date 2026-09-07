@@ -32,11 +32,24 @@ func (cw *CustomWriter) WriteHeader(code int) {
 
 type noStoreWriter struct {
 	http.ResponseWriter
+	written bool
 }
 
 func (w *noStoreWriter) WriteHeader(code int) {
-	w.Header().Set("Cache-Control", "no-store")
+	if !w.written {
+		w.written = true
+		w.Header().Set("Cache-Control", "no-store")
+	}
+
 	w.ResponseWriter.WriteHeader(code)
+}
+
+func (w *noStoreWriter) Write(b []byte) (int, error) {
+	if !w.written {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	return w.ResponseWriter.Write(b)
 }
 
 func (s *Server) logRequest(next http.Handler) http.Handler {
