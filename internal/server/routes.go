@@ -5,21 +5,23 @@ import (
 )
 
 func (s *Server) routes() http.Handler {
-	return s.securityHeaders(s.logRequest(s.recoverPanic(s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux()))))))))
+	top := http.NewServeMux()
+
+	top.Handle("GET /static/", s.static())
+	top.HandleFunc("GET /favicon.ico", s.icon("favicon.ico"))
+	top.HandleFunc("GET /apple-touch-icon.png", s.icon("apple-touch-icon.png"))
+	top.HandleFunc("GET /robots.txt", s.robots)
+	top.HandleFunc("GET /sitemap.xml", s.sitemap)
+
+	top.Handle("/", s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
+
+	return s.securityHeaders(s.logRequest(s.recoverPanic(top)))
 }
 
 func (s *Server) mux() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /static/", s.static())
-
 	mux.HandleFunc("GET /{$}", s.viewerHandler.Landing)
-
-	mux.HandleFunc("GET /favicon.ico", s.icon("favicon.ico"))
-	mux.HandleFunc("GET /apple-touch-icon.png", s.icon("apple-touch-icon.png"))
-
-	mux.HandleFunc("GET /robots.txt", s.robots)
-	mux.HandleFunc("GET /sitemap.xml", s.sitemap)
 
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.fromApp(s.uploadHandler.Upload))

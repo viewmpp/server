@@ -61,7 +61,12 @@ func (s *Server) fromApp(next http.HandlerFunc) http.HandlerFunc {
 
 func (s *Server) icon(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=604800")
+		switch s.cfg.AppEnv {
+		case "dev":
+			w.Header().Set("Cache-Control", "no-store")
+		default:
+			w.Header().Set("Cache-Control", "public, max-age=604800")
+		}
 
 		http.ServeFileFS(w, r, ui.Files, "static/icons/"+name)
 	}
