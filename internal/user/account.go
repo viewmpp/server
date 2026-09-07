@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/htmlutil"
@@ -106,6 +107,10 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.store.Update(r.Context(), u); err != nil {
+		if errors.Is(err, ErrEditConflict) {
+			h.accountError(w, r, "password", MsgVerifyRetry)
+			return
+		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
