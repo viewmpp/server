@@ -9,10 +9,3 @@ skills-lock.json
 
 .env
 .envrc
-
-docs/
-Dockerfile
-.dockerignore
-docker-compose.yaml
-docker-compose.prod.yaml
-Caddyfile
