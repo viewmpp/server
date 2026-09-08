@@ -4,7 +4,6 @@
 <main class="auth centered">
   <h1>Create an account</h1>
 
-  {{with .Flash}}<p class="flash" role="status">{{.}}</p>{{end}}
 
   {{$emailError := index .Form.FieldErrors "email"}}
   {{$passwordError := index .Form.FieldErrors "password"}}

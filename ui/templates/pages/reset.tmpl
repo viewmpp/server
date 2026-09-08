@@ -4,7 +4,6 @@
 <main class="auth centered">
   <h1>Choose a new password</h1>
 
-  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
   <form action="/reset/{{.Form.Token}}" method="POST" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">

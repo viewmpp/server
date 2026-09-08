@@ -7,7 +7,6 @@
     <a class="btn btn--primary btn--inline" href="/">Open a file</a>
   </div>
 
-  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
   {{with .SavedNote}}<p class="saved-note">{{.}}{{if not $.Pro}} <a href="/pricing">See what Pro adds</a>{{end}}</p>{{end}}
 

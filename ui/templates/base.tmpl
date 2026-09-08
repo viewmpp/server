@@ -140,6 +140,12 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
 <div class="main">
 {{template "main" .}}
 </div>
+{{with .Flash}}
+<div class="toast toast--flash" id="flash-message">
+  <span class="toast__text" role="status">{{.}}</span>
+  <button class="toast__close" type="button" data-toast-close aria-label="Dismiss notification">&times;</button>
+</div>
+{{end}}
 <script src="/static/js/theme.js?v={{.Version}}"></script>
 <script src="/static/js/common.js?v={{.Version}}"></script>
 {{block "scripts" .}}{{end}}

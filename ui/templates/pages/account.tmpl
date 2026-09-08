@@ -1,164 +1,187 @@
 {{define "title"}}Your account - View MPP{{end}}
 
 {{define "main"}}
-<main class="page page--text centered">
+<main class="page page--text page--account centered">
   <div class="page__head">
     <h1>Your account</h1>
   </div>
 
-  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
 
-  <section class="settings">
-    <h2 class="settings__title">Account</h2>
-
-    <div class="setting">
-      <span class="setting__label">Email</span>
-      <span class="setting__value setting__strong">{{.UserEmail}}</span>
-      {{if .Verified}}
-        <span class="tag tag--ok">Confirmed</span>
-      {{else}}
-        <span class="tag tag--warn">Not confirmed</span>
-      {{end}}
-    </div>
-
-    {{if not .Verified}}
+  <section class="settings" aria-labelledby="account-email">
+    <h2 class="settings__title" id="account-email">Email</h2>
+    <div class="settings__panel">
       <div class="setting">
-        <span class="setting__label"></span>
-        <span class="setting__value setting__note">
-          Until it is confirmed a forgotten password cannot be recovered and sharing stays off.
-        </span>
-        <form action="/verify/resend" method="POST" data-cooldown="{{.ResendSeconds}}">
-          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <button class="btn btn--sm btn--primary btn--inline" type="submit">Confirm it now</button>
-        </form>
-      </div>
-    {{end}}
-
-    <div class="setting">
-      <span class="setting__label">Plan</span>
-      <span class="setting__value">
-        <span class="setting__strong">{{if .Pro}}Pro{{else}}Free{{end}}</span>
-        {{if .Pro}}
-          {{with .ProUntil}}<span class="setting__note">until {{.}}</span>{{end}}
+        <span class="setting__label">Email</span>
+        <span class="setting__value setting__strong">{{.UserEmail}}</span>
+        {{if .Verified}}
+          <span class="tag tag--ok">Confirmed</span>
         {{else}}
-          <a href="/pricing">See what Pro adds</a>
+          <span class="tag tag--warn">Not confirmed</span>
         {{end}}
-      </span>
-      {{if not .Pro}}
-        <form action="/subscribe" method="POST">
-          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <button class="btn btn--sm btn--primary btn--inline" type="submit">
-            {{if .ProUntil}}Renew Pro{{else}}Upgrade to Pro{{end}}
-          </button>
-        </form>
+      </div>
+
+      {{if not .Verified}}
+        <div class="setting">
+          <span class="setting__label"></span>
+          <span class="setting__value setting__note">
+            Until it is confirmed a forgotten password cannot be recovered and sharing stays off.
+          </span>
+          <form action="/verify/resend" method="POST" data-cooldown="{{.ResendSeconds}}">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <button class="btn btn--sm btn--primary btn--inline" type="submit">Confirm it now</button>
+          </form>
+        </div>
       {{end}}
     </div>
-
-    <div class="setting">
-      <span class="setting__label">Saved plans</span>
-      <span class="setting__value">
-        {{if .Pro}}{{.SavedCount}}, no limit{{else}}
-          {{.SavedCount}} of {{.MaxSavedFree}}
-          <span class="quota__track">
-            <span class="quota__fill {{quotaState .SavedCount .MaxSavedFree}}" style="width:{{percent .SavedCount .MaxSavedFree}}%"></span>
-          </span>
-        {{end}}
-      </span>
-    </div>
-
-    <div class="setting">
-      <span class="setting__label">Share links</span>
-      <span class="setting__value">
-        {{if .Pro}}{{.SharedCount}} live, no limit{{else}}
-          {{.SharedCount}} of {{.MaxPublicFree}} live
-          <span class="quota__track">
-            <span class="quota__fill {{quotaState .SharedCount .MaxPublicFree}}" style="width:{{percent .SharedCount .MaxPublicFree}}%"></span>
-          </span>
-        {{end}}
-      </span>
-    </div>
-
-    <div class="setting">
-      <span class="setting__label">Largest upload</span>
-      <span class="setting__value">{{.MaxUploadLabel}}</span>
-    </div>
-
-    {{if .Pro}}{{with .ProWarning}}
-      <div class="setting">
-        <span class="setting__label"></span>
-        <span class="setting__value setting__note">
-          Password-protected links turn private when Pro ends, and renewing is one click.
-        </span>
-      </div>
-    {{end}}{{end}}
   </section>
 
-  <section class="settings">
-    <h2 class="settings__title">Security</h2>
+  <section class="settings" aria-labelledby="account-plan">
+    <h2 class="settings__title" id="account-plan">Plan and usage</h2>
+    <div class="settings__panel">
+      <div class="setting">
+        <span class="setting__label">Plan</span>
+        <span class="setting__value">
+          <span class="setting__strong">{{if .Pro}}Pro{{else}}Free{{end}}</span>
+          {{if .Pro}}
+            {{with .ProUntil}}<span class="setting__note">until {{.}}</span>{{end}}
+          {{else}}
+            <a href="/pricing">See what Pro adds</a>
+          {{end}}
+        </span>
+        {{if not .Pro}}
+          <form action="/subscribe" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <button class="btn btn--sm btn--primary btn--inline" type="submit">
+              {{if .ProUntil}}Renew Pro{{else}}Upgrade to Pro{{end}}
+            </button>
+          </form>
+        {{end}}
+      </div>
 
-    {{$pwError := or (index .Form.FieldErrors "current") (index .Form.FieldErrors "password")}}
-    <form action="/account/password" method="POST" novalidate data-reveal class="setting">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="setting">
+        <span class="setting__label">Saved plans</span>
+        <span class="setting__value">
+          {{if .Pro}}{{.SavedCount}}, no limit{{else}}
+            {{.SavedCount}} of {{.MaxSavedFree}}
+            <span class="quota__track" aria-hidden="true">
+              <span class="quota__fill {{quotaState .SavedCount .MaxSavedFree}}" style="width:{{percent .SavedCount .MaxSavedFree}}%"></span>
+            </span>
+          {{end}}
+        </span>
+      </div>
 
-      <span class="setting__label">Password</span>
-      <span class="setting__value setting__note">Changing it signs you out everywhere else</span>
+      <div class="setting">
+        <span class="setting__label">Share links</span>
+        <span class="setting__value">
+          {{if .Pro}}{{.SharedCount}} live, no limit{{else}}
+            {{.SharedCount}} of {{.MaxPublicFree}} live
+            <span class="quota__track" aria-hidden="true">
+              <span class="quota__fill {{quotaState .SharedCount .MaxPublicFree}}" style="width:{{percent .SharedCount .MaxPublicFree}}%"></span>
+            </span>
+          {{end}}
+        </span>
+      </div>
 
-      <span class="setting__actions">
-        <button class="btn btn--sm btn--inline{{if $pwError}} is-hidden{{end}}"
-                type="button" data-reveal-toggle>Change password</button>
-        <button class="btn btn--sm btn--inline{{if not $pwError}} is-hidden{{end}}"
-                type="button" data-reveal-cancel>Cancel</button>
-        <button class="btn btn--sm btn--primary btn--inline{{if not $pwError}} is-hidden{{end}}"
-                type="submit" data-reveal-submit>Save password</button>
-      </span>
+      <div class="setting">
+        <span class="setting__label">Largest upload</span>
+        <span class="setting__value">{{.MaxUploadLabel}}</span>
+      </div>
 
-      <div class="setting__body{{if not $pwError}} is-collapsed{{end}}" data-reveal-body>
-        <div class="setting__inner">
-          <div class="field">
-            <label for="current">Current password</label>
-            {{with index .Form.FieldErrors "current"}}<span class="field__error">{{.}}</span>{{end}}
-            <input id="current" type="password" name="current" autocomplete="current-password"
-                   {{if $pwError}}required{{end}}>
-          </div>
+      {{if .Pro}}{{with .ProWarning}}
+        <div class="setting">
+          <span class="setting__label"></span>
+          <span class="setting__value setting__note">
+            Password-protected links turn private when Pro ends, and renewing is one click.
+          </span>
+        </div>
+      {{end}}{{end}}
+    </div>
+  </section>
 
-          <div class="field">
-            <label for="password">New password</label>
-            {{with index .Form.FieldErrors "password"}}<span class="field__error">{{.}}</span>{{end}}
-            <input id="password" type="password" name="password" autocomplete="new-password"
-                   {{if $pwError}}required{{end}}>
-            <p class="field__hint">At least {{.MinPasswordLength}} characters.</p>
+  <section class="settings" aria-labelledby="account-security">
+    <h2 class="settings__title" id="account-security">Security</h2>
+    <div class="settings__panel">
+      {{$pwError := or (index .Form.FieldErrors "current") (index .Form.FieldErrors "password")}}
+      <form action="/account/password" method="POST" novalidate data-reveal class="setting setting--action">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <div class="setting__summary">
+          <span class="setting__label">Password</span>
+          <span class="setting__value setting__note">Changing it signs you out everywhere else</span>
+        </div>
+
+        <span class="setting__actions">
+          <button class="btn btn--sm btn--inline{{if $pwError}} is-hidden{{end}}"
+                  type="button" data-reveal-toggle>Change password</button>
+          <button class="btn btn--sm btn--inline{{if not $pwError}} is-hidden{{end}}"
+                  type="button" data-reveal-cancel>Cancel</button>
+          <button class="btn btn--sm btn--primary btn--inline{{if not $pwError}} is-hidden{{end}}"
+                  type="submit" data-reveal-submit>Save password</button>
+        </span>
+
+        <div class="setting__body{{if not $pwError}} is-collapsed{{end}}" data-reveal-body>
+          <div>
+            <div class="setting__inner">
+              <div class="field">
+                <label for="current">Current password</label>
+                {{with index .Form.FieldErrors "current"}}<span class="field__error" id="current-error">{{.}}</span>{{end}}
+                <input id="current" type="password" name="current" autocomplete="current-password"
+                       {{if index .Form.FieldErrors "current"}}aria-invalid="true" aria-describedby="current-error"{{end}}
+                       {{if $pwError}}required{{end}}>
+              </div>
+
+              <div class="field">
+                <label for="password">New password</label>
+                {{with index .Form.FieldErrors "password"}}<span class="field__error" id="password-error">{{.}}</span>{{end}}
+                <input id="password" type="password" name="password" autocomplete="new-password"
+                       aria-describedby="password-hint{{if index .Form.FieldErrors "password"}} password-error{{end}}"
+                       {{if index .Form.FieldErrors "password"}}aria-invalid="true"{{end}}
+                       {{if $pwError}}required{{end}}>
+                <p class="field__hint" id="password-hint">At least {{.MinPasswordLength}} characters.</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
+  </section>
 
-    {{$confirmError := index .Form.FieldErrors "confirm"}}
-    <form action="/account/delete" method="POST" novalidate data-reveal class="setting">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <section class="settings settings--danger" aria-labelledby="account-delete">
+    <h2 class="settings__title" id="account-delete">Delete account</h2>
+    <div class="settings__panel">
+      {{$confirmError := index .Form.FieldErrors "confirm"}}
+      <form action="/account/delete" method="POST" novalidate data-reveal class="setting setting--action">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-      <span class="setting__label">Delete account</span>
-      <span class="setting__value setting__note">Removes every saved plan and share link, cannot be undone</span>
+        <div class="setting__summary">
+          <span class="setting__label">Delete account</span>
+          <span class="setting__value setting__note">Removes every saved plan and share link, cannot be undone</span>
+        </div>
 
-      <span class="setting__actions">
-        <button class="btn btn--sm btn--inline{{if $confirmError}} is-hidden{{end}}"
-                type="button" data-reveal-toggle>Delete account</button>
-        <button class="btn btn--sm btn--inline{{if not $confirmError}} is-hidden{{end}}"
-                type="button" data-reveal-cancel>Cancel</button>
-        <button class="btn btn--sm btn--danger btn--inline{{if not $confirmError}} is-hidden{{end}}"
-                type="submit" data-reveal-submit>Delete for good</button>
-      </span>
+        <span class="setting__actions">
+          <button class="btn btn--sm btn--inline{{if $confirmError}} is-hidden{{end}}"
+                  type="button" data-reveal-toggle>Delete account</button>
+          <button class="btn btn--sm btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                  type="button" data-reveal-cancel>Cancel</button>
+          <button class="btn btn--sm btn--danger btn--inline{{if not $confirmError}} is-hidden{{end}}"
+                  type="submit" data-reveal-submit>Delete for good</button>
+        </span>
 
-      <div class="setting__body{{if not $confirmError}} is-collapsed{{end}}" data-reveal-body>
-        <div class="setting__inner">
-          <div class="field">
-            <label for="confirm">Your password</label>
-            {{with $confirmError}}<span class="field__error">{{.}}</span>{{end}}
-            <input id="confirm" type="password" name="confirm" autocomplete="current-password"
-                   {{if $confirmError}}required{{end}}>
+        <div class="setting__body{{if not $confirmError}} is-collapsed{{end}}" data-reveal-body>
+          <div>
+            <div class="setting__inner">
+              <div class="field">
+                <label for="confirm">Your password</label>
+                {{with $confirmError}}<span class="field__error" id="confirm-error">{{.}}</span>{{end}}
+                <input id="confirm" type="password" name="confirm" autocomplete="current-password"
+                       {{if $confirmError}}aria-invalid="true" aria-describedby="confirm-error"{{end}}
+                       {{if $confirmError}}required{{end}}>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </section>
 </main>
 {{end}}

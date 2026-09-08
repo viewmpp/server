@@ -31,7 +31,6 @@
 
             <p class="lead">Enter the address you signed up with and we will send you a link.</p>
 
-            {{with .Flash}}<p class="flash" role="status">{{.}}</p>{{end}}
 
             {{$emailError := index .Form.FieldErrors "email"}}
             <form action="/reset" method="POST" novalidate data-busy>
