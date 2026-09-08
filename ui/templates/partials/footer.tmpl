@@ -2,10 +2,27 @@
 <footer class="foot" id="foot">
   <div class="foot__inner centered">
     <nav class="foot__nav" aria-label="More pages">
-      {{range footerLinks}}<a href="{{.Slug}}">{{.Label}}</a>{{end}}
+      <div class="foot__group">
+        <h2 class="foot__heading">Product</h2>
+        <ul class="foot__links">
+          {{range footerLinks}}{{if eq .Group "product"}}<li><a href="{{.Slug}}">{{.Label}}</a></li>{{end}}{{end}}
+        </ul>
+      </div>
+      <div class="foot__group">
+        <h2 class="foot__heading">Open a schedule</h2>
+        <ul class="foot__links">
+          {{range footerLinks}}{{if eq .Group "view"}}<li><a href="{{.Slug}}">{{.Label}}</a></li>{{end}}{{end}}
+        </ul>
+      </div>
+      <div class="foot__group">
+        <h2 class="foot__heading">Convert</h2>
+        <ul class="foot__links">
+          {{range footerLinks}}{{if eq .Group "convert"}}<li><a href="{{.Slug}}">{{.Label}}</a></li>{{end}}{{end}}
+        </ul>
+      </div>
     </nav>
     <p class="foot__legal">
-      <a href="/privacy">Privacy</a> · <a href="/cookies">Cookies</a> · <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a><a href="/cookies">Cookies</a><a href="/terms">Terms</a>
     </p>
   </div>
 </footer>
