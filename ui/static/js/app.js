@@ -458,8 +458,8 @@
       if (gantt.posFromDate(end) - gantt.posFromDate(start) < minTextWidth) { return ''; }
 
       var label = Math.round(c.percent_complete) + '%';
-      var inset = 6.84;
-      var floor = (label.length * 7.6 + 9.12 + inset).toFixed(2);
+      var inset = 6.84 * size;
+      var floor = ((label.length * 7.6 + 9.12) * size + inset).toFixed(2);
       var ceil = 'calc(100% - ' + inset + 'px)';
 
       return '<span class="bar-pct" style="left:clamp(' + floor + 'px,' +
@@ -697,8 +697,11 @@
 
     ui.sizeRange.value = Math.round(size * 100);
     ui.sizeLabel.textContent = Math.round(size * 100) + '%';
+    ui.sizeRange.setAttribute('aria-valuetext', Math.round(size * 100) + '%');
 
     if (immediate) {
+      if (sizeFrame) { cancelAnimationFrame(sizeFrame); }
+      sizeFrame = null;
       applySize();
       return;
     }
@@ -712,12 +715,15 @@
   }
 
   function applySize() {
+    stopGlide();
+
     ui.chart.style.setProperty('--gantt-size', size.toFixed(3));
+    zoomRendered = '';
     applyZoom(spanFor(zoomShown));
   }
 
   function spanFor(value) {
-    var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100) * size;
+    var ppd = PPD_NEAR * Math.pow(PPD_FAR / PPD_NEAR, value / 100);
 
     for (var i = 0; i < SPANS.length; i++) {
       var width = ppd * SPANS[i].days;
@@ -777,8 +783,8 @@
   }
 
   function applyZoom(picked) {
-    var column = picked.width;
-    var mark = picked.span.unit + ':' + column;
+    var column = Math.round(picked.width * size);
+    var mark = picked.span.unit + ':' + column + ':' + size;
     if (mark === zoomRendered) { return; }
     zoomRendered = mark;
 
@@ -787,6 +793,8 @@
     gantt.config.row_height = SIZE_BASE.row;
     gantt.config.scale_height = SIZE_BASE.header;
     gantt.config.bar_height = Math.round(SIZE_BASE.bar * size);
+    gantt.config.link_arrow_size = Math.round(6 * size);
+    gantt.config.link_radius = Math.round(6 * size);
 
     minFillWidth = gantt.config.bar_height * 2;
     minTextWidth = Math.round(SIZE_BASE.text * size);

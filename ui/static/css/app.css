@@ -1426,6 +1426,7 @@ input:-webkit-autofill:focus {
   --dhx-gantt-link-background: var(--disabled);
   --dhx-gantt-link-critical-background: var(--disabled);
   --dhx-gantt-link-background-hover: var(--text);
+  --dhx-gantt-task-font-size: calc(14px * var(--gantt-size, 1));
 }
 
 .gantt_container .gantt_task { font-size: calc(var(--text-sm) * var(--gantt-size, 1)); }
@@ -1437,6 +1438,8 @@ input:-webkit-autofill:focus {
   font-weight: 500;
   border-bottom: 1px solid var(--line) !important;
 }
+
+.gantt_container .gantt_task_scale { font-size: calc(14px * var(--gantt-size, 1)); }
 .gantt_scale_cell, .gantt_grid_head_cell { border-right: 1px solid var(--line) !important; }
 
 .gantt_row, .gantt_task_row { border-bottom: 1px solid transparent !important; }
@@ -1465,7 +1468,7 @@ input:-webkit-autofill:focus {
   height: 100%;
   display: flex;
   align-items: center;
-  padding: 0 4.56px;
+  padding: 0 calc(4.56px * var(--gantt-size, 1));
   white-space: nowrap;
   transform: translateX(-100%);
 }
@@ -1511,7 +1514,7 @@ input:-webkit-autofill:focus {
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   background: var(--text);
   color: var(--bg);
-  font-size: var(--text-xs);
+  font-size: calc(var(--text-xs) * var(--gantt-size, 1));
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
