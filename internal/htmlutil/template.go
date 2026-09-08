@@ -30,6 +30,7 @@ type Pages struct {
 	Pricing        *template.Template
 	Share          *template.Template
 	Mac            *template.Template
+	XER            *template.Template
 }
 
 type Emails struct {
@@ -132,6 +133,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	xer, err := parsePage("xer.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := parsePage("account.tmpl")
 	if err != nil {
 		return nil, err
@@ -162,6 +168,7 @@ func NewPages() (*Pages, error) {
 		Terms:          terms,
 		WithoutProject: withoutProject,
 		Mac:            mac,
+		XER:            xer,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

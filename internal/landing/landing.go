@@ -60,6 +60,12 @@ var pages = []Page{
 		Description: "Microsoft Project has no macOS version at all. What that leaves you with, what a virtual machine really costs, and how to read .mpp on a Mac instead.",
 	},
 	{
+		Slug:        "/open-xer-file-without-primavera",
+		Group:       GroupView,
+		Label:       "Open .xer without P6",
+		Description: "Sent a Primavera P6 schedule as an .xer file and have no P6? What is inside it, why a text editor cannot help, and how to read it in your browser.",
+	},
+	{
 		Slug:        "/privacy",
 		Description: "What View MPP stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
 	},

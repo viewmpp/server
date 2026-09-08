@@ -114,6 +114,10 @@ func (h *Handler) MacPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/open-mpp-file-on-mac", h.templates.Mac)
 }
 
+func (h *Handler) XERPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/open-xer-file-without-primavera", h.templates.XER)
+}
+
 func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/share-a-project-plan", h.templates.Share)
 }

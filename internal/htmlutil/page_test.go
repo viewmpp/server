@@ -47,7 +47,7 @@ func TestZeroPageKeepsCurrentHead(t *testing.T) {
 		t.Error("default description is gone")
 	}
 
-	if !strings.Contains(head, "<title>MPP viewer - open an .mpp file in your browser | View MPP</title>") {
+	if !strings.Contains(head, "<title>View MPP - open an .mpp file in your browser | MPP viewer</title>") {
 		t.Error("title from the page template is gone")
 	}
 }

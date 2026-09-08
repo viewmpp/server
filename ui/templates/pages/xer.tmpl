@@ -1,0 +1,204 @@
+{{define "title"}}Open an .xer file without Primavera P6 | View MPP{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <h1>Open an .xer file without Primavera</h1>
+  <p class="lead">
+    An <code>.xer</code> file is a schedule exported from Primavera P6. Drop it below and read it
+    as a Gantt chart in your browser - no P6 licence, no install, no signup.
+  </p>
+
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}" data-open-saved>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
+    <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
+    <ul class="drop__terms">
+      <li>.mpp .xml .mpx .mpd .xer</li>
+      <li>up to {{.MaxUploadLabel}}</li>
+      <li>no signup</li>
+    </ul>
+  </div>
+
+  <p class="drop__error is-hidden" id="error"></p>
+
+  <p class="aside-link">
+    Need the activities as a spreadsheet instead? <a href="/mpp-to-excel">Export the schedule to Excel</a>
+  </p>
+
+  <section class="prose">
+<h2>An .xer is not a Microsoft Project file</h2>
+
+<p>
+  This is the first thing worth clearing up, because it sends people to the wrong tools. Primavera
+  P6 is Oracle's scheduling application, and it is what large construction, energy, rail and
+  infrastructure contracts are planned in. The <code>.xer</code> is its exchange format - the file
+  you hand to somebody outside your own P6 database.
+</p>
+
+<p>
+  So if one landed in your inbox, the sender does not schedule in Microsoft Project, and the
+  viewers written for <code>.mpp</code> will not help you. It also tells you something about the
+  plan itself: P6 schedules are usually large. Two thousand activities is an ordinary week on a
+  major project, not an outlier.
+</p>
+
+<p>
+  This site reads both families - <code>.xer</code> from Primavera, and <code>.mpp</code>,
+  <code>.xml</code>, <code>.mpx</code> and <code>.mpd</code> from Microsoft Project. If you sit
+  between two contractors who use different tools, that is one page instead of two.
+</p>
+
+<h2>It opens in a text editor, and that is the trap</h2>
+
+<p>
+  An <code>.xer</code> is plain text. You can open it in Notepad right now and see readable
+  content: a block of activities, then a block of relationships, then calendars, resources and
+  work breakdown, each one a table of tab-separated rows.
+</p>
+
+<p>
+  Which is exactly why people lose an afternoon to it. The file opens, so it feels like it should
+  be readable, and it is not - because a schedule is a graph, not a table. The relationships live
+  in their own block as pairs of activity identifiers with a link type and a lag. To find out what
+  one activity is waiting for, you look its identifier up in that block, then look each
+  predecessor identifier back up in the activity block to find out what it is called. Following a
+  chain four links deep is eight lookups, done by eye, with no room for a mistake.
+</p>
+
+<p>
+  Durations are recorded in hours. Dates are timestamps. Nothing in the file marks what is late,
+  what is critical, or what a delay here would do to the finish date - those are conclusions you
+  draw from the structure, and the structure is what a text editor cannot show you.
+</p>
+
+<h2>The four questions you actually have</h2>
+
+<p>
+  Nobody reads someone else's schedule for pleasure. There are four things people open one to find
+  out, and they are the four things the chart answers at a glance.
+</p>
+
+<ul class="facts">
+  <li>
+    <strong>When does it finish?</strong> The project start and finish sit at the top, and the
+    bars show you how the work is distributed between them - whether the plan is evenly loaded or
+    everything piles into the last two months.
+  </li>
+  <li>
+    <strong>What is on the critical path?</strong> Critical activities are marked as the file
+    records them, so you can see which chain actually drives the end date rather than guessing
+    from bar lengths.
+  </li>
+  <li>
+    <strong>What is already late?</strong> Every activity is set against today's date, so work
+    that should have finished and has not stands out without you working the dates out in your
+    head. Progress is read from the file as well, with the caveat below.
+  </li>
+  <li>
+    <strong>What does this one wait for?</strong> Click an activity and its predecessors and
+    successors are listed by name, with the link type and any lag - the lookup that costs eight
+    steps in a text editor.
+  </li>
+</ul>
+
+<h2>What survives the read, and what stays behind</h2>
+
+<p>
+  Being specific about this matters more here than on most pages, because P6 carries a great deal
+  that a viewer does not need and should not pretend to have.
+</p>
+
+<p>
+  What comes across: activity names and identifiers, the work breakdown structure they sit in,
+  start and finish dates, durations, progress, milestones, summary levels, the critical
+  flag, relationships with their type and lag, resource names and their assignments, activity
+  notes, and one baseline's start and finish if the file carries one.
+</p>
+
+<p>
+  What stays behind, and why you should know before you rely on it:
+</p>
+
+<ul class="facts">
+  <li>
+    <strong>Float.</strong> You can see which activities are marked critical. You cannot see how
+    many days of total float the others have, which is the number a planner would reach for next.
+  </li>
+  <li>
+    <strong>Percent complete as P6 records it.</strong> P6 lets every activity keep its progress
+    in a different way - physically, by duration, or by units - and the chart does not follow that
+    per-activity setting. Work marked finished is drawn as finished and work not yet started as
+    untouched, which is right far more often than not. But an activity that is under way can show
+    as untouched where P6 would put a figure against it. Read the bars as the schedule and the
+    progress as an indication.
+  </li>
+  <li>
+    <strong>Calendars per activity.</strong> P6 assigns a calendar to each activity; the chart
+    keeps one project calendar and its non-working days. On a schedule that mixes six-day and
+    seven-day working, the bars are the file's own dates, but the shading behind them is a
+    simplification.
+  </li>
+  <li>
+    <strong>Cost and resource loading.</strong> Resource names and assignments come across. Money,
+    quantities and hour-by-hour spreading do not.
+  </li>
+  <li><strong>Activity codes and user-defined fields.</strong></li>
+  <li><strong>More than one baseline</strong>, and any comparison between them.</li>
+  <li><strong>Layouts, filters and grouping</strong> saved inside P6, which live in the database rather than in the file.</li>
+</ul>
+
+<p>
+  And the direction is one way. This reads a schedule; it does not write one. Nothing here
+  produces an <code>.xer</code>, and nothing you do on the page changes the file you dropped.
+</p>
+
+<h2>The usual answer is a PDF, and it is a poor one</h2>
+
+<p>
+  Ask a planner for something you can open and you will normally be sent a PDF export. For a
+  two-hundred-activity plan that is tolerable. For the size P6 schedules actually reach it is a
+  wall: pages of bars at a scale where the text is unreadable, no way to collapse a phase you do
+  not care about, no way to follow a link, and no way to search for the one activity your own work
+  depends on.
+</p>
+
+<p>
+  A picture of a schedule also goes stale the day it is exported, and it gives you no way to tell
+  whether it has. The file does not have that problem - drop a newer one and the chart is newer.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>What is an .xer file?</dt>
+  <dd>The exchange format Primavera P6 uses to move a schedule out of its database - activities, relationships, calendars, resources and the work breakdown structure, written as plain text tables in one file.</dd>
+
+  <dt>Do I need Primavera P6 to open it?</dt>
+  <dd>Not to read it. Drop the file here and the schedule is drawn as a Gantt chart in the browser. You need P6 to edit or reschedule the plan, which is not what this does.</dd>
+
+  <dt>Is my schedule stored anywhere?</dt>
+  <dd>No. The file is read in memory and gone as soon as the chart is drawn. An account exists only if you want plans kept so you can come back to them or share a link.</dd>
+
+  <dt>Can I get the activities into Excel?</dt>
+  <dd>Yes. The same read produces a spreadsheet - one row per activity, with dates as real dates, durations, resources and predecessors. It works for .xer exactly as it does for a Microsoft Project file.</dd>
+
+  <dt>Can I edit the schedule or reschedule it?</dt>
+  <dd>No, and deliberately so. This is a reader. Your file is never altered, and nothing here can write an .xer back.</dd>
+
+</dl>
+
+  </section>
+</main>
+
+{{template "sitefooter" .}}
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+<script src="/static/js/save.js?v={{.Version}}"></script>
+{{end}}
