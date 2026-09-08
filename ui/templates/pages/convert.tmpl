@@ -38,7 +38,7 @@
     {{if .UserEmail}}
       {{if .Form}}
         <p class="saved__lead">Or convert a plan you already saved</p>
-        <ul class="cards cards--flat">
+        <ul class="cards cards--flat cards--grouped">
           {{range $i, $p := .Form}}{{if lt $i 3}}
             <li class="card">
               <a class="card__link" href="/p/{{$p.PublicID}}/xlsx">
@@ -59,7 +59,7 @@
 
   <div class="samples">
     <p class="samples__lead">No file at hand? Convert a sample plan</p>
-    <ul class="cards cards--flat">
+    <ul class="cards cards--flat cards--grouped">
       {{range $i, $e := .Examples}}{{if lt $i 3}}
         <li class="card card--stack">
           <a class="card__link" href="/example/{{$e.Name}}">

@@ -12,7 +12,7 @@
   {{with .SavedNote}}<p class="saved-note">{{.}}{{if not $.Pro}} <a href="/pricing">See what Pro adds</a>{{end}}</p>{{end}}
 
   {{if .Form}}
-    <ul class="cards">
+    <ul class="cards cards--grouped">
       {{range .Form}}
         <li class="card">
           <a class="card__name" href="/p/{{.PublicID}}">{{.FileName}}</a>

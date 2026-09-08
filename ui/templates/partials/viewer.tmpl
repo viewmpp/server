@@ -106,7 +106,7 @@
               {{end}}
 
               {{if and (eq .Access "private") (not .CanShare)}}
-                <p class="share__note">
+                <div class="share__note">
                   {{if not .Verified}}
                     <form action="/verify/resend" method="POST" class="share__inline" data-cooldown="{{.ResendSeconds}}">
                       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -116,7 +116,7 @@
                   {{else}}
                     Free accounts share {{.MaxPublicFree}} plans at a time. <a href="/projects">Stop sharing one</a>, or go Pro.
                   {{end}}
-                </p>
+                </div>
               {{else}}
                 <form action="/p/{{.ProjectID}}/access" method="POST" class="share__form" data-share-form data-share-current="{{.Access}}">
                   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -162,10 +162,6 @@
                         </div>
                       </div>
                     </div>
-                  {{else}}
-                    <p class="share__hint">
-                      Need a password on this link? <a href="/pricing">Pro adds that</a>. Public links stay free.
-                    </p>
                   {{end}}
 
 
@@ -173,6 +169,12 @@
                     {{if eq .Access "private"}}Create link{{else}}Save changes{{end}}
                   </button>
                 </form>
+              {{end}}
+
+              {{if not .Pro}}
+                <p class="share__hint share__hint--plan">
+                  Need a password on this link? <a href="/pricing">Pro adds that</a>. Public links stay free.
+                </p>
               {{end}}
 
               {{if ne .Access "private"}}

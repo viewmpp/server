@@ -36,7 +36,7 @@
   {{if .Form}}
     <div class="samples">
       <p class="samples__lead">No file at hand? Open a sample plan</p>
-      <ul class="cards cards--flat">
+      <ul class="cards cards--flat cards--grouped">
         {{range $i, $e := .Form}}{{if lt $i 3}}
           <li class="card card--stack">
             <a class="card__link" href="/example/{{$e.Name}}">
