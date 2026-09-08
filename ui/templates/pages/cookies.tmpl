@@ -1,0 +1,95 @@
+{{define "title"}}Cookie Policy - View MPP{{end}}
+
+{{define "main"}}
+<main class="page page--text legal centered">
+  <div class="page__head">
+    <h1>Cookie Policy</h1>
+  </div>
+
+  <p>
+    View MPP uses cookies to support sign-in, protect forms, and remember access to
+    password-protected plans. We also use local storage to remember your appearance preference
+    and when you dismiss the sharing prompt. We do not use these technologies to track you
+    across websites, and we do not use analytics or advertising trackers.
+  </p>
+
+  <h2>Cookies and local storage</h2>
+  <p>
+    Cookies are small values saved by your browser and sent back to this site with requests.
+    Local storage keeps preferences in your browser; those values are not automatically sent
+    with requests. All the items listed below are set by View MPP for this site.
+  </p>
+
+  <h2>Cookies we use</h2>
+  <table role="table" class="legal__table legal__table--cookies" aria-label="Cookies used by View MPP">
+    <thead role="rowgroup">
+      <tr role="row"><th role="columnheader" scope="col">Name</th><th role="columnheader" scope="col">Purpose and when it is set</th><th role="columnheader" scope="col">How long it lasts</th></tr>
+    </thead>
+    <tbody role="rowgroup">
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>__Host-session</code></th>
+        <td role="cell" data-label="Purpose">Remembers sign-in, access after you unlock a protected plan, and temporary messages between pages. Set when one of these actions needs a session.</td>
+        <td role="cell" data-label="How long it lasts">Until the session expires. The default lifetime is 12 hours; renewing a session starts a new lifetime. Signing out removes this cookie.</td>
+      </tr>
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>__Host-csrf</code></th>
+        <td role="cell" data-label="Purpose">Helps protect forms against forged submissions. Set when a page needs a form-security token, and replaced when a session is renewed.</td>
+        <td role="cell" data-label="How long it lasts">Expires at the session expiry time used when it is set. The default session lifetime is 12 hours.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    The session cookie contains a random identifier linked to session information on our server.
+    Neither cookie contains your uploaded plan or password. Both are sent only over HTTPS and
+    cannot be read by JavaScript. Closing your browser does not necessarily remove them.
+  </p>
+
+  <h2>Preferences saved in your browser</h2>
+  <table role="table" class="legal__table legal__table--cookies" aria-label="Local storage used by View MPP">
+    <thead role="rowgroup">
+      <tr role="row"><th role="columnheader" scope="col">Name</th><th role="columnheader" scope="col">Purpose and when it is saved</th><th role="columnheader" scope="col">How long it lasts</th></tr>
+    </thead>
+    <tbody role="rowgroup">
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>mpp-theme</code></th>
+        <td role="cell" data-label="Purpose">Remembers light, dark, or system mode after you choose an appearance setting.</td>
+        <td role="cell" data-label="How long it lasts">No automatic expiry. Kept until you or your browser clear this site's data; choosing another mode updates it.</td>
+      </tr>
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>mpp-send-dismissed</code></th>
+        <td role="cell" data-label="Purpose">Remembers that you dismissed the prompt about sharing your own plans when viewing someone else's shared plan. Saved only when you dismiss it.</td>
+        <td role="cell" data-label="How long it lasts">No automatic expiry. Kept until you or your browser clear this site's data.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Your choices</h2>
+  <p>
+    You can change the appearance using the Light, Dark, and System controls in the navigation.
+    Signing out removes the sign-in cookie, but does not clear your saved appearance or prompt
+    preference, or necessarily remove the form-security cookie.
+  </p>
+  <p>
+    To remove all the items listed here, open your browser's privacy or site-data settings,
+    find this site's address, and clear its cookies and site data, including local storage.
+    Clearing only cookies may leave local storage in place. You can also use your browser's
+    settings to block storage for this site.
+  </p>
+  <p>
+    Clearing site data can sign you out, remove remembered access to protected plans, and reset
+    your preferences. Blocking cookies can prevent sign-in and form submissions from working.
+    Clearing browser data does not delete your account or plans saved to it. Reloading or closing
+    a tab also discards any unsaved plan you are viewing.
+  </p>
+
+  <h2>Updates and contact</h2>
+  <p>
+    We update this policy when our use of cookies or local storage changes. For information about
+    accounts, uploaded files, and other personal data, read our <a href="/privacy">Privacy Policy</a>.
+    Questions can be sent to <a href="mailto:support@viewmpp.com">support@viewmpp.com</a>.
+  </p>
+  <p class="legal__meta">Last updated: 8 September 2026</p>
+</main>
+
+{{template "sitefooter" .}}
+{{end}}
