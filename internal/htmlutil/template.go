@@ -23,6 +23,7 @@ type Pages struct {
 	Convert        *template.Template
 	Forgot         *template.Template
 	Reset          *template.Template
+	Cookies        *template.Template
 	Privacy        *template.Template
 	Terms          *template.Template
 	WithoutProject *template.Template
@@ -31,6 +32,7 @@ type Pages struct {
 	Share          *template.Template
 	Mac            *template.Template
 	XER            *template.Template
+	XML            *template.Template
 }
 
 type Emails struct {
@@ -113,6 +115,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	cookies, err := parsePage("cookies.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	privacy, err := parsePage("privacy.tmpl")
 	if err != nil {
 		return nil, err
@@ -134,6 +141,11 @@ func NewPages() (*Pages, error) {
 	}
 
 	xer, err := parsePage("xer.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	xml, err := parsePage("xml.tmpl")
 	if err != nil {
 		return nil, err
 	}
@@ -164,11 +176,13 @@ func NewPages() (*Pages, error) {
 		Convert:        convert,
 		Forgot:         forgot,
 		Reset:          reset,
+		Cookies:        cookies,
 		Privacy:        privacy,
 		Terms:          terms,
 		WithoutProject: withoutProject,
 		Mac:            mac,
 		XER:            xer,
+		XML:            xml,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

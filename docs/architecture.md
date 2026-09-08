@@ -195,6 +195,24 @@ revocation today is the `access` column, which is enough on its own.
 
 **Never:** Network Diagram, Usage views, Form views, Rollup views, Team Planner, Relationship Diagram, Leveling Gantt. Calendar view not before v1.2. Anything that exists in MS Project for the purpose of editing is out of scope by default.
 
+## Browser storage disclosures
+
+`/cookies` is the inventory of browser storage, linked from Privacy and the public
+footer.
+
+Production uses `__Host-session` for session state and `__Host-csrf` for form
+security; development uses `session` and `csrf`. Their expiry follows the session
+lifetime, which defaults to 12 hours and is configurable through
+`SESSION_LIFETIME` or `-session-lifetime`. Session renewal issues a new expiry;
+ordinary reads do not extend it. Local storage holds `mpp-theme` and
+`mpp-send-dismissed`, both without automatic expiry.
+
+Changes to storage names, purposes, lifetimes, or tracking integrations must also
+update the policy. Confirm the deployed session lifetime before publishing its
+duration. The page describes storage behavior; it does not itself collect consent
+or establish an exemption for every preference. Assess applicable consent rules
+before adding storage for new purposes.
+
 ## Code rules
 
 - No new dependencies without explicit approval - each one is a license, size and maintenance question.

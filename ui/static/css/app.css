@@ -1549,6 +1549,8 @@ input:-webkit-autofill:focus {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
+  .side { flex-wrap: wrap; }
+  .side__foot { flex-wrap: wrap; }
   .side__brand { padding: 0; font-size: var(--text-md); }
   .side__nav { flex-direction: row; gap: 4.56px; padding: 0; }
   .side__nav a { height: 36.48px; padding: 0 11.4px; font-size: var(--text-base); }
@@ -1578,6 +1580,16 @@ input:-webkit-autofill:focus {
 .legal__meta { margin-top: calc(var(--unit) * 4); font-size: var(--text-sm); color: var(--secondary); }
 .legal__table { width: 100%; border-collapse: collapse; margin-bottom: calc(var(--unit) * 1.5); font-size: var(--text-sm); }
 .legal__table th { text-align: left; font-weight: 600; }
+.legal__table--cookies { table-layout: fixed; overflow-wrap: anywhere; }
+.legal__table--cookies th:first-child { width: 28%; }
+
+@media (max-width: 37.5rem) {
+  .legal__table--cookies, .legal__table--cookies tbody { display: block; }
+  .legal__table--cookies thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .legal__table--cookies tr { display: grid; margin-bottom: calc(var(--unit) * 2); }
+  .legal__table--cookies th:first-child { width: auto; }
+  .legal__table--cookies td::before { content: attr(data-label); display: block; margin-bottom: 4.56px; color: var(--secondary); font-weight: 500; }
+}
 .legal__table th, .legal__table td { padding: 11.4px calc(var(--unit) * 1.5) 11.4px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 
 .legal-line { margin: calc(var(--unit) * 5) 0 0; font-size: var(--text-sm); color: var(--secondary); text-align: center; }

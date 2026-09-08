@@ -88,6 +88,10 @@ func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(plan)
 }
 
+func (h *Handler) CookiesPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/cookies", h.templates.Cookies)
+}
+
 func (h *Handler) PrivacyPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, nil)
 	page.Description = landing.BySlug("/privacy").Description
@@ -116,6 +120,10 @@ func (h *Handler) MacPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) XERPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/open-xer-file-without-primavera", h.templates.XER)
+}
+
+func (h *Handler) XMLPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/open-microsoft-project-xml", h.templates.XML)
 }
 
 func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {

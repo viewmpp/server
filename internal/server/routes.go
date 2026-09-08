@@ -38,10 +38,12 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /open-mpp-file-without-ms-project", s.viewerHandler.WithoutProjectPage)
 	mux.HandleFunc("GET /open-mpp-file-on-mac", s.viewerHandler.MacPage)
 	mux.HandleFunc("GET /open-xer-file-without-primavera", s.viewerHandler.XERPage)
+	mux.HandleFunc("GET /open-microsoft-project-xml", s.viewerHandler.XMLPage)
 	mux.HandleFunc("GET /mpp-viewer-mac", s.moved("/open-mpp-file-on-mac"))
 
 	mux.HandleFunc("GET /share-a-project-plan", s.viewerHandler.SharePage)
 	mux.HandleFunc("GET /pricing", s.viewerHandler.PricingPage)
+	mux.HandleFunc("GET /cookies", s.viewerHandler.CookiesPage)
 	mux.HandleFunc("GET /privacy", s.viewerHandler.PrivacyPage)
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
 

@@ -66,6 +66,16 @@ var pages = []Page{
 		Description: "Sent a Primavera P6 schedule as an .xer file and have no P6? What is inside it, why a text editor cannot help, and how to read it in your browser.",
 	},
 	{
+		Slug:        "/open-microsoft-project-xml",
+		Group:       GroupView,
+		Label:       "Open Project .xml",
+		Description: "A Project .xml holds the whole schedule as text - and still cannot be read in a text editor. What is inside it, and how to see the chart in your browser.",
+	},
+	{
+		Slug:        "/cookies",
+		Description: "How View MPP uses cookies and local storage for sign-in, form security and preferences, how long they last, and how to clear them.",
+	},
+	{
 		Slug:        "/privacy",
 		Description: "What View MPP stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
 	},

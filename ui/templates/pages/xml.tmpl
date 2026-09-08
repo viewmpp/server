@@ -1,0 +1,172 @@
+{{define "title"}}Open a Microsoft Project .xml file | View MPP{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+  {{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+
+  <h1>Open a Microsoft Project XML file</h1>
+  <p class="lead">
+    A Project <code>.xml</code> file holds the whole schedule as text. Drop it below and read it
+    as a Gantt chart in your browser - no Microsoft Project, no install, no signup.
+  </p>
+
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}" data-open-saved>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
+    <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
+    <ul class="drop__terms">
+      <li>.mpp .xml .mpx .mpd .xer</li>
+      <li>up to {{.MaxUploadLabel}}</li>
+      <li>no signup</li>
+    </ul>
+  </div>
+
+  <p class="drop__error is-hidden" id="error"></p>
+
+  <p class="aside-link">
+    Need the task list as a spreadsheet instead? <a href="/mpp-to-excel">Export the schedule to Excel</a>
+  </p>
+
+  <section class="prose">
+<h2>It opens in a text editor, and that is exactly the problem</h2>
+
+<p>
+  This is the format people are most confident they can handle themselves, because the first
+  attempt goes so well. Open the file in Notepad and there it is: task names in plain sight,
+  dates you can read, a tag around every value. Nothing is encrypted, nothing is binary, nothing
+  is hiding.
+</p>
+
+<p>
+  Then you try to answer a question with it. How long is that task? The file says
+  <code>PT40H0M0S</code>. What does it wait for? The file says
+  <code>&lt;PredecessorUID&gt;24&lt;/PredecessorUID&gt;</code>, so you scroll back through a few
+  thousand lines looking for the task whose identifier is 24, and when you find it you learn that
+  it in turn waits for 19 and 21. Where does this task sit in the plan? There is no tree in the
+  file at all - only an <code>&lt;OutlineLevel&gt;</code> number on each task, from which the
+  hierarchy has to be rebuilt in your head, in order, without losing your place.
+</p>
+
+<p>
+  A schedule is a structure, and the text is only its raw material. Reading the values one at a
+  time is not the same as reading the plan, and no amount of patience closes that gap.
+</p>
+
+<h2>Why you were sent one</h2>
+
+<p>
+  Someone asked for a file you could open, and this is what Microsoft Project offers. It is the
+  export people reach for precisely when the recipient has no Project - and also the format other
+  scheduling tools import, so it is what travels between ecosystems.
+</p>
+
+<p>
+  The schema has a name, <strong>MSPDI</strong>, which is worth knowing only because you will meet
+  it in documentation and in the export dialog. It describes the same file: one XML document
+  holding tasks, assignments, resources, calendars and the links between them.
+</p>
+
+<h2>What the chart shows you</h2>
+
+<p>
+  The same four things anyone wants from someone else's plan, without the scrolling.
+</p>
+
+<ul class="facts">
+  <li>
+    <strong>The shape of the schedule.</strong> Phases fold and unfold, so you can collapse the
+    parts that are not yours and look at what is.
+  </li>
+  <li>
+    <strong>The critical path</strong>, marked as the file records it, so you can see which chain
+    actually drives the finish date.
+  </li>
+  <li>
+    <strong>What is already late</strong>, because every task is set against today's date rather
+    than against the day the file was made.
+  </li>
+  <li>
+    <strong>What any task waits for</strong> - click it and its predecessors and successors are
+    listed by name, with the link type and any lag, instead of by number.
+  </li>
+</ul>
+
+<h2>This format survives the trip better than most</h2>
+
+<p>
+  Worth saying plainly, because it is not true of every format. A Project XML writes its dates,
+  durations and progress out as explicit values rather than leaving them to be worked out again
+  by whatever opens it. So what the chart shows is what the file says - task by task, date by
+  date, and percentage by percentage, with nothing recalculated on the way in.
+</p>
+
+<p>
+  What still stays behind is what the format keeps for Microsoft Project's own use rather than
+  for a reader:
+</p>
+
+<ul class="facts">
+  <li><strong>Slack and float figures.</strong> You see which tasks are critical, not how many days of float the others have.</li>
+  <li><strong>Costs, rates and resource levelling.</strong> Resource names and assignments come across; money does not.</li>
+  <li><strong>Custom fields, flags and outline codes</strong> that a planner defined for their own reporting.</li>
+  <li><strong>More than one baseline</strong>, and any comparison between them.</li>
+  <li><strong>Views, tables, filters and groupings</strong> saved inside the plan.</li>
+</ul>
+
+<p>
+  And it reads one way. Nothing here writes an <code>.xml</code> back, and the file you drop is
+  never altered.
+</p>
+
+<h2>XML or .mpp - does it matter which they send you?</h2>
+
+<p>
+  Not here; both open. It is worth knowing the difference anyway, because you may get to ask.
+</p>
+
+<p>
+  An <code>.mpp</code> is Microsoft's own binary format - compact, and completely unreadable
+  without software that understands it. An <code>.xml</code> is the same plan written out as
+  text: several times larger on disk, openable in any editor, and, as above, still not readable
+  in any useful sense. The choice changes the file size and nothing about whether you can make
+  sense of it unaided.
+</p>
+
+<p>
+  If someone asks which to send, ask for whichever they already have. If they are exporting
+  specially, XML is the safer bet - it is a documented format, and it is what other tools import.
+</p>
+
+<h2>Common questions</h2>
+
+<dl class="faq">
+  <dt>What is MSPDI?</dt>
+  <dd>The name of the XML schema Microsoft Project uses when it saves a plan as .xml. A file described as MSPDI and a Project .xml file are the same thing.</dd>
+
+  <dt>Is a Project .xml the same as an .mpp?</dt>
+  <dd>The same plan, written differently. The .mpp is binary and compact; the .xml is text and larger. Both open here, and both show the same chart.</dd>
+
+  <dt>Why can I see the data in a text editor but not read the plan?</dt>
+  <dd>Because the structure is implied rather than written. Dependencies are stored as identifiers pointing at other identifiers, the outline is a level number on each task, and durations are written in a machine format such as PT40H0M0S. The values are all there; the shape they make is not.</dd>
+
+  <dt>Is my file stored anywhere?</dt>
+  <dd>No. It is read in memory and gone as soon as the chart is drawn. An account exists only if you want plans kept so you can come back to them or share a link.</dd>
+
+  <dt>Can I turn it into a spreadsheet?</dt>
+  <dd>Yes. The same read produces an .xlsx - one row per task, with real dates, durations, resources and predecessors, and a filter already switched on.</dd>
+
+</dl>
+
+  </section>
+</main>
+
+{{template "sitefooter" .}}
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+<script src="/static/js/save.js?v={{.Version}}"></script>
+{{end}}
