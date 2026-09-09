@@ -96,6 +96,10 @@ func WriteHTML(w http.ResponseWriter, r *http.Request, status int, ts *template.
 	_, _ = buf.WriteTo(w)
 }
 
+func (p Page) SiteURL() string {
+	return baseURL
+}
+
 func (p Page) OGImage() string {
 	if baseURL == "" {
 		return ""

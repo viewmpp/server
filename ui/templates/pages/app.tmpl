@@ -1,3 +1,35 @@
+{{define "head"}}
+{{- if and .SiteURL (not .ExampleName)}}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": {{printf "%s/#website" .SiteURL}},
+      "url": {{printf "%s/" .SiteURL}},
+      "name": "View MPP",
+      "alternateName": "MPP viewer",
+      "publisher": { "@id": {{printf "%s/#organization" .SiteURL}} }
+    },
+    {
+      "@type": "Organization",
+      "@id": {{printf "%s/#organization" .SiteURL}},
+      "name": "View MPP",
+      "url": {{printf "%s/" .SiteURL}},
+      "logo": {
+        "@type": "ImageObject",
+        "url": {{printf "%s/static/icons/icon-192.png" .SiteURL}},
+        "width": 192,
+        "height": 192
+      }
+    }
+  ]
+}
+</script>
+{{- end}}
+{{end}}
+
 {{define "title"}}
   {{- if .ExampleLabel -}}
     {{.ExampleLabel}} - an MS Project plan in the browser | View MPP
