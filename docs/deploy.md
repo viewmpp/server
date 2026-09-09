@@ -241,12 +241,51 @@ The database is the only state that matters. A stored contract cannot be
 regenerated - the uploaded `.mpp` is deleted immediately after parsing, so for a
 signed-in user the row in Postgres is the only remaining copy.
 
-Nothing is being backed up right now. `remote/production/viewmpp-backup.service`
-and `viewmpp-backup.timer` are in the repository but have never been installed,
-and they would still fail if they were: their `ExecStart` names
-`remote/production/backup.sh`, which does not exist. The paths now match the
-`/viewmpp` that `init.sh` creates, so the script is the only thing missing before
-the timer means anything.
+A dump is taken every night. `remote/production/viewmpp-backup.timer` fires at
+03:30 UTC with up to fifteen minutes of jitter and runs
+`remote/production/backup.sh` as `dzenthai`. `Persistent=true`, so a night the
+server spent switched off is caught on the next boot rather than skipped.
+
+The script runs `pg_dump` **inside** the `server-db` container and takes the
+credentials from that container's own environment, so no password lives in the
+script, the process list or the logs. The dump is written in the custom format,
+which is compressed and allows a single table to be restored on its own.
+
+Three things happen in an order that matters. The file is written to `.part` and
+renamed only on success, because a rename on one filesystem is atomic and a
+half-written file that looks healthy is worse than no file. It is then read back
+with `pg_restore --list`; a dump that cannot describe itself is deleted and the
+run fails. Only after that are old copies removed - rotation last, so a script
+that fails every night cannot quietly eat the archive.
+
+Thirty copies are kept, counted rather than aged, in `/var/backups/viewmpp`
+(mode 0700, owner `dzenthai`). The run refuses to start with less than a
+gigabyte free: a backup must not be the thing that fills the disk and stops
+Postgres accepting writes. Output goes to the journal - `journalctl -u
+viewmpp-backup`.
+
+**The off-site copy is manual.** From the workstation:
+
+```bash
+rsync -av dzenthai@viewmpp.com:/var/backups/viewmpp/ ~/dev/backups/viewmpp/
+```
+
+Pulled rather than pushed on purpose: the server holds no credentials for
+anywhere else, so a compromised server cannot reach or destroy the copies. It is
+a habit, not a schedule - weekly, and before anything risky. Hetzner's own image
+backups cover a dead machine but not a deleted row, and they live in the same
+account, so they are not the off-site copy.
+
+Restoring has been rehearsed end to end, including dropping the production
+database: stop `server` so nothing writes, drop and recreate the database,
+`pg_restore` into it, check the row counts and `schema_migrations`, then bring
+the stack up. `migrate` finds the version already recorded in the dump and does
+nothing. The last step is not "the data is back" but "the site opens" - the
+rehearsal ended with a restored database behind a stack that was still down.
+
+Not done: the dumps are not encrypted, and nothing checks that the nightly run
+actually happened. Both matter more once the database holds somebody else's
+plans.
 
 Logs
 ----
