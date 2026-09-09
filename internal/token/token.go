@@ -33,7 +33,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func NewVerification(userID int64, ttl time.Duration) (*Token, error) {
-	return New(userID, ScopeVerification, ttl, 16)
+	return New(userID, ScopeVerification, ttl, 5)
 }
 
 func NewReset(userID int64, ttl time.Duration) (*Token, error) {
