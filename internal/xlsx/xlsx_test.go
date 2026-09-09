@@ -93,3 +93,27 @@ func TestIndentIsBounded(t *testing.T) {
 		t.Fatalf("indent length is %d, want %d", len(got), len(want))
 	}
 }
+
+func TestTheWBSColumnCarriesTheOutlineNumber(t *testing.T) {
+	node, outline, name := "HOSPEXP.1", "1.2.3", "Excavation"
+
+	c := &contract.Contract{
+		Tasks: []contract.Task{
+			{ID: 1, Name: &name, WBS: &node, OutlineNumber: &outline},
+		},
+	}
+
+	var buf bytes.Buffer
+	assert.NilError(t, Write(&buf, c))
+
+	f, err := excelize.OpenReader(&buf)
+	assert.NilError(t, err)
+	defer f.Close()
+
+	rows, err := f.GetRows(sheet)
+	assert.NilError(t, err)
+
+	if got := rows[1][0]; got != outline {
+		t.Errorf("WBS column holds %q, want the outline number %q: /mpp-to-excel promises a value such as 1.2.3, and the breakdown node code repeats for every task inside it", got, outline)
+	}
+}

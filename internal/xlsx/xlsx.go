@@ -73,7 +73,7 @@ func Write(w io.Writer, c *contract.Contract) error {
 		row := i + 2
 
 		values := []any{
-			text(task.WBS, task.OutlineNumber),
+			text(task.OutlineNumber, task.WBS),
 			indent(task),
 			nil, nil,
 			amount(task.Duration),

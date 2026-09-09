@@ -432,7 +432,7 @@
 
     gantt.config.columns = [
       { name: 'wbs', label: 'WBS', width: 88, resize: true,
-        template: function (t) { return escapeHtml(t.$contract.wbs || t.$contract.outline_number || ''); } },
+        template: function (t) { return escapeHtml(t.$contract.outline_number || t.$contract.wbs || ''); } },
       { name: 'text', label: 'Task', tree: true, width: 320, resize: true,
         template: function (t) { return escapeHtml(t.$contract.name || ''); } },
       { name: 'start', label: 'Start', align: 'center', width: 104, resize: true,
@@ -622,7 +622,7 @@
   function showDetails(task) {
     var rows = [
       [TEXT.name, escapeHtml(task.name)],
-      [TEXT.wbs, escapeHtml(task.wbs || task.outline_number || '-')],
+      [TEXT.wbs, escapeHtml(task.outline_number || task.wbs || '-')],
       [TEXT.start, shortDateTime(task.start)],
       [TEXT.finish, shortDateTime(task.finish)],
       [TEXT.duration, duration(task.duration)],
@@ -887,7 +887,9 @@
 
   function matchesTask(task) {
     if ((task.name || '').toLowerCase().indexOf(needle) >= 0) { return true; }
-    return (task.wbs || task.outline_number || '').toLowerCase().indexOf(needle) >= 0;
+    var codes = ((task.outline_number || '') + ' ' + (task.wbs || '')).toLowerCase();
+
+    return codes.indexOf(needle) >= 0;
   }
 
   function expandAll() {
