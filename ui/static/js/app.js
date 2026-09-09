@@ -593,7 +593,7 @@
     var tasks = contract.tasks || [];
 
     for (var i = 0; i < tasks.length; i++) {
-      if (tasks[i].parent_id === null && tasks[i].outline_level === 0) { return tasks[i]; }
+      if (tasks[i].parent_id === null) { return tasks[i]; }
     }
 
     return null;
