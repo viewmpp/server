@@ -5,20 +5,23 @@ type CodeEmailData struct {
 	Message string
 	Hint    string
 	Code    string
+	Site    string
 }
 
 type ExistingAccountData struct {
 	Subject string
 	Message string
 	Hint    string
+	Site    string
 }
 
 func (m *Mailer) SendVerification(email, code string) error {
 	data := CodeEmailData{
-		Subject: "Email Verification",
-		Message: "To complete your registration, please use the confirmation code:",
-		Hint:    "If you did not request registration, ignore this email.",
+		Subject: "Confirm your email address - View MPP",
+		Message: "To finish creating your View MPP account, use the confirmation code below.",
+		Hint:    "If you did not sign up, ignore this email and nothing will happen.",
 		Code:    code,
+		Site:    m.site,
 	}
 
 	html, err := m.renderTemplate(m.templates.Verification, data)
@@ -26,7 +29,9 @@ func (m *Mailer) SendVerification(email, code string) error {
 		return err
 	}
 
-	return m.send(data.Subject, html, email, "code", code)
+	text := plainText(data.Message, data.Code, data.Hint, m.signature())
+
+	return m.send(data.Subject, html, text, email, "code", code)
 }
 
 type ResetEmailData struct {
@@ -34,14 +39,16 @@ type ResetEmailData struct {
 	Message string
 	Hint    string
 	Link    string
+	Site    string
 }
 
 func (m *Mailer) SendPasswordReset(email, link string) error {
 	data := ResetEmailData{
-		Subject: "Reset your password",
-		Message: "Use the link below to choose a new password. It expires shortly.",
+		Subject: "Reset your View MPP password",
+		Message: "Use the link below to choose a new password for your View MPP account. It expires shortly.",
 		Hint:    "If you did not ask to reset your password, ignore this email - nothing has changed.",
 		Link:    link,
+		Site:    m.site,
 	}
 
 	html, err := m.renderTemplate(m.templates.PasswordReset, data)
@@ -49,14 +56,17 @@ func (m *Mailer) SendPasswordReset(email, link string) error {
 		return err
 	}
 
-	return m.send(data.Subject, html, email, "link", link)
+	text := plainText(data.Message, data.Link, data.Hint, m.signature())
+
+	return m.send(data.Subject, html, text, email, "link", link)
 }
 
 func (m *Mailer) SendExistingAccount(email string) error {
 	data := ExistingAccountData{
-		Subject: "Registration attempt",
-		Message: "Someone tried to register an account using this email address.",
-		Hint:    "If this wasn't you, you can safely ignore this email.",
+		Subject: "A sign-up attempt on View MPP",
+		Message: "Someone tried to create a View MPP account with this email address. It already has one, so nothing was created.",
+		Hint:    "If this wasn't you, you can safely ignore this email. Your account is untouched.",
+		Site:    m.site,
 	}
 
 	html, err := m.renderTemplate(m.templates.AccountExists, data)
@@ -64,5 +74,7 @@ func (m *Mailer) SendExistingAccount(email string) error {
 		return err
 	}
 
-	return m.send(data.Subject, html, email)
+	text := plainText(data.Message, data.Hint, m.signature())
+
+	return m.send(data.Subject, html, text, email)
 }

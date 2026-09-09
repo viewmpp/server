@@ -1,5 +1,22 @@
 {{define "html"}}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{{.Subject}}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.5;">
+
     <h2>{{.Subject}}</h2>
     <p>{{.Message}}</p>
     <p style="color: #666; font-size: 14px;">{{.Hint}}</p>
+
+    <hr>
+
+    <small style="color:#666;">
+        Sent by <a href="{{.Site}}">View MPP</a>, where Microsoft Project and Primavera files
+        open in the browser. This message is automated - please do not reply.
+    </small>
+    </body>
+    </html>
 {{end}}

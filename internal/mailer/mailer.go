@@ -6,13 +6,17 @@ import (
 	"log/slog"
 	"server/internal/config"
 	"server/internal/htmlutil"
+	"strings"
 
 	"github.com/resend/resend-go/v3"
 )
 
+const senderName = "View MPP"
+
 type Mailer struct {
 	client    *resend.Client
 	sender    string
+	site      string
 	templates *htmlutil.Templates
 	logger    *slog.Logger
 	prod      bool
@@ -20,6 +24,7 @@ type Mailer struct {
 
 func New(
 	config config.Resend,
+	site string,
 	templates *htmlutil.Templates,
 	logger *slog.Logger,
 	prod bool,
@@ -32,10 +37,35 @@ func New(
 	return &Mailer{
 		client:    resend.NewClient(config.ResendAPIKey),
 		sender:    config.ResendSender,
+		site:      strings.TrimRight(site, "/"),
 		templates: templates,
 		logger:    logger,
 		prod:      prod,
 	}
+}
+
+func (m *Mailer) signature() string {
+	return "Sent by " + senderName + " - " + m.site
+}
+
+func plainText(parts ...string) string {
+	kept := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		if strings.TrimSpace(part) != "" {
+			kept = append(kept, part)
+		}
+	}
+
+	return strings.Join(kept, "\n\n")
+}
+
+func (m *Mailer) from() string {
+	if strings.Contains(m.sender, "<") {
+		return m.sender
+	}
+
+	return senderName + " <" + m.sender + ">"
 }
 
 func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, error) {
@@ -50,7 +80,7 @@ func (m *Mailer) renderTemplate(tmpl *template.Template, data any) (string, erro
 	return html.String(), nil
 }
 
-func (m *Mailer) send(subject, html, recipient string, detail ...any) error {
+func (m *Mailer) send(subject, html, text, recipient string, detail ...any) error {
 
 	if !m.prod {
 		m.logger.With("to", recipient, "subject", subject).Info("dev mode, email not sent, log transport", detail...)
@@ -60,10 +90,11 @@ func (m *Mailer) send(subject, html, recipient string, detail ...any) error {
 	client := m.client
 
 	params := &resend.SendEmailRequest{
-		From:    m.sender,
+		From:    m.from(),
 		To:      []string{recipient},
 		Subject: subject,
 		Html:    html,
+		Text:    text,
 	}
 
 	response, err := client.Emails.Send(params)

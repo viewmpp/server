@@ -104,7 +104,7 @@ func run() error {
 	background.Sweep(stop, logger, "tokens", cfg.BGSweepRepetition, cfg.BGSweepTimeout, s.Tokens.DeleteExpired)
 	background.Sweep(stop, logger, "protected links", cfg.BGSweepRepetition, cfg.BGSweepTimeout, s.Projects.DemoteExpiredProtected)
 
-	mail := mailer.New(cfg.Resend, templates, logger, cfg.AppEnv == "prod")
+	mail := mailer.New(cfg.Resend, cfg.AppBaseURL, templates, logger, cfg.AppEnv == "prod")
 
 	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, logger)
 	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
