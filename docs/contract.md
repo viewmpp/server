@@ -630,6 +630,14 @@ it.
   This does not contradict the contract - `0` is a real `uniqueID`. Whether to
   show it or collapse it is `mapper.js`'s decision; it was never checked by eye
   against MS Project.
+- **The root row's `outline_level` is not the same across formats.** *Measured
+  on: one real file per format.* `parent_id: null` and `is_summary: true` hold
+  everywhere, but the level is `0` for `.mpp`, MSPDI, `.mpx` and `.mpd`, and `1`
+  for `.xer` - Primavera numbers levels from one. Find the project row by
+  `parent_id: null` alone; every file measured has exactly one such task.
+  Requiring `outline_level == 0` as well cost the viewer its project duration on
+  Primavera files until it was corrected - the bullet above, read as a rule
+  rather than as a measurement of one format, is where that came from.
 - **`project.name` depends on the format.** *Measured on: the whole corpus.*
   Empty for `.mpp`; for MSPDI it holds the file name as of the moment of saving.
   See the section on the file name above.
