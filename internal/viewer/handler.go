@@ -61,7 +61,7 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 	page.ExampleName = e.Name
 	page.ExampleLabel = e.Label
 	page.FileName = e.FileName
-	page.Description = exampleDescription(e)
+	page.Description = e.Description()
 	page.Canonical = h.baseURL + "/example/" + e.Name
 	page.Public = true
 
@@ -143,10 +143,4 @@ func (h *Handler) landing(w http.ResponseWriter, r *http.Request, slug string, t
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, tmpl, page, h.logger)
-}
-
-func exampleDescription(e examples.Example) string {
-	return fmt.Sprintf(
-		"%s - %s. Open this sample MS Project plan in the browser: Gantt chart, task table and dependencies, no install and no signup.",
-		e.Label, e.Note)
 }

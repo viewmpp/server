@@ -5,9 +5,11 @@ import (
 	"html/template"
 	"regexp"
 	"server/internal/assert"
+	"server/internal/examples"
 	"server/internal/landing"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 const (
@@ -57,21 +59,44 @@ func TestIndexablePagesFitTheSearchResult(t *testing.T) {
 		t.Run(slug, func(t *testing.T) {
 			out := renderPage(t, tmpl, Page{Description: landing.BySlug(slug).Description, Public: true})
 
-			title := titlePattern.FindStringSubmatch(out)
-			if title == nil {
-				t.Fatal("no title")
-			}
-			if n := len(title[1]); n > maxTitle {
-				t.Errorf("title is %d characters, limit %d: the tail is cut off in the search result\n  %s", n, maxTitle, title[1])
-			}
+			fitsTheSearchResult(t, out)
+		})
+	}
+}
 
-			desc := descPattern.FindStringSubmatch(out)
-			if desc == nil {
-				t.Fatal("no description")
-			}
-			if n := len(desc[1]); n > maxDescription {
-				t.Errorf("description is %d characters, limit %d: the cut half usually holds the reason to click\n  %s", n, maxDescription, desc[1])
-			}
+func fitsTheSearchResult(t *testing.T, out string) {
+	t.Helper()
+
+	title := titlePattern.FindStringSubmatch(out)
+	if title == nil {
+		t.Fatal("no title")
+	}
+
+	if n := utf8.RuneCountInString(title[1]); n > maxTitle {
+		t.Errorf("title is %d characters, limit %d: the tail is cut off in the search result\n  %s", n, maxTitle, title[1])
+	}
+
+	desc := descPattern.FindStringSubmatch(out)
+	if desc == nil {
+		t.Fatal("no description")
+	}
+
+	if n := utf8.RuneCountInString(desc[1]); n > maxDescription {
+		t.Errorf("description is %d characters, limit %d: the cut half usually holds the reason to click\n  %s", n, maxDescription, desc[1])
+	}
+}
+
+func TestExamplePagesFitTheSearchResultAsWell(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	for _, e := range examples.All() {
+		t.Run(e.Name, func(t *testing.T) {
+			fitsTheSearchResult(t, renderPage(t, pages.App, Page{
+				ExampleLabel: e.Label,
+				Description:  e.Description(),
+				Public:       true,
+			}))
 		})
 	}
 }

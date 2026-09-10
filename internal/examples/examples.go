@@ -55,6 +55,10 @@ var catalogue = []Example{
 	},
 }
 
+func (e Example) Description() string {
+	return fmt.Sprintf("%s - %s. A sample MS Project plan you can open in the browser.", e.Label, e.Note)
+}
+
 func All() []Example {
 	return catalogue
 }
