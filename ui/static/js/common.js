@@ -279,7 +279,7 @@
 
   document.addEventListener('click', function (event) {
     var close = event.target.closest('[data-toast-close]');
-    if (close) { close.parentNode.classList.add('is-hidden'); }
+    if (close) { (close.closest('.toast') || close.parentNode).classList.add('is-hidden'); }
   });
 
   document.querySelectorAll('[data-reveal]').forEach(function (form) {

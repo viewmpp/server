@@ -640,11 +640,7 @@ a:focus-visible,
 .share__note .linkish { color: inherit; }
 
 .toast.toast--flash {
-  position: fixed;
-  right: max(calc(var(--unit) * 2), env(safe-area-inset-right));
-  bottom: max(calc(var(--unit) * 2), env(safe-area-inset-bottom));
-  z-index: 40;
-  max-width: min(25rem, calc(100% - var(--unit) * 4));
+  max-width: min(25rem, 100%);
   background: var(--bg-secondary);
   border-color: var(--border-hover);
 }
@@ -1304,16 +1300,24 @@ input:-webkit-autofill:focus {
 .sw--overdue { background: var(--warning); }
 .sw--off { background: var(--bg-tag); border: 1px solid var(--border); }
 
-.toast {
-  position: absolute;
-  right: calc(var(--unit) * 2);
-  bottom: calc(var(--unit) * 2);
-  z-index: 30;
+.notifications {
+  position: fixed;
+  right: max(calc(var(--unit) * 2), env(safe-area-inset-right));
+  bottom: max(calc(var(--unit) * 2), env(safe-area-inset-bottom));
+  z-index: 40;
   display: flex;
-  align-items: center;
-  gap: 13.68px;
-  max-width: min(478.8px, calc(100% - var(--unit) * 4));
-  padding: 13.68px 15.96px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 11.4px;
+  max-width: calc(100% - var(--unit) * 4);
+  pointer-events: none;
+}
+.notifications.is-viewer { position: absolute; z-index: 30; }
+.notifications > * { pointer-events: auto; }
+
+.toast {
+  overflow: hidden;
+  max-width: min(478.8px, 100%);
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -1321,6 +1325,27 @@ input:-webkit-autofill:focus {
   animation: toast-in .22s cubic-bezier(.4, 0, .2, 1);
 }
 .toast.is-hidden { display: none !important; }
+
+.toast__surface {
+  display: flex;
+  align-items: center;
+  gap: 13.68px;
+  padding: 13.68px 15.96px;
+}
+
+.toast__timer { height: 2.28px; background: var(--pale-control); }
+.toast__timer[hidden] { display: none; }
+.toast__progress {
+  display: block;
+  height: 100%;
+  background: var(--main);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast__timer { display: none; }
+}
 .toast__text, .offer__text { flex: 1; min-width: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.45; }
 .toast .btn { flex: none; }
 .toast__close {

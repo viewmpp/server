@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  var LIFETIME = 15000;
+
   var stack = document.getElementById('notifications');
   if (!stack) { return; }
 
@@ -24,7 +26,7 @@
 
   stack.querySelectorAll('.toast').forEach(function (box) {
     var progress = box.querySelector('[data-flash-progress]');
-    var remaining = 10000;
+    var remaining = LIFETIME;
     var started = null;
     var frame = null;
     var hovered = box.matches(':hover');
@@ -47,7 +49,7 @@
         remaining = Math.max(0, remaining - (now - started));
         started = now;
       }
-      progress.style.transform = 'scaleX(' + remaining / 10000 + ')';
+      progress.style.transform = 'scaleX(' + remaining / LIFETIME + ')';
     }
 
     function tick() {
@@ -62,14 +64,14 @@
       var visible = !box.classList.contains('is-hidden') &&
         (!box.hasAttribute('data-viewer-notice') || stack.classList.contains('is-viewer'));
       if (visible && (!wasVisible || reset)) {
-        remaining = 10000;
+        remaining = LIFETIME;
         progress.style.transform = 'scaleX(1)';
       }
       wasVisible = visible;
       var hasAction = !!box.querySelector('.toast__surface .btn:not(.is-hidden)');
       progress.parentElement.hidden = hasAction;
       if (hasAction) {
-        remaining = 10000;
+        remaining = LIFETIME;
         progress.style.transform = 'scaleX(1)';
         return;
       }

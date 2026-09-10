@@ -140,14 +140,20 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
 <div class="main">
 {{template "main" .}}
 </div>
-{{with .Flash}}
-<div class="toast toast--flash" id="flash-message">
-  <span class="toast__text" role="status">{{.}}</span>
-  <button class="toast__close" type="button" data-toast-close aria-label="Dismiss notification">&times;</button>
+<div class="notifications" id="notifications">
+  {{with .Flash}}
+  <div class="toast toast--flash" id="flash-message">
+    <div class="toast__surface">
+      <span class="toast__text" role="status">{{.}}</span>
+      <button class="toast__close" type="button" data-toast-close aria-label="Dismiss notification">&times;</button>
+    </div>
+    <div class="toast__timer"><span class="toast__progress" data-flash-progress></span></div>
+  </div>
+  {{end}}
 </div>
-{{end}}
 <script src="/static/js/theme.js?v={{.Version}}"></script>
 <script src="/static/js/common.js?v={{.Version}}"></script>
+<script src="/static/js/flash.js?v={{.Version}}"></script>
 {{block "scripts" .}}{{end}}
 </body>
 </html>
