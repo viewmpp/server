@@ -15,7 +15,7 @@
         {{end}}
       </div>
 
-      <div class="bar__sep"></div>
+      <hr class="bar__sep">
 
       <div class="searchbox" id="searchbox">
         <input type="search" id="search" class="search" placeholder="Search tasks" autocomplete="off">
@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <div class="bar__sep"></div>
+      <hr class="bar__sep">
 
       <div class="bar__group bar__group--switches">
         <label class="switch">
@@ -178,7 +178,7 @@
               {{end}}
 
               {{if ne .Access "private"}}
-                <div class="menu__sep"></div>
+                <hr class="menu__sep">
                 <form action="/p/{{.ProjectID}}/access" method="POST">
                   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                   <input type="hidden" name="access" value="private">

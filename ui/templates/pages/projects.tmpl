@@ -2,10 +2,10 @@
 
 {{define "main"}}
 <main class="page centered">
-  <div class="page__head">
+  <header class="page__head">
     <h1>Your projects</h1>
     <a class="btn btn--primary btn--inline" href="/">Open a file</a>
-  </div>
+  </header>
 
 
   {{with .SavedNote}}<p class="saved-note">{{.}}{{if not $.Pro}} <a href="/pricing">See what Pro adds</a>{{end}}</p>{{end}}

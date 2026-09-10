@@ -534,7 +534,7 @@ a:focus-visible,
 .menu__item.is-active { color: var(--main); font-weight: 500; }
 .menu__item--danger { color: var(--error); }
 .menu__item--danger:hover { background: var(--error-bg); }
-.menu__sep { height: 1.14px; margin: 4.56px 0; background: var(--line); }
+.menu__sep { height: 1.14px; margin: 4.56px 0; border: 0; background: var(--line); }
 .menu__field { display: flex; gap: 4.56px; padding: 5.7px 11.4px 9.12px; }
 
 .menu--wide .menu__panel { min-width: 364.8px; padding: 13.68px; gap: 0; }
@@ -1021,7 +1021,7 @@ input:-webkit-autofill:focus {
 .bar__spacer { flex: 1 1 0; min-width: 0; }
 .bar__group { display: flex; align-items: center; gap: 6.84px; flex: none; }
 .bar__group--switches { gap: calc(var(--unit) * 2); }
-.bar__sep { width: 1.14px; height: 22.8px; background: var(--line); flex: none; }
+.bar__sep { width: 1.14px; height: 22.8px; margin: 0; border: 0; background: var(--line); flex: none; }
 .bar__row > .searchbox, .bar__row > .seg { flex: none; }
 
 .label { color: var(--secondary); font-size: var(--text-sm); font-weight: 500; }
