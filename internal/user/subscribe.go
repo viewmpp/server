@@ -16,10 +16,6 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	back := h.backTo(r)
 

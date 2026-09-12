@@ -17,10 +17,6 @@ type AccountForm struct {
 
 func (h *Handler) AccountPage(w http.ResponseWriter, r *http.Request) {
 	u := GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	saved, err := h.projects.CountByUserID(r.Context(), u.ID)
 	if err != nil {
@@ -60,10 +56,6 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	keys := []string{
 		"password-user:" + strconv.FormatInt(u.ID, 10),
@@ -137,10 +129,6 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	keys := []string{
 		"delete-user:" + strconv.FormatInt(u.ID, 10),

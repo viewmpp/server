@@ -12,10 +12,6 @@ import (
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
-	if u.IsAnonymous() {
-		jsonutil.UnauthorizedResponse(w)
-		return
-	}
 
 	if r.ContentLength > export.MaxContractBytes {
 		jsonutil.ContentTooLargeError(w)

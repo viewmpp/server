@@ -326,3 +326,40 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 		next.ServeHTTP(w, user.SetUserContext(r, u))
 	})
 }
+
+func (s *Server) requireAuthUser(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := user.GetUserContext(r)
+
+		if u == user.AnonymousUser {
+			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+func (s *Server) requireAuthAPI(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if user.GetUserContext(r) == user.AnonymousUser {
+			jsonutil.UnauthorizedResponse(w)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+func (s *Server) requireAnonymousUser(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := user.GetUserContext(r)
+
+		if u != user.AnonymousUser {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+}

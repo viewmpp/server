@@ -125,10 +125,6 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := user.GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	publicID := r.PathValue("id")
 
@@ -229,10 +225,6 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := user.GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	if err := h.store.Delete(r.Context(), r.PathValue("id"), u.ID); err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -309,10 +301,6 @@ func (h *Handler) ConvertPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	u := user.GetUserContext(r)
-	if u.IsAnonymous() {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		return
-	}
 
 	projects, err := h.store.ListByUserID(r.Context(), u.ID, h.listLimit)
 	if err != nil {

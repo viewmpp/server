@@ -26,7 +26,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.fromApp(s.uploadHandler.Upload))
 	mux.HandleFunc("POST /api/v1/xlsx", s.fromApp(s.exportHandler.XLSX))
-	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.projectHandler.Create))
+	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.requireAuthAPI(s.projectHandler.Create)))
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimiter, "read-ip:", s.projectHandler.Contract))
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.throttle(s.readLimiter, "read-ip:", s.viewerHandler.ExampleContract))
@@ -47,36 +47,36 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /privacy", s.viewerHandler.PrivacyPage)
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
 
-	mux.HandleFunc("GET /projects", s.projectHandler.List)
+	mux.HandleFunc("GET /projects", s.requireAuthUser(s.projectHandler.List))
 	mux.HandleFunc("GET /p/{id}", s.throttle(s.readLimiter, "page-ip:", s.projectHandler.Page))
 	mux.HandleFunc("GET /p/{id}/xlsx", s.throttle(s.exportLimiter, "export-ip:", s.projectHandler.Export))
 	mux.HandleFunc("POST /p/{id}/unlock", s.projectHandler.Unlock)
-	mux.HandleFunc("POST /p/{id}/access", s.projectHandler.SetAccess)
-	mux.HandleFunc("POST /p/{id}/delete", s.projectHandler.Delete)
+	mux.HandleFunc("POST /p/{id}/access", s.requireAuthUser(s.projectHandler.SetAccess))
+	mux.HandleFunc("POST /p/{id}/delete", s.requireAuthUser(s.projectHandler.Delete))
 
-	mux.HandleFunc("GET /signup", s.userHandler.SignupPage)
-	mux.HandleFunc("POST /signup", s.userHandler.Signup)
+	mux.HandleFunc("GET /signup", s.requireAnonymousUser(s.userHandler.SignupPage))
+	mux.HandleFunc("POST /signup", s.requireAnonymousUser(s.userHandler.Signup))
 
-	mux.HandleFunc("GET /verify", s.userHandler.VerifyPage)
-	mux.HandleFunc("POST /verify", s.userHandler.Verify)
-	mux.HandleFunc("POST /verify/resend", s.userHandler.ResendCode)
+	mux.HandleFunc("GET /verify", s.requireAuthUser(s.userHandler.VerifyPage))
+	mux.HandleFunc("POST /verify", s.requireAuthUser(s.userHandler.Verify))
+	mux.HandleFunc("POST /verify/resend", s.requireAuthUser(s.userHandler.ResendCode))
 
 	mux.HandleFunc("GET /reset", s.userHandler.ForgotPage)
 	mux.HandleFunc("POST /reset", s.userHandler.Forgot)
 	mux.HandleFunc("GET /reset/{token}", s.userHandler.ResetPage)
 	mux.HandleFunc("POST /reset/{token}", s.userHandler.Reset)
 
-	mux.HandleFunc("GET /signin", s.userHandler.SigninPage)
-	mux.HandleFunc("POST /signin", s.userHandler.Signin)
+	mux.HandleFunc("GET /signin", s.requireAnonymousUser(s.userHandler.SigninPage))
+	mux.HandleFunc("POST /signin", s.requireAnonymousUser(s.userHandler.Signin))
 	mux.HandleFunc("POST /signout", s.userHandler.Signout)
 
-	mux.HandleFunc("GET /account", s.userHandler.AccountPage)
+	mux.HandleFunc("GET /account", s.requireAuthUser(s.userHandler.AccountPage))
 	mux.HandleFunc("GET /account/password", s.redirect("/account"))
-	mux.HandleFunc("POST /account/password", s.userHandler.ChangePassword)
+	mux.HandleFunc("POST /account/password", s.requireAuthUser(s.userHandler.ChangePassword))
 	mux.HandleFunc("GET /account/delete", s.redirect("/account"))
-	mux.HandleFunc("POST /account/delete", s.userHandler.DeleteAccount)
+	mux.HandleFunc("POST /account/delete", s.requireAuthUser(s.userHandler.DeleteAccount))
 
-	mux.HandleFunc("POST /subscribe", s.userHandler.Subscribe)
+	mux.HandleFunc("POST /subscribe", s.requireAuthUser(s.userHandler.Subscribe))
 
 	mux.HandleFunc("/", s.notFound)
 
