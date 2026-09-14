@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"server/internal/examples"
 	"strings"
 	"testing"
@@ -40,4 +42,35 @@ func contains(haystack []string, needle string) bool {
 		}
 	}
 	return false
+}
+
+func sitemapBody(t *testing.T) string {
+	t.Helper()
+
+	s := newTestServer(t)
+	s.cfg.AppBaseURL = "https://viewmpp.com"
+
+	w := httptest.NewRecorder()
+	s.sitemap(w, httptest.NewRequest(http.MethodGet, "/sitemap.xml", nil))
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+
+	return w.Body.String()
+}
+
+func TestSitemapClaimsNoModificationDate(t *testing.T) {
+	body := sitemapBody(t)
+
+	if strings.Contains(body, "lastmod") {
+		t.Error("a date stamped on every url at once is not a modification date; an absent field beats an untrue one")
+	}
+
+	for _, path := range sitemapPaths() {
+		want := "<loc>https://viewmpp.com" + path + "</loc>"
+		if !strings.Contains(body, want) {
+			t.Errorf("%s is missing from the sitemap", path)
+		}
+	}
 }

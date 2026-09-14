@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"server/internal/examples"
 	"server/internal/landing"
-	"server/internal/vcs"
 	"strings"
-	"time"
 )
 
 type urlset struct {
@@ -17,8 +15,7 @@ type urlset struct {
 }
 
 type sitemapURL struct {
-	Loc     string `xml:"loc"`
-	LastMod string `xml:"lastmod,omitempty"`
+	Loc string `xml:"loc"`
 }
 
 func sitemapPaths() []string {
@@ -39,13 +36,8 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request) {
 
 	set := urlset{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 
-	var lastMod string
-	if at, ok := vcs.Time(); ok {
-		lastMod = at.UTC().Format(time.DateOnly)
-	}
-
 	for _, path := range sitemapPaths() {
-		set.URLs = append(set.URLs, sitemapURL{Loc: base + path, LastMod: lastMod})
+		set.URLs = append(set.URLs, sitemapURL{Loc: base + path})
 	}
 
 	body, err := xml.MarshalIndent(set, "", "  ")
