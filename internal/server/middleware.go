@@ -130,7 +130,7 @@ func (s *Server) noStore(next http.Handler) http.Handler {
 
 func sideRequest(path string) bool {
 	switch path {
-	case "/favicon.ico", "/apple-touch-icon.png", "/robots.txt", "/sitemap.xml", "/api/v1/healthcheck":
+	case "/favicon.ico", "/apple-touch-icon.png", "/robots.txt", "/sitemap.xml", "/llms.txt", "/api/v1/healthcheck":
 		return true
 	}
 

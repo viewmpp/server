@@ -15,6 +15,7 @@ const (
 	GroupView    Group = "view"
 	GroupFormat  Group = "format"
 	GroupProduct Group = "product"
+	GroupLegal   Group = "legal"
 )
 
 var groupOrder = []Group{GroupConvert, GroupView, GroupFormat, GroupProduct}
@@ -82,16 +83,19 @@ var pages = []Page{
 	{
 		Slug:        "/cookies",
 		Label:       "Cookies",
+		Group:       GroupLegal,
 		Description: "How View MPP uses cookies and local storage for sign-in, form security and preferences, how long they last, and how to clear them.",
 	},
 	{
 		Slug:        "/privacy",
 		Label:       "Privacy",
+		Group:       GroupLegal,
 		Description: "What View MPP stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
 	},
 	{
 		Slug:        "/terms",
 		Label:       "Terms",
+		Group:       GroupLegal,
 		Description: "The terms for using View MPP: what the service does, what you may upload, how sharing works and what the limits are.",
 	},
 }

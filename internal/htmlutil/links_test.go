@@ -67,9 +67,7 @@ func TestClusterPagesLinkToTheirNeighbours(t *testing.T) {
 	withBaseURL(t)
 
 	for slug, tmpl := range indexable(t) {
-		page := landing.BySlug(slug)
-
-		if page.Group == "" && slug != "/" {
+		if landing.BySlug(slug).Group == landing.GroupLegal {
 			continue
 		}
 

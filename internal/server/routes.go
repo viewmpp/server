@@ -12,6 +12,7 @@ func (s *Server) routes() http.Handler {
 	top.HandleFunc("GET /apple-touch-icon.png", s.icon("apple-touch-icon.png"))
 	top.HandleFunc("GET /robots.txt", s.robots)
 	top.HandleFunc("GET /sitemap.xml", s.sitemap)
+	top.HandleFunc("GET /llms.txt", s.llms)
 
 	top.Handle("/", s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
 
