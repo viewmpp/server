@@ -4,6 +4,7 @@ type Page struct {
 	Slug        string
 	Label       string
 	Group       Group
+	Tool        bool
 	Description string
 }
 
@@ -21,6 +22,8 @@ var groupOrder = []Group{GroupConvert, GroupView, GroupFormat, GroupProduct}
 var pages = []Page{
 	{
 		Slug:        "/",
+		Label:       "Home",
+		Tool:        true,
 		Description: "Open an .mpp or Project .xml file in your browser and read the Gantt chart at once - tasks, dates, dependencies, critical path. No install, no signup.",
 	},
 	{
@@ -33,6 +36,7 @@ var pages = []Page{
 		Slug:        "/mpp-to-excel",
 		Group:       GroupConvert,
 		Label:       "MPP to Excel",
+		Tool:        true,
 		Description: "Convert an MS Project .mpp file to an Excel .xlsx spreadsheet in your browser - tasks, dates, durations and predecessors, with no install and no signup.",
 	},
 	{
@@ -51,36 +55,43 @@ var pages = []Page{
 		Slug:        "/open-mpp-file-without-ms-project",
 		Group:       GroupView,
 		Label:       "Open .mpp without MS Project",
+		Tool:        true,
 		Description: "Sent an .mpp file and have no Microsoft Project? What is inside that file, why a text editor cannot show it, and how to read it in your browser.",
 	},
 	{
 		Slug:        "/open-mpp-file-on-mac",
 		Group:       GroupView,
 		Label:       "Open .mpp on a Mac",
+		Tool:        true,
 		Description: "Microsoft Project has no macOS version at all. What that leaves you with, what a virtual machine really costs, and how to read .mpp on a Mac instead.",
 	},
 	{
 		Slug:        "/open-xer-file-without-primavera",
 		Group:       GroupView,
 		Label:       "Open .xer without P6",
+		Tool:        true,
 		Description: "Sent a Primavera P6 schedule as an .xer file and have no P6? What is inside it, why a text editor cannot help, and how to read it in your browser.",
 	},
 	{
 		Slug:        "/open-microsoft-project-xml",
 		Group:       GroupView,
 		Label:       "Open Project .xml",
+		Tool:        true,
 		Description: "A Project .xml holds the whole schedule as text - and still cannot be read in a text editor. What is inside it, and how to see the chart in your browser.",
 	},
 	{
 		Slug:        "/cookies",
+		Label:       "Cookies",
 		Description: "How View MPP uses cookies and local storage for sign-in, form security and preferences, how long they last, and how to clear them.",
 	},
 	{
 		Slug:        "/privacy",
+		Label:       "Privacy",
 		Description: "What View MPP stores, what it does not, and how long anything is kept. Uploaded files are never written to disk.",
 	},
 	{
 		Slug:        "/terms",
+		Label:       "Terms",
 		Description: "The terms for using View MPP: what the service does, what you may upload, how sharing works and what the limits are.",
 	},
 }

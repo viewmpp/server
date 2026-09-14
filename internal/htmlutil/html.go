@@ -23,6 +23,7 @@ type Page struct {
 	Title             string
 	Description       string
 	Canonical         string
+	Schema            template.JS
 	NoIndex           bool
 	Public            bool
 	MaxUpload         int64

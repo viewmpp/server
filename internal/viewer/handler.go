@@ -36,6 +36,7 @@ func (h *Handler) Landing(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, examples.All())
 	page.Description = landing.BySlug("/").Description
 	page.Canonical = h.baseURL + "/"
+	page.Schema = htmlutil.Schema("/")
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
@@ -45,6 +46,7 @@ func (h *Handler) ExamplesPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, examples.All())
 	page.Description = landing.BySlug("/examples").Description
 	page.Canonical = h.baseURL + "/examples"
+	page.Schema = htmlutil.Schema("/examples")
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Examples, page, h.logger)
@@ -63,6 +65,7 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 	page.FileName = e.FileName
 	page.Description = e.Description()
 	page.Canonical = h.baseURL + "/example/" + e.Name
+	page.Schema = htmlutil.ExampleSchema(e)
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
@@ -96,6 +99,7 @@ func (h *Handler) PrivacyPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, nil)
 	page.Description = landing.BySlug("/privacy").Description
 	page.Canonical = h.baseURL + "/privacy"
+	page.Schema = htmlutil.Schema("/privacy")
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Privacy, page, h.logger)
@@ -105,6 +109,7 @@ func (h *Handler) TermsPage(w http.ResponseWriter, r *http.Request) {
 	page := user.NewPage(r, nil)
 	page.Description = landing.BySlug("/terms").Description
 	page.Canonical = h.baseURL + "/terms"
+	page.Schema = htmlutil.Schema("/terms")
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Terms, page, h.logger)
@@ -140,6 +145,7 @@ func (h *Handler) landing(w http.ResponseWriter, r *http.Request, slug string, t
 	page := user.NewPage(r, nil)
 	page.Description = c.Description
 	page.Canonical = h.baseURL + c.Slug
+	page.Schema = htmlutil.Schema(c.Slug)
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, tmpl, page, h.logger)
