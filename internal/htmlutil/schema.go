@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"server/internal/examples"
 	"server/internal/landing"
+	"strings"
 )
 
 const (
@@ -79,17 +80,31 @@ type schemaDocument struct {
 	Graph   []any  `json:"@graph"`
 }
 
-type crumb struct {
-	name string
-	path string
+type Crumb struct {
+	Name string
+	URL  string
 }
 
-func Schema(slug string) template.JS {
-	if baseURL == "" {
+const examplePrefix = "/example/"
+
+func (p Page) Crumbs() []Crumb {
+	return p.trail()
+}
+
+func (p Page) Schema() template.JS {
+	if baseURL == "" || p.Slug == "" {
 		return ""
 	}
 
-	page := landing.BySlug(slug)
+	if strings.HasPrefix(p.Slug, examplePrefix) {
+		trail := p.trail()
+		if trail == nil {
+			return ""
+		}
+		return encode(breadcrumbs(trail))
+	}
+
+	page := landing.BySlug(p.Slug)
 	if page.Slug == "" {
 		return ""
 	}
@@ -104,24 +119,32 @@ func Schema(slug string) template.JS {
 		nodes = append(nodes, organization(false), application())
 	}
 
-	nodes = append(nodes, breadcrumbs(
-		crumb{name: homeCrumb, path: "/"},
-		crumb{name: page.Label, path: page.Slug},
-	))
-
-	return encode(nodes...)
+	return encode(append(nodes, breadcrumbs(p.trail()))...)
 }
 
-func ExampleSchema(e examples.Example) template.JS {
-	if baseURL == "" {
-		return ""
+func (p Page) trail() []Crumb {
+	if name, isExample := strings.CutPrefix(p.Slug, examplePrefix); isExample {
+		e, exists := examples.ByName(name)
+		if !exists {
+			return nil
+		}
+
+		return []Crumb{
+			{Name: homeCrumb, URL: "/"},
+			{Name: landing.BySlug("/examples").Label, URL: "/examples"},
+			{Name: e.Label},
+		}
 	}
 
-	return encode(breadcrumbs(
-		crumb{name: homeCrumb, path: "/"},
-		crumb{name: landing.BySlug("/examples").Label, path: "/examples"},
-		crumb{name: e.Label, path: "/example/" + e.Name},
-	))
+	page := landing.BySlug(p.Slug)
+	if page.Slug == "" || page.Slug == "/" {
+		return nil
+	}
+
+	return []Crumb{
+		{Name: homeCrumb, URL: "/"},
+		{Name: page.Label},
+	}
 }
 
 func website() schemaWebsite {
@@ -182,18 +205,18 @@ func application() schemaApplication {
 	}
 }
 
-func breadcrumbs(trail ...crumb) schemaBreadcrumbs {
+func breadcrumbs(trail []Crumb) schemaBreadcrumbs {
 	items := make([]schemaListItem, 0, len(trail))
 
 	for i, c := range trail {
 		item := schemaListItem{
 			Type:     "ListItem",
 			Position: i + 1,
-			Name:     c.name,
+			Name:     c.Name,
 		}
 
-		if i < len(trail)-1 {
-			item.Item = baseURL + c.path
+		if c.URL != "" {
+			item.Item = baseURL + c.URL
 		}
 
 		items = append(items, item)

@@ -649,6 +649,16 @@ a:focus-visible,
 
 .page { width: 100%; max-width: 55rem; margin: 0 auto; padding: calc(var(--unit) * 5) calc(var(--unit) * 3) calc(var(--unit) * 8); }
 .page--text { max-width: 46rem; }
+.crumbs { margin-bottom: calc(var(--unit) * 2); font-size: var(--text-sm); color: var(--secondary); }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--unit) * .75); margin: 0; padding: 0; list-style: none; }
+.crumbs li { display: flex; align-items: center; gap: calc(var(--unit) * .75); }
+.crumbs li + li::before { content: "/"; color: var(--disabled); }
+.crumbs a { color: var(--secondary); text-decoration: none; border-radius: var(--radius-sm); }
+.crumbs a:hover { color: var(--text); text-decoration: underline; }
+.crumbs a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.crumbs [aria-current="page"] { color: var(--text); }
+.landing .crumbs ol { justify-content: center; }
+
 .page__head { display: flex; align-items: center; gap: calc(var(--unit) * 2); margin-bottom: calc(var(--unit) * 3); }
 .page__head h1 { font-size: var(--text-2xl); margin-right: auto; }
 .page__head + .lead { margin-top: calc(var(--unit) * -1); }

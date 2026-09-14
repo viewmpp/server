@@ -246,6 +246,7 @@ func parsePage(name string) (*template.Template, error) {
 		"templates/base.tmpl",
 		"templates/partials/viewer.tmpl",
 		"templates/partials/footer.tmpl",
+		"templates/partials/crumbs.tmpl",
 		fmt.Sprintf("templates/pages/%s", name))
 }
 

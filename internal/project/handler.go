@@ -294,7 +294,7 @@ func (h *Handler) ConvertPage(w http.ResponseWriter, r *http.Request) {
 	page.Examples = examples.All()
 	page.Description = landing.BySlug("/mpp-to-excel").Description
 	page.Canonical = h.baseURL + "/mpp-to-excel"
-	page.Schema = htmlutil.Schema("/mpp-to-excel")
+	page.Slug = "/mpp-to-excel"
 	page.Public = true
 
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Convert, page, h.logger)

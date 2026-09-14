@@ -1,0 +1,7 @@
+{{define "crumbs"}}{{with .Crumbs}}
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol>
+{{range .}}    <li>{{if .URL}}<a href="{{.URL}}">{{.Name}}</a>{{else}}<span aria-current="page">{{.Name}}</span>{{end}}</li>
+{{end}}  </ol>
+</nav>
+{{end}}{{end}}

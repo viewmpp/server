@@ -22,6 +22,10 @@ func withBaseURL(t *testing.T) {
 	t.Cleanup(func() { SetBaseURL(previous) })
 }
 
+func schemaOf(slug string) string {
+	return string(Page{Slug: slug}.Schema())
+}
+
 func graphOf(t *testing.T, body string) []map[string]any {
 	t.Helper()
 
@@ -58,7 +62,7 @@ func TestSchemaIsSilentWithoutABaseURL(t *testing.T) {
 	SetBaseURL("")
 	t.Cleanup(func() { SetBaseURL(previous) })
 
-	if Schema("/") != "" {
+	if schemaOf("/") != "" {
 		t.Error("absolute @id values are impossible without a base url, so no markup may be written")
 	}
 }
@@ -67,7 +71,7 @@ func TestSchemaIgnoresPagesOutsideTheLandingSet(t *testing.T) {
 	withBaseURL(t)
 
 	for _, slug := range []string{"/p/abc123", "/projects", "/nothing-here"} {
-		if Schema(slug) != "" {
+		if schemaOf(slug) != "" {
 			t.Errorf("%s is not a landing page and must carry no markup", slug)
 		}
 	}
@@ -78,7 +82,7 @@ func TestEveryLandingPageCarriesValidMarkup(t *testing.T) {
 
 	for _, page := range landing.All() {
 		t.Run(page.Slug, func(t *testing.T) {
-			body := string(Schema(page.Slug))
+			body := schemaOf(page.Slug)
 			if body == "" {
 				t.Fatal("no markup: the page is in the landing set and is indexable")
 			}
@@ -94,7 +98,7 @@ func TestEveryLandingPageCarriesValidMarkup(t *testing.T) {
 func TestHomeCarriesTheSiteWideEntities(t *testing.T) {
 	withBaseURL(t)
 
-	graph := graphOf(t, string(Schema("/")))
+	graph := graphOf(t, schemaOf("/"))
 	types := typesIn(graph)
 
 	for _, want := range []string{"WebSite", "Organization", "SoftwareApplication"} {
@@ -117,7 +121,7 @@ func TestToolPagesDeclareTheApplicationAndPlainPagesDoNot(t *testing.T) {
 		}
 
 		t.Run(page.Slug, func(t *testing.T) {
-			types := typesIn(graphOf(t, string(Schema(page.Slug))))
+			types := typesIn(graphOf(t, schemaOf(page.Slug)))
 
 			if !has(types, "BreadcrumbList") {
 				t.Errorf("no breadcrumbs, got %v", types)
@@ -134,7 +138,7 @@ func TestTheApplicationIsOneEntityAcrossPages(t *testing.T) {
 	withBaseURL(t)
 
 	id := func(slug string) string {
-		for _, node := range graphOf(t, string(Schema(slug))) {
+		for _, node := range graphOf(t, schemaOf(slug)) {
 			if node["@type"] == "SoftwareApplication" {
 				return node["@id"].(string)
 			}
@@ -159,7 +163,7 @@ func TestTheApplicationIsOneEntityAcrossPages(t *testing.T) {
 func TestTheApplicationIsFreeToUse(t *testing.T) {
 	withBaseURL(t)
 
-	for _, node := range graphOf(t, string(Schema("/"))) {
+	for _, node := range graphOf(t, schemaOf("/")) {
 		if node["@type"] != "SoftwareApplication" {
 			continue
 		}
@@ -181,7 +185,7 @@ func TestTheApplicationIsFreeToUse(t *testing.T) {
 func TestBreadcrumbsEndOnThePageItself(t *testing.T) {
 	withBaseURL(t)
 
-	trail := breadcrumbsIn(t, string(Schema("/open-mpp-file-on-mac")))
+	trail := breadcrumbsIn(t, schemaOf("/open-mpp-file-on-mac"))
 
 	if len(trail) != 2 {
 		t.Fatalf("trail has %d steps, want 2: home then the page", len(trail))
@@ -201,7 +205,7 @@ func TestExamplePagesSitUnderTheExamplesIndex(t *testing.T) {
 
 	for _, e := range examples.All() {
 		t.Run(e.Name, func(t *testing.T) {
-			trail := breadcrumbsIn(t, string(ExampleSchema(e)))
+			trail := breadcrumbsIn(t, schemaOf("/example/"+e.Name))
 
 			if len(trail) != 3 {
 				t.Fatalf("trail has %d steps, want 3: home, examples, the plan", len(trail))
@@ -242,7 +246,7 @@ func breadcrumbsIn(t *testing.T, body string) []map[string]any {
 func TestMarkupSurvivesTheTemplate(t *testing.T) {
 	withBaseURL(t)
 
-	out := render(t, Page{Description: "x", Public: true, Schema: Schema("/")})
+	out := render(t, Page{Description: "x", Public: true, Slug: "/"})
 
 	found := schemaPattern.FindStringSubmatch(out)
 	if found == nil {
@@ -262,5 +266,67 @@ func TestMarkupSurvivesTheTemplate(t *testing.T) {
 func TestPagesWithoutMarkupWriteNoEmptyBlock(t *testing.T) {
 	if schemaPattern.MatchString(render(t, Page{})) {
 		t.Error("a page with no schema emitted an empty ld+json block")
+	}
+}
+
+var (
+	navPattern  = regexp.MustCompile(`(?s)<nav class="crumbs"[^>]*>(.*?)</nav>`)
+	stepPattern = regexp.MustCompile(`<(?:a href="([^"]*)"|span aria-current="page")>([^<]*)<`)
+)
+
+const (
+	linkedInNav   = 1
+	labelledInNav = 2
+)
+
+func visibleTrail(t *testing.T, out string) [][2]string {
+	t.Helper()
+
+	nav := navPattern.FindStringSubmatch(out)
+	if nav == nil {
+		return nil
+	}
+
+	var steps [][2]string
+	for _, step := range stepPattern.FindAllStringSubmatch(nav[1], -1) {
+		steps = append(steps, [2]string{step[labelledInNav], step[linkedInNav]})
+	}
+
+	return steps
+}
+
+func TestTheVisibleTrailSaysTheSameAsTheMarkup(t *testing.T) {
+	withBaseURL(t)
+
+	for slug, tmpl := range indexable(t) {
+		t.Run(slug, func(t *testing.T) {
+			out := renderPage(t, tmpl, Page{Slug: slug, Description: "x", Public: true})
+
+			visible := visibleTrail(t, out)
+
+			if slug == "/" {
+				if visible != nil {
+					t.Fatalf("the home page is the root of the trail and shows no breadcrumbs, got %v", visible)
+				}
+				return
+			}
+
+			marked := breadcrumbsIn(t, schemaOf(slug))
+
+			if len(visible) != len(marked) {
+				t.Fatalf("the reader sees %d steps and the crawler is told %d", len(visible), len(marked))
+			}
+
+			for i, step := range visible {
+				assert.Equal(t, step[0], marked[i]["name"].(string))
+
+				_, linkedForCrawler := marked[i]["item"]
+				linkedForReader := step[1] != ""
+
+				if linkedForReader != linkedForCrawler {
+					t.Errorf("step %d: a link for the reader = %v, a link for the crawler = %v", i+1, linkedForReader, linkedForCrawler)
+				}
+			}
+		})
 	}
 }
