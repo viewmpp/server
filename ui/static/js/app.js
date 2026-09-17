@@ -125,7 +125,7 @@
     ui.details.classList.add('is-hidden');
     ui.app.classList.add('is-hidden');
     ui.loading.classList.add('is-hidden');
-    ui.landing.classList.remove('is-hidden');
+    if (ui.landing) { ui.landing.classList.remove('is-hidden'); }
     if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
   });
 
@@ -191,7 +191,7 @@
       .catch(function (err) {
         ui.app.classList.add('is-hidden');
         ui.loading.classList.add('is-hidden');
-        ui.landing.classList.remove('is-hidden');
+        if (ui.landing) { ui.landing.classList.remove('is-hidden'); }
         if (ui.foot) { ui.foot.classList.remove('is-hidden'); }
         fail(err.message);
       });
@@ -356,6 +356,8 @@
   }
 
   function fail(message) {
+    if (!ui.error) { return; }
+
     ui.error.textContent = message;
     ui.error.classList.remove('is-hidden');
   }
@@ -383,15 +385,15 @@
   }
 
   function opening(fileName) {
-    ui.error.classList.add('is-hidden');
-    ui.landing.classList.add('is-hidden');
+    if (ui.error) { ui.error.classList.add('is-hidden'); }
+    if (ui.landing) { ui.landing.classList.add('is-hidden'); }
     if (ui.foot) { ui.foot.classList.add('is-hidden'); }
     ui.loadingText.textContent = TEXT.opening + (fileName || '');
     ui.loading.classList.remove('is-hidden');
   }
 
   function show(contract, fileName, refused) {
-    ui.landing.classList.add('is-hidden');
+    if (ui.landing) { ui.landing.classList.add('is-hidden'); }
     if (ui.foot) { ui.foot.classList.add('is-hidden'); }
     ui.loading.classList.add('is-hidden');
     ui.app.classList.remove('is-hidden');

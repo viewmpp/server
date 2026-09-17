@@ -20,6 +20,7 @@ type Pages struct {
 	Projects       *template.Template
 	Unlock         *template.Template
 	Examples       *template.Template
+	Example        *template.Template
 	Convert        *template.Template
 	Forgot         *template.Template
 	Reset          *template.Template
@@ -100,6 +101,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	example, err := parsePage("example.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	convert, err := parsePage("convert.tmpl")
 	if err != nil {
 		return nil, err
@@ -173,6 +179,7 @@ func NewPages() (*Pages, error) {
 		Projects:       projects,
 		Unlock:         unlock,
 		Examples:       examples,
+		Example:        example,
 		Convert:        convert,
 		Forgot:         forgot,
 		Reset:          reset,

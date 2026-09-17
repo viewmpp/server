@@ -92,9 +92,11 @@ func TestExamplePagesFitTheSearchResultAsWell(t *testing.T) {
 
 	for _, e := range examples.All() {
 		t.Run(e.Name, func(t *testing.T) {
-			fitsTheSearchResult(t, renderPage(t, pages.App, Page{
+			fitsTheSearchResult(t, renderPage(t, pages.Example, Page{
+				Slug:         "/example/" + e.Name,
 				ExampleLabel: e.Label,
 				Description:  e.Description(),
+				Form:         e,
 				Public:       true,
 			}))
 		})

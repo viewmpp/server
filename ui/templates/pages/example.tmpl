@@ -1,0 +1,39 @@
+{{define "title"}}{{.ExampleLabel}} - an MS Project plan | View MPP{{end}}
+
+{{define "main"}}
+<header class="sample__head centered">
+{{template "crumbs" .}}
+  <h1>{{.ExampleLabel}} - a sample MS Project plan</h1>
+  <p class="lead">{{.Form.Lead}}</p>
+</header>
+
+{{template "viewer" .}}
+
+<section class="sample centered">
+  <ul class="sample__facts">
+    <li><b>{{.Form.Stats.Tasks}}</b> tasks</li>
+    <li><b>{{.Form.Stats.Summaries}}</b> summaries</li>
+    <li><b>{{.Form.Stats.Milestones}}</b> milestones</li>
+    <li><b>{{.Form.Stats.Critical}}</b> on the critical path</li>
+    <li><b>{{.Form.Stats.Depth}}</b> levels of nesting</li>
+    <li><b>{{.Form.Stats.Relations}}</b> dependencies</li>
+    <li><b>{{.Form.Stats.Resources}}</b> resources over <b>{{.Form.Stats.Assignments}}</b> assignments</li>
+    <li><b>{{.Form.Stats.Exceptions}}</b> calendar exceptions</li>
+  </ul>
+
+  {{range .Form.Story}}<p>{{.}}</p>
+  {{end}}
+  <p class="sample__more">
+    This one was read from <a href="{{.Form.Format.Path}}">{{.Form.Format.Label}}</a>.
+    There are <a href="/examples">more sample plans</a>, or you can
+    <a href="/">open a file of your own</a> - nothing is stored either way.
+  </p>
+</section>
+
+{{template "sitefooter" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+{{end}}

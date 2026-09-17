@@ -59,7 +59,7 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := user.NewPage(r, nil)
+	page := user.NewPage(r, e)
 	page.ExampleName = e.Name
 	page.ExampleLabel = e.Label
 	page.FileName = e.FileName
@@ -68,7 +68,7 @@ func (h *Handler) ExamplePage(w http.ResponseWriter, r *http.Request) {
 	page.Slug = "/example/" + e.Name
 	page.Public = true
 
-	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.App, page, h.logger)
+	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Example, page, h.logger)
 }
 
 func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {

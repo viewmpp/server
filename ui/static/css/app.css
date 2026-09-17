@@ -665,7 +665,7 @@ a:focus-visible,
 
 .centered { margin-inline: auto; }
 
-.landing, .page {
+.landing, .page, .sample, .sample__head {
   --text-xs: 0.83rem;
   --text-sm: 0.933rem;
   --text-base: 1.05rem;
@@ -676,6 +676,17 @@ a:focus-visible,
   --text-3xl: 2.128rem;
   --text-4xl: 2.694rem;
 }
+
+.sample__head { flex: none; width: 100%; max-width: 46rem; margin: 0 auto; padding: calc(var(--unit) * 4) calc(var(--unit) * 3) calc(var(--unit) * 2); }
+.sample__head h1 { font-size: var(--text-2xl); line-height: 1.2; margin: 0 0 6.84px; }
+.sample__head .lead { margin: 0; font-size: var(--text-base); }
+.sample__head ~ .app { flex: none; height: clamp(420px, 70vh, 880px); }
+
+.sample { width: 100%; max-width: 46rem; margin: 0 auto; padding: calc(var(--unit) * 5) calc(var(--unit) * 3) calc(var(--unit) * 6); }
+.sample p { margin: 0 0 calc(var(--unit) * 2); line-height: 1.65; }
+.sample__facts { display: flex; flex-wrap: wrap; gap: calc(var(--unit) * .75) calc(var(--unit) * 2.5); margin: 0 0 calc(var(--unit) * 3); padding: 0; list-style: none; color: var(--secondary); font-size: var(--text-sm); }
+.sample__facts b { color: var(--text); font-weight: 600; }
+.sample__more { color: var(--secondary); }
 
 .landing { width: 100%; max-width: 46rem; margin: 0 auto; padding: calc(var(--unit) * 10) calc(var(--unit) * 3) calc(var(--unit) * 8); text-align: center; }
 .landing h1 { font-size: var(--text-4xl); line-height: 1.12; letter-spacing: -.03em; margin-bottom: 15.96px; }
