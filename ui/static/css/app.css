@@ -1661,6 +1661,7 @@ input:-webkit-autofill:focus {
 .prose h2 { margin: calc(var(--unit) * 5) 0 calc(var(--unit) * 1.5); font-size: var(--text-xl); letter-spacing: -.02em; }
 .prose h2:first-child { margin-top: 0; }
 .prose p { margin: 0 0 calc(var(--unit) * 1.5); line-height: 1.7; color: var(--text); }
+.prose__answer { margin-bottom: calc(var(--unit) * 2); font-size: var(--text-md); line-height: 1.65; }
 .prose code { padding: 1.14px 5.7px; border-radius: var(--radius-sm); background: var(--bg-tag); font-size: var(--text-sm); }
 .prose strong { font-weight: 600; }
 
