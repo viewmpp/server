@@ -152,3 +152,26 @@ func TestExamplePagesDifferFromEachOther(t *testing.T) {
 		}
 	}
 }
+
+func TestTheExamplesPageCountsItsOwnSamples(t *testing.T) {
+	withBaseURL(t)
+
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	spelled := []string{"", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
+
+	count := len(examples.All())
+	if count >= len(spelled) {
+		t.Fatalf("%d samples: the sentence on the page cannot spell that", count)
+	}
+
+	out := plainText(renderPage(t, pages.Examples, Page{
+		Slug: "/examples", Description: "x", Public: true, Form: examples.All(),
+	}))
+
+	want := "The " + spelled[count] + " sample MS Project plans"
+	if !strings.Contains(out, want) {
+		t.Errorf("the page lists %d samples but its opening sentence does not say so: expected %q", count, want)
+	}
+}
