@@ -24,7 +24,7 @@ func (s *Server) mux() *http.ServeMux {
 
 	mux.HandleFunc("GET /{$}", s.viewerHandler.Landing)
 
-	mux.HandleFunc("GET /api/v1/healthcheck", s.healthcheck)
+	mux.HandleFunc("GET /api/v1/healthcheck", s.serverHealthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.fromApp(s.uploadHandler.Upload))
 	mux.HandleFunc("POST /api/v1/xlsx", s.fromApp(s.exportHandler.XLSX))
 	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.requireAuthAPI(s.projectHandler.Create)))

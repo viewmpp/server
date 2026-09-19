@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"io/fs"
 	"net/http"
 	"path"
@@ -10,17 +11,25 @@ import (
 	"server/internal/vcs"
 	"server/ui"
 	"strings"
+	"time"
 )
 
 type healthcheck struct {
 	Status  string `json:"status"`
+	Parser  string `json:"parser"`
 	Env     string `json:"env"`
 	Version string `json:"version"`
 }
 
-func (s *Server) healthcheck(w http.ResponseWriter, r *http.Request) {
+func (s *Server) serverHealthcheck(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	parserStatus := s.parserHealthcheck(ctx)
+
 	hc := healthcheck{
 		Status:  "OK",
+		Parser:  parserStatus,
 		Env:     s.cfg.AppEnv,
 		Version: vcs.Version,
 	}
@@ -29,6 +38,16 @@ func (s *Server) healthcheck(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		jsonutil.ServerErrorResponse(w, r, err, s.logger)
 	}
+}
+
+func (s *Server) parserHealthcheck(ctx context.Context) string {
+	err := s.client.Healthcheck(ctx)
+	if err != nil {
+		s.logger.Warn("error while checking parser's healthcheck endpoint", "err", err)
+		return "DOWN"
+	}
+
+	return "OK"
 }
 
 func (s *Server) static() http.Handler {

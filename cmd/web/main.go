@@ -113,6 +113,6 @@ func run() error {
 	userHandler := user.NewHandler(s.Users, s.Projects, s.Tokens, s.Sessions, userLimiter, mail,
 		cfg.MailerVerificationTTL, cfg.MailerVerificationRC, cfg.ResetTTL, cfg.AppBaseURL, cfg.AppEarlyAccessSeats, cfg.AppEarlyAccessPeriod, templates, &wg, logger)
 
-	return server.New(cfg, diag, resolver, readLimiter, exportLimiter, addressLimiter,
+	return server.New(cfg, client, diag, resolver, readLimiter, exportLimiter, addressLimiter,
 		viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler, s, &wg, logger).Serve()
 }

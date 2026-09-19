@@ -10,5 +10,5 @@ type Parser struct {
 }
 
 func (cfg *Config) loadParser() {
-	flag.StringVar(&cfg.ParserURL, "parser-url", env.GetString("PARSER_URL", "http://localhost:8080/parse"), "parser url")
+	flag.StringVar(&cfg.ParserURL, "parser-url", env.GetString("PARSER_URL", "http://localhost:8080"), "parser url")
 }

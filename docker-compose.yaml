@@ -85,7 +85,7 @@ services:
     environment:
       PORT: '4000'
       DB_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@server-db:5432/${POSTGRES_DB}?sslmode=disable
-      PARSER_URL: http://parser:8080/parse
+      PARSER_URL: http://parser:8080
     stop_grace_period: 40s
     depends_on:
       server-db:

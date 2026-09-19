@@ -13,6 +13,7 @@ import (
 	"server/internal/config"
 	"server/internal/diagnostics"
 	"server/internal/export"
+	"server/internal/parser"
 	"server/internal/project"
 	"server/internal/ratelimit"
 	"server/internal/store"
@@ -26,6 +27,7 @@ import (
 
 type Server struct {
 	cfg            config.Config
+	client         *parser.Client
 	diagnostics    *diagnostics.Server
 	resolver       *clientip.Resolver
 	readLimiter    *ratelimit.Limiter
@@ -46,6 +48,7 @@ const throttleNoticeWindow = time.Minute
 
 func New(
 	cfg config.Config,
+	client *parser.Client,
 	diagnostics *diagnostics.Server,
 	resolver *clientip.Resolver,
 	readLimiter *ratelimit.Limiter,
@@ -62,6 +65,7 @@ func New(
 ) *Server {
 	return &Server{
 		cfg:            cfg,
+		client:         client,
 		diagnostics:    diagnostics,
 		resolver:       resolver,
 		readLimiter:    readLimiter,

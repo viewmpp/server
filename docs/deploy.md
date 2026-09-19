@@ -104,8 +104,14 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 
 ```bash
 curl -fsS https://viewmpp.com/api/v1/healthcheck
-# {"status":"OK","env":"prod","version":"<sha>"}
+# {"status":"OK","parser":"OK","env":"prod","version":"<sha>"}
 ```
+
+`status` is the server itself and stays `OK` while the process answers at all.
+`parser` is the sidecar, checked on every call with a three second budget. A
+`DOWN` there means uploads fail while every page that needs no parsing keeps
+working - and it is also the quickest proof that `PARSER_URL` is composed
+correctly, because a wrong base sends the probe to a path that does not exist.
 
 Updating
 --------
@@ -174,7 +180,7 @@ the server on `127.0.0.1:4000`.
 
 To iterate on Go without rebuilding an image, start only the backing services
 and run the binary on the host - `PARSER_URL` already defaults to
-`http://localhost:8080/parse`:
+`http://localhost:8080`:
 
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d server-db migrate parser
@@ -326,6 +332,13 @@ at 50 MB (`internal/user/user.go`); the sidecar's `parser.max-body-bytes` is
 with no useful message. The Caddyfile sets `max_size 64MB` deliberately *above*
 both, so an oversized upload gets the application's own JSON 413 rather than a
 truncated stream.
+
+**`PARSER_URL` is a base address, not an endpoint.** Go appends `/parse` and
+`/healthcheck` itself. It is set in `docker-compose.yaml`, never in `.env`, so
+it travels with `git pull` and needs no edit on the host - but an old value
+ending in `/parse` left in a shell or an `.env` makes every upload a 404 against
+`/parse/parse`, with no useful message. The healthcheck catches it: `parser`
+reads `DOWN` while the sidecar is perfectly healthy.
 
 **`RESEND_SENDER` on an unverified domain silently fails.**
 `onboarding@resend.dev` works for testing only and cannot send to arbitrary
