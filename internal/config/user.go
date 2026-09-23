@@ -12,6 +12,6 @@ type User struct {
 }
 
 func (cfg *Config) loadUser() {
-	flag.IntVar(&cfg.UserLimit, "user-limit", env.GetInt("USER_LIMIT", 10), "")
+	flag.IntVar(&cfg.UserLimit, "user-limit", env.GetInt("USER_LIMIT", 5), "")
 	flag.DurationVar(&cfg.UserWindow, "user-window", env.GetDuration("USER_WINDOW", time.Minute), "")
 }
