@@ -17,16 +17,15 @@ import (
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
 
-	notice := ratelimit.New(1, throttleNoticeWindow)
+	notice := ratelimit.New(1, ThrottleNoticeWindow)
 	t.Cleanup(notice.Close)
 
 	address := ratelimit.New(1000, time.Minute)
 	t.Cleanup(address.Close)
 
 	return &Server{
-		logger:         slog.New(slog.NewTextHandler(io.Discard, nil)),
-		addressLimiter: address,
-		throttleNotice: notice,
+		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		limits: Limits{Address: address, Notice: notice},
 	}
 }
 
@@ -127,8 +126,8 @@ func TestEveryUnmeteredReadRouteIsThrottled(t *testing.T) {
 	t.Cleanup(exhausted.Close)
 
 	s := newTestServer(t)
-	s.readLimiter = exhausted
-	s.exportLimiter = exhausted
+	s.limits.Read = exhausted
+	s.limits.Export = exhausted
 
 	mux := s.mux()
 

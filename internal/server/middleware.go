@@ -141,8 +141,8 @@ func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.H
 	return func(w http.ResponseWriter, r *http.Request) {
 		address := "address:" + clientip.From(r)
 
-		if !s.addressLimiter.Take(address) {
-			s.refuse(w, r, address, s.addressLimiter.Window())
+		if !s.limits.Address.Take(address) {
+			s.refuse(w, r, address, s.limits.Address.Window())
 			return
 		}
 
@@ -158,7 +158,7 @@ func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.H
 }
 
 func (s *Server) refuse(w http.ResponseWriter, r *http.Request, key string, window time.Duration) {
-	if s.throttleNotice.Take(key) {
+	if s.limits.Notice.Take(key) {
 		s.logger.Warn("read throttled", "limit", safelog.Key(key), "window", window)
 	}
 
@@ -258,7 +258,7 @@ func originOf(reference string) string {
 
 func (s *Server) clientIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := s.resolver.Get(r)
+		ip := s.limits.Resolver.Get(r)
 
 		next.ServeHTTP(w, clientip.SetContext(r, ip))
 	})

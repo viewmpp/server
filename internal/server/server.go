@@ -25,61 +25,54 @@ import (
 	"time"
 )
 
-type Server struct {
-	cfg            config.Config
-	client         *parser.Client
-	diagnostics    *diagnostics.Server
-	resolver       *clientip.Resolver
-	readLimiter    *ratelimit.Limiter
-	exportLimiter  *ratelimit.Limiter
-	addressLimiter *ratelimit.Limiter
-	throttleNotice *ratelimit.Limiter
-	viewerHandler  *viewer.Handler
-	uploadHandler  *upload.Handler
-	exportHandler  *export.Handler
-	projectHandler *project.Handler
-	userHandler    *user.Handler
-	store          *store.Store
-	wg             *sync.WaitGroup
-	logger         *slog.Logger
+type Limits struct {
+	Resolver *clientip.Resolver
+	Read     *ratelimit.Limiter
+	Export   *ratelimit.Limiter
+	Address  *ratelimit.Limiter
+	Notice   *ratelimit.Limiter
 }
 
-const throttleNoticeWindow = time.Minute
+type Handlers struct {
+	Viewer  *viewer.Handler
+	Upload  *upload.Handler
+	Export  *export.Handler
+	Project *project.Handler
+	User    *user.Handler
+}
+
+type Server struct {
+	cfg         config.Config
+	client      *parser.Client
+	diagnostics *diagnostics.Server
+	limits      Limits
+	handlers    Handlers
+	store       *store.Store
+	wg          *sync.WaitGroup
+	logger      *slog.Logger
+}
+
+const ThrottleNoticeWindow = time.Minute
 
 func New(
 	cfg config.Config,
 	client *parser.Client,
 	diagnostics *diagnostics.Server,
-	resolver *clientip.Resolver,
-	readLimiter *ratelimit.Limiter,
-	exportLimiter *ratelimit.Limiter,
-	addressLimiter *ratelimit.Limiter,
-	viewerHandler *viewer.Handler,
-	uploadHandler *upload.Handler,
-	exportHandler *export.Handler,
-	projectHandler *project.Handler,
-	userHandler *user.Handler,
+	limits Limits,
+	handlers Handlers,
 	store *store.Store,
 	wg *sync.WaitGroup,
 	logger *slog.Logger,
 ) *Server {
 	return &Server{
-		cfg:            cfg,
-		client:         client,
-		diagnostics:    diagnostics,
-		resolver:       resolver,
-		readLimiter:    readLimiter,
-		exportLimiter:  exportLimiter,
-		addressLimiter: addressLimiter,
-		throttleNotice: ratelimit.New(1, throttleNoticeWindow),
-		viewerHandler:  viewerHandler,
-		uploadHandler:  uploadHandler,
-		exportHandler:  exportHandler,
-		projectHandler: projectHandler,
-		userHandler:    userHandler,
-		store:          store,
-		wg:             wg,
-		logger:         logger,
+		cfg:         cfg,
+		client:      client,
+		diagnostics: diagnostics,
+		limits:      limits,
+		handlers:    handlers,
+		store:       store,
+		wg:          wg,
+		logger:      logger,
 	}
 }
 
@@ -108,8 +101,6 @@ func (s *Server) Serve() error {
 
 		appErr := srv.Shutdown(ctx)
 		diagErr := s.diagnostics.Shutdown(ctx)
-
-		s.throttleNotice.Close()
 
 		s.logger.Info("completing background tasks", "addr", srv.Addr)
 
