@@ -11,27 +11,43 @@ import (
 	"server/internal/vcs"
 	"server/ui"
 	"strings"
+	"sync"
 	"time"
 )
 
 type healthcheck struct {
-	Status  string `json:"status"`
-	Parser  string `json:"parser"`
-	Env     string `json:"env"`
-	Version string `json:"version"`
+	Status   string `json:"status"`
+	Database string `json:"database"`
+	Parser   string `json:"parser"`
+	Env      string `json:"env"`
+	Version  string `json:"version"`
 }
 
-func (s *Server) serverHealthcheck(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
-	defer cancel()
+type healthReport struct {
+	database string
+	parser   string
+}
 
-	parserStatus := s.parserHealthcheck(ctx)
+type healthCache struct {
+	mu       sync.Mutex
+	probedAt time.Time
+	report   healthReport
+}
+
+const (
+	healthProbeTimeout = 2 * time.Second
+	healthReportTTL    = 5 * time.Second
+)
+
+func (s *Server) serverHealthcheck(w http.ResponseWriter, r *http.Request) {
+	report := s.healthReport()
 
 	hc := healthcheck{
-		Status:  "OK",
-		Parser:  parserStatus,
-		Env:     s.cfg.AppEnv,
-		Version: vcs.Version,
+		Status:   healthy,
+		Database: report.database,
+		Parser:   report.parser,
+		Env:      s.cfg.AppEnv,
+		Version:  vcs.Version,
 	}
 
 	err := jsonutil.WriteJSON(w, http.StatusOK, hc, nil)
@@ -40,14 +56,45 @@ func (s *Server) serverHealthcheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) parserHealthcheck(ctx context.Context) string {
-	err := s.client.Healthcheck(ctx)
-	if err != nil {
-		s.logger.Warn("error while checking parser's healthcheck endpoint", "err", err)
-		return "DOWN"
+func (s *Server) healthReport() healthReport {
+	s.health.mu.Lock()
+	defer s.health.mu.Unlock()
+
+	if time.Since(s.health.probedAt) < healthReportTTL {
+		return s.health.report
 	}
 
-	return "OK"
+	s.health.report = healthReport{
+		database: s.databaseHealthcheck(),
+		parser:   s.parserHealthcheck(),
+	}
+	s.health.probedAt = time.Now()
+
+	return s.health.report
+}
+
+func (s *Server) databaseHealthcheck() string {
+	ctx, cancel := context.WithTimeout(context.Background(), healthProbeTimeout)
+	defer cancel()
+
+	if err := s.pg.Healthcheck(ctx); err != nil {
+		s.logger.Warn("database healthcheck failed", "err", err)
+		return unhealthy
+	}
+
+	return healthy
+}
+
+func (s *Server) parserHealthcheck() string {
+	ctx, cancel := context.WithTimeout(context.Background(), healthProbeTimeout)
+	defer cancel()
+
+	if err := s.client.Healthcheck(ctx); err != nil {
+		s.logger.Warn("parser healthcheck failed", "err", err)
+		return unhealthy
+	}
+
+	return healthy
 }
 
 func (s *Server) static() http.Handler {

@@ -60,14 +60,14 @@ func run() error {
 		return err
 	}
 
-	db, err := postgres.Open(cfg.DB)
+	pg, err := postgres.Open(cfg.DB)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer pg.DB.Close()
 
 	expvar.Publish("database_stats", expvar.Func(func() any {
-		return db.Stats()
+		return pg.DB.Stats()
 	}))
 
 	htmlutil.SetBaseURL(cfg.AppBaseURL)
@@ -95,42 +95,32 @@ func run() error {
 	userLimiter := ratelimit.New(cfg.UserLimit, cfg.UserWindow)
 	defer userLimiter.Close()
 
-	s := store.New(db, cfg, logger)
+	str := store.New(pg.DB, cfg, logger)
 
 	stop := make(chan struct{})
 	defer close(stop)
 
-	background.Sweep(stop, logger, "sessions", cfg.BGSweepRepetition, cfg.BGSweepTimeout, s.Sessions.DeleteExpired)
-	background.Sweep(stop, logger, "tokens", cfg.BGSweepRepetition, cfg.BGSweepTimeout, s.Tokens.DeleteExpired)
-	background.Sweep(stop, logger, "protected links", cfg.BGSweepRepetition, cfg.BGSweepTimeout, s.Projects.DemoteExpiredProtected)
+	background.Sweep(stop, logger, "sessions", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Sessions.DeleteExpired)
+	background.Sweep(stop, logger, "tokens", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Tokens.DeleteExpired)
+	background.Sweep(stop, logger, "protected links", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Projects.DemoteExpiredProtected)
 
 	mail := mailer.New(cfg.Resend, cfg.AppBaseURL, templates, logger, cfg.AppEnv == "prod")
 
 	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, logger)
-	uploadHandler := upload.NewHandler(client, s.Projects, uploadLimiter, logger)
+	uploadHandler := upload.NewHandler(client, str.Projects, uploadLimiter, logger)
 	exportHandler := export.NewHandler(uploadLimiter, logger)
-	projectHandler := project.NewHandler(s.Projects, cfg.AppBaseURL, projectLimiter, cfg.ProjLenListLimit, templates, logger)
-	userHandler := user.NewHandler(s.Users, s.Projects, s.Tokens, s.Sessions, userLimiter, mail,
+	projectHandler := project.NewHandler(str.Projects, cfg.AppBaseURL, projectLimiter, cfg.ProjLenListLimit, templates, logger)
+	userHandler := user.NewHandler(str.Users, str.Projects, str.Tokens, str.Sessions, userLimiter, mail,
 		cfg.MailerVerificationTTL, cfg.MailerVerificationRC, cfg.ResetTTL, cfg.AppBaseURL, cfg.AppEarlyAccessSeats, cfg.AppEarlyAccessPeriod, templates, &wg, logger)
 
 	noticeLimiter := ratelimit.New(1, server.ThrottleNoticeWindow)
 	defer noticeLimiter.Close()
 
-	limits := server.Limits{
-		Resolver: resolver,
-		Read:     readLimiter,
-		Export:   exportLimiter,
-		Address:  addressLimiter,
-		Notice:   noticeLimiter,
-	}
+	services := server.NewServices(cfg, client, pg, str, diag, logger)
 
-	handlers := server.Handlers{
-		Viewer:  viewerHandler,
-		Upload:  uploadHandler,
-		Export:  exportHandler,
-		Project: projectHandler,
-		User:    userHandler,
-	}
+	limits := server.NewLimits(resolver, readLimiter, exportLimiter, addressLimiter, noticeLimiter)
 
-	return server.New(cfg, client, diag, limits, handlers, s, &wg, logger).Serve()
+	handlers := server.NewHandlers(viewerHandler, uploadHandler, exportHandler, projectHandler, userHandler)
+
+	return server.New(services, limits, handlers, &wg).Serve()
 }

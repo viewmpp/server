@@ -14,6 +14,7 @@ import (
 	"server/internal/diagnostics"
 	"server/internal/export"
 	"server/internal/parser"
+	"server/internal/postgres"
 	"server/internal/project"
 	"server/internal/ratelimit"
 	"server/internal/store"
@@ -25,54 +26,107 @@ import (
 	"time"
 )
 
+type Services struct {
+	cfg    config.Config
+	client *parser.Client
+	pg     *postgres.Postgres
+	str    *store.Store
+	diag   *diagnostics.Server
+	logger *slog.Logger
+}
+
+func NewServices(
+	cfg config.Config,
+	client *parser.Client,
+	pg *postgres.Postgres,
+	str *store.Store,
+	diag *diagnostics.Server,
+	logger *slog.Logger,
+) Services {
+	return Services{
+		cfg:    cfg,
+		client: client,
+		pg:     pg,
+		str:    str,
+		diag:   diag,
+		logger: logger,
+	}
+}
+
 type Limits struct {
-	Resolver *clientip.Resolver
-	Read     *ratelimit.Limiter
-	Export   *ratelimit.Limiter
-	Address  *ratelimit.Limiter
-	Notice   *ratelimit.Limiter
+	resolver      *clientip.Resolver
+	readLimits    *ratelimit.Limiter
+	exportLimits  *ratelimit.Limiter
+	addressLimits *ratelimit.Limiter
+	noticeLimits  *ratelimit.Limiter
+}
+
+func NewLimits(
+	resolver *clientip.Resolver,
+	readLimits *ratelimit.Limiter,
+	exportLimits *ratelimit.Limiter,
+	addressLimits *ratelimit.Limiter,
+	noticeLimits *ratelimit.Limiter,
+) Limits {
+	return Limits{
+		resolver:      resolver,
+		readLimits:    readLimits,
+		exportLimits:  exportLimits,
+		addressLimits: addressLimits,
+		noticeLimits:  noticeLimits,
+	}
 }
 
 type Handlers struct {
-	Viewer  *viewer.Handler
-	Upload  *upload.Handler
-	Export  *export.Handler
-	Project *project.Handler
-	User    *user.Handler
+	viewerHandler  *viewer.Handler
+	uploadHandler  *upload.Handler
+	exportHandler  *export.Handler
+	projectHandler *project.Handler
+	userHandler    *user.Handler
+}
+
+func NewHandlers(
+	viewerHandler *viewer.Handler,
+	uploadHandler *upload.Handler,
+	exportHandler *export.Handler,
+	projectHandler *project.Handler,
+	userHandler *user.Handler,
+) Handlers {
+	return Handlers{
+		viewerHandler:  viewerHandler,
+		uploadHandler:  uploadHandler,
+		exportHandler:  exportHandler,
+		projectHandler: projectHandler,
+		userHandler:    userHandler,
+	}
 }
 
 type Server struct {
-	cfg         config.Config
-	client      *parser.Client
-	diagnostics *diagnostics.Server
-	limits      Limits
-	handlers    Handlers
-	store       *store.Store
-	wg          *sync.WaitGroup
-	logger      *slog.Logger
+	Services
+	Limits
+	Handlers
+	health healthCache
+	wg     *sync.WaitGroup
 }
+
+const (
+	healthy   = "OK"
+	unhealthy = "DOWN"
+)
 
 const ThrottleNoticeWindow = time.Minute
 
 func New(
-	cfg config.Config,
-	client *parser.Client,
-	diagnostics *diagnostics.Server,
+	services Services,
 	limits Limits,
 	handlers Handlers,
-	store *store.Store,
 	wg *sync.WaitGroup,
-	logger *slog.Logger,
 ) *Server {
 	return &Server{
-		cfg:         cfg,
-		client:      client,
-		diagnostics: diagnostics,
-		limits:      limits,
-		handlers:    handlers,
-		store:       store,
-		wg:          wg,
-		logger:      logger,
+		Services: services,
+		Limits:   limits,
+		Handlers: handlers,
+		wg:       wg,
 	}
 }
 
@@ -100,7 +154,7 @@ func (s *Server) Serve() error {
 		defer cancel()
 
 		appErr := srv.Shutdown(ctx)
-		diagErr := s.diagnostics.Shutdown(ctx)
+		diagErr := s.diag.Shutdown(ctx)
 
 		s.logger.Info("completing background tasks", "addr", srv.Addr)
 

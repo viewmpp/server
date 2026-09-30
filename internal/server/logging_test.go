@@ -11,7 +11,7 @@ import (
 
 func TestAFailedRequestStillReachesTheAccessLog(t *testing.T) {
 	buf := new(bytes.Buffer)
-	s := &Server{logger: slog.New(slog.NewTextHandler(buf, nil))}
+	s := &Server{Services: Services{logger: slog.New(slog.NewTextHandler(buf, nil))}}
 
 	h := s.logRequest(s.recoverPanic(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("boom")

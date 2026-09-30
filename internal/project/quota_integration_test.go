@@ -126,7 +126,7 @@ func openProjectQuotaTestDB(t *testing.T) *sql.DB {
 		t.Skip("TEST_DB_DSN is not set")
 	}
 
-	db, err := postgres.Open(config.DB{
+	pg, err := postgres.Open(config.DB{
 		DBDSN:          dsn,
 		DBMaxOpenConns: 16,
 		DBMaxIdleConns: 16,
@@ -135,6 +135,7 @@ func openProjectQuotaTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("open test database: %v", err)
 	}
+	db := pg.DB
 	t.Cleanup(func() { _ = db.Close() })
 
 	var databaseName string

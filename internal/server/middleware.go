@@ -141,8 +141,8 @@ func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.H
 	return func(w http.ResponseWriter, r *http.Request) {
 		address := "address:" + clientip.From(r)
 
-		if !s.limits.Address.Take(address) {
-			s.refuse(w, r, address, s.limits.Address.Window())
+		if !s.addressLimits.Take(address) {
+			s.refuse(w, r, address, s.addressLimits.Window())
 			return
 		}
 
@@ -158,7 +158,7 @@ func (s *Server) throttle(limiter *ratelimit.Limiter, prefix string, next http.H
 }
 
 func (s *Server) refuse(w http.ResponseWriter, r *http.Request, key string, window time.Duration) {
-	if s.limits.Notice.Take(key) {
+	if s.noticeLimits.Take(key) {
 		s.logger.Warn("read throttled", "limit", safelog.Key(key), "window", window)
 	}
 
@@ -258,7 +258,7 @@ func originOf(reference string) string {
 
 func (s *Server) clientIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := s.limits.Resolver.Get(r)
+		ip := s.resolver.Get(r)
 
 		next.ServeHTTP(w, clientip.SetContext(r, ip))
 	})
@@ -275,9 +275,9 @@ func (s *Server) withSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Cookie")
 
-		sess, err := s.store.Sessions.Find(r.Context(), w, r)
+		sess, err := s.str.Sessions.Find(r.Context(), w, r)
 		if errors.Is(err, session.ErrNotFound) {
-			sess, err = s.store.Sessions.New(w, r)
+			sess, err = s.str.Sessions.New(w, r)
 		}
 		if err != nil {
 			htmlutil.ServerErrorResponse(w, r, err, s.logger)
@@ -297,7 +297,7 @@ func (s *Server) withSession(next http.Handler) http.Handler {
 			return
 		}
 
-		if err = s.store.Sessions.Save(r.Context(), sess); err != nil {
+		if err = s.str.Sessions.Save(r.Context(), sess); err != nil {
 			s.logger.Error("session not saved", "err", err, "path", r.URL.Path)
 		}
 	})
@@ -312,7 +312,7 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.Users.GetByID(r.Context(), *sess.UserID)
+		u, err := s.str.Users.GetByID(r.Context(), *sess.UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				sess.UserID = nil

@@ -24,8 +24,8 @@ func newTestServer(t *testing.T) *Server {
 	t.Cleanup(address.Close)
 
 	return &Server{
-		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
-		limits: Limits{Address: address, Notice: notice},
+		Services: Services{logger: slog.New(slog.NewTextHandler(io.Discard, nil))},
+		Limits:   Limits{addressLimits: address, noticeLimits: notice},
 	}
 }
 
@@ -126,8 +126,8 @@ func TestEveryUnmeteredReadRouteIsThrottled(t *testing.T) {
 	t.Cleanup(exhausted.Close)
 
 	s := newTestServer(t)
-	s.limits.Read = exhausted
-	s.limits.Export = exhausted
+	s.readLimits = exhausted
+	s.exportLimits = exhausted
 
 	mux := s.mux()
 

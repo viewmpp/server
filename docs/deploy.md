@@ -104,14 +104,29 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 
 ```bash
 curl -fsS https://viewmpp.com/api/v1/healthcheck
-# {"status":"OK","parser":"OK","env":"prod","version":"<sha>"}
+# {"status":"OK","database":"OK","parser":"OK","env":"prod","version":"<sha>"}
 ```
 
-`status` is the server itself and stays `OK` while the process answers at all.
-`parser` is the sidecar, checked on every call with a three second budget. A
-`DOWN` there means uploads fail while every page that needs no parsing keeps
-working - and it is also the quickest proof that `PARSER_URL` is composed
+Three separate facts, and the distinction is the point.
+
+`status` is the process itself. It says `OK` whenever the endpoint answers at
+all, and the HTTP code is always 200. That is what the container probe in the
+`Dockerfile` reads, and it is deliberate: Caddy waits on the server being
+healthy, so a sick dependency must not take the whole site down with it.
+
+`database` and `parser` are the two things behind it, each probed with a two
+second budget. Either one can be `DOWN` while the site keeps working in part -
+without the database an anonymous visitor still uploads and reads a plan, and
+without the parser every page that needs no parsing still serves. Alerting
+belongs on these two fields, not on the HTTP code.
+
+`parser: DOWN` is also the quickest proof that `PARSER_URL` is composed
 correctly, because a wrong base sends the probe to a path that does not exist.
+
+The verdict is cached for five seconds. The endpoint is public and unthrottled,
+and without that cache every request would cost one database ping and one
+outbound call to the sidecar. Nothing polls it faster than that anyway: the
+container probe runs every 30 seconds.
 
 Updating
 --------
