@@ -174,7 +174,7 @@ func (h *Handler) resend(ctx context.Context, email string) (bool, error) {
 	}
 
 	if exists && time.Since(issued) < h.verificationRC {
-		h.logger.Info("resend throttled", "user_id", u.ID)
+		h.logger.Info("resend throttled")
 		return false, nil
 	}
 

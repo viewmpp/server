@@ -43,7 +43,7 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info("early access granted", "user_id", u.ID, "seat", seat, "of", h.earlyAccessSeats)
+	h.logger.Info("early access granted", "seat", seat, "of", h.earlyAccessSeats)
 
 	sess.Put("flash", MsgEarlyAccessGranted(seat, until))
 

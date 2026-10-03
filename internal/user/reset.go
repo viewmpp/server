@@ -89,7 +89,7 @@ func (h *Handler) issueReset(r *http.Request, email string) error {
 	}
 
 	if !u.Verified {
-		h.logger.Info("reset skipped for unverified account", "user_id", u.ID)
+		h.logger.Info("reset skipped for unverified account")
 		return ErrUserNotVerified
 	}
 
