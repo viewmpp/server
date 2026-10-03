@@ -285,7 +285,7 @@ func checkDate(field string, value *string) error {
 	}
 
 	if _, err := time.Parse(DateLayout, *value); err != nil {
-		return fmt.Errorf("%s: %q is not %s", field, *value, DateLayout)
+		return fmt.Errorf("%s: is not %s", field, DateLayout)
 	}
 
 	return nil
@@ -312,7 +312,7 @@ func checkToken(field, value string) error {
 
 	for _, r := range value {
 		if r != '_' && (r < 'A' || r > 'Z') {
-			return fmt.Errorf("%s: %q is not an uppercase identifier", field, value)
+			return fmt.Errorf("%s: is not an uppercase identifier", field)
 		}
 	}
 
