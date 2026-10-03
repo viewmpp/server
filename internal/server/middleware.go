@@ -184,7 +184,7 @@ var policy = strings.Join([]string{
 	"form-action 'self'",
 	"connect-src 'self'",
 	"img-src 'self' data:",
-	"font-src 'self' data: https://fonts.gstatic.com",
+	"font-src 'self' data:",
 	"style-src 'self' 'unsafe-inline'",
 	"script-src 'self' 'unsafe-inline'",
 }, "; ")

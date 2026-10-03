@@ -289,7 +289,15 @@ viewmpp-backup`.
 
 ```bash
 rsync -av dzenthai@viewmpp.com:/var/backups/viewmpp/ ~/dev/backups/viewmpp/
+find ~/dev/backups/viewmpp -maxdepth 1 -type f -name 'viewmpp-*.dump' | sort | head -n -30 | xargs -r rm --
 ```
+
+The second line is not housekeeping. The privacy page promises that a deleted
+account leaves the backups within 30 days, and a plain `rsync` never removes
+anything: without the pruning, every dump ever pulled stays on the workstation
+and the promise is false. The pruning keeps the same 30 copies the server keeps,
+counted locally rather than mirrored with `--delete`, so a compromised server
+still cannot reach the off-site copies and empty them.
 
 Pulled rather than pushed on purpose: the server holds no credentials for
 anywhere else, so a compromised server cannot reach or destroy the copies. It is
