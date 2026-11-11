@@ -7,6 +7,7 @@ import (
 	"server/internal/fixtures"
 	"strings"
 	"testing"
+	"unicode/utf16"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -91,6 +92,27 @@ func TestIndentIsBounded(t *testing.T) {
 	want := strings.Repeat("    ", maxVisibleOutlineLevel-1) + name
 	if got != want {
 		t.Fatalf("indent length is %d, want %d", len(got), len(want))
+	}
+}
+
+func TestTheLongestPredecessorCellFitsInOneExcelCell(t *testing.T) {
+	lag := &contract.Amount{Value: -contract.MaxNumber, Units: "ELAPSED_MINUTES"}
+
+	relations := make([]contract.Relation, contract.MaxPredecessorsPerTask)
+	for i := range relations {
+		relations[i] = contract.Relation{
+			ID:            int64(i + 1),
+			PredecessorID: contract.MaxID,
+			SuccessorID:   1,
+			Type:          "START_FINISH",
+			Lag:           lag,
+		}
+	}
+
+	cell := predecessorList(relations)
+
+	if got := len(utf16.Encode([]rune(cell))); got > excelize.TotalCellChars {
+		t.Fatalf("%d predecessors make a %d unit cell; excelize truncates anything over %d without an error", contract.MaxPredecessorsPerTask, got, excelize.TotalCellChars)
 	}
 }
 

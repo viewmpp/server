@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"time"
+	"unicode/utf8"
 )
 
 const Version = 1
@@ -90,7 +91,7 @@ type Relation struct {
 
 func Decode(data []byte) (*Contract, error) {
 	if len(data) > MaxBytes {
-		return nil, fmt.Errorf("contract is %d bytes, limit is %d", len(data), MaxBytes)
+		return nil, fmt.Errorf("%w: contract is %d bytes, limit is %d", ErrLimit, len(data), MaxBytes)
 	}
 
 	var c Contract
@@ -229,7 +230,7 @@ func (c *Contract) validate() error {
 		}
 		assignments += len(task.Assignments)
 		if assignments > MaxAssignments {
-			return fmt.Errorf("assignments contains %d items, limit is %d", assignments, MaxAssignments)
+			return fmt.Errorf("%w: assignments contains %d items, limit is %d", ErrLimit, assignments, MaxAssignments)
 		}
 		for j, assignment := range task.Assignments {
 			assignmentWhere := fmt.Sprintf("%s.assignments[%d]", where, j)
@@ -245,7 +246,6 @@ func (c *Contract) validate() error {
 	}
 
 	predecessors := make(map[int64]int)
-	successors := make(map[int64]int)
 
 	for i, rel := range c.Relations {
 		where := fmt.Sprintf("relations[%d]", i)
@@ -267,12 +267,8 @@ func (c *Contract) validate() error {
 		}
 
 		predecessors[rel.SuccessorID]++
-		if predecessors[rel.SuccessorID] > MaxRelationsPerTask {
-			return fmt.Errorf("task %d has %d predecessors, limit is %d", rel.SuccessorID, predecessors[rel.SuccessorID], MaxRelationsPerTask)
-		}
-		successors[rel.PredecessorID]++
-		if successors[rel.PredecessorID] > MaxRelationsPerTask {
-			return fmt.Errorf("task %d has %d successors, limit is %d", rel.PredecessorID, successors[rel.PredecessorID], MaxRelationsPerTask)
+		if predecessors[rel.SuccessorID] > MaxPredecessorsPerTask {
+			return fmt.Errorf("%w: task %d has more than %d predecessors", ErrLimit, rel.SuccessorID, MaxPredecessorsPerTask)
 		}
 	}
 
@@ -306,8 +302,8 @@ func checkToken(field, value string) error {
 	if value == "" {
 		return fmt.Errorf("%s is empty", field)
 	}
-	if err := checkRequiredString(field, value, MaxTokenRunes); err != nil {
-		return err
+	if n := utf8.RuneCountInString(value); n > MaxTokenRunes {
+		return fmt.Errorf("%s contains %d characters, an identifier is at most %d", field, n, MaxTokenRunes)
 	}
 
 	for _, r := range value {

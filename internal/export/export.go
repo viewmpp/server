@@ -2,6 +2,7 @@ package export
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -15,6 +16,11 @@ import (
 )
 
 const MaxContractBytes = contract.MaxBytes
+
+const (
+	MsgNotAPlan          = "that is not a valid plan"
+	MsgTooLargeToConvert = "this plan is larger than the converter supports"
+)
 
 type Handler struct {
 	limiter *ratelimit.Limiter
@@ -33,7 +39,7 @@ func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 
 	if !h.limiter.Take(key) {
 		h.logger.Warn("export throttled", "limit", safelog.Key(key))
-		jsonutil.TooManyRequestsResponse(w, "too many uploads, try again shortly")
+		jsonutil.TooManyRequestsResponse(w, "too many exports, try again shortly")
 		return
 	}
 
@@ -51,7 +57,11 @@ func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 	c, err := contract.Decode(body)
 	if err != nil {
 		h.logger.Warn("export rejected", "err", err)
-		jsonutil.BadRequestResponse(w, "that is not a valid plan")
+		if errors.Is(err, contract.ErrLimit) {
+			jsonutil.BadRequestResponse(w, MsgTooLargeToConvert)
+			return
+		}
+		jsonutil.BadRequestResponse(w, MsgNotAPlan)
 		return
 	}
 

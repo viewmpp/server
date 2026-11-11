@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/contract"
+	"server/internal/events"
 	"server/internal/jsonutil"
 	"server/internal/parser"
 	"server/internal/ratelimit"
@@ -19,7 +20,12 @@ type Handler struct {
 	store   uploadStore
 	client  *parser.Client
 	limiter *ratelimit.Limiter
+	counts  counter
 	logger  *slog.Logger
+}
+
+type counter interface {
+	Count(name events.Name)
 }
 
 type uploadStore interface {
@@ -30,12 +36,14 @@ func NewHandler(
 	client *parser.Client,
 	store uploadStore,
 	limiter *ratelimit.Limiter,
+	counts counter,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
 		store:   store,
 		client:  client,
 		limiter: limiter,
+		counts:  counts,
 		logger:  logger,
 	}
 }
@@ -56,6 +64,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.ContentLength > limit {
+		h.counts.Count(events.UploadTooLarge)
 		jsonutil.ContentTooLargeError(w)
 		return
 	}
@@ -66,6 +75,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pe, exists := errors.AsType[*parser.ParseError](err)
 		if exists && pe.Status < 500 {
+			h.counts.Count(events.UploadRejected)
 			jsonutil.BadRequestResponse(w, pe.Message)
 			return
 		}
@@ -89,6 +99,8 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	h.counts.Count(events.UploadOK)
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(plan)

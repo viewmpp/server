@@ -2,6 +2,7 @@ package contract
 
 import (
 	"bytes"
+	"errors"
 	"math"
 	"strings"
 	"testing"
@@ -17,6 +18,9 @@ func TestDecodeEnforcesContractByteLimit(t *testing.T) {
 	_, err := Decode(append(atLimit, ' '))
 	if err == nil {
 		t.Fatal("accepted contract over byte limit")
+	}
+	if !errors.Is(err, ErrLimit) {
+		t.Errorf("an oversized contract is not reported as a limit: %v", err)
 	}
 }
 
@@ -83,16 +87,7 @@ func TestPolicyRejectsCollectionLimits(t *testing.T) {
 			}
 		},
 		"predecessors per task": func(c *Contract) {
-			c.Relations = make([]Relation, MaxRelationsPerTask+1)
-			for i := range c.Relations {
-				c.Relations[i] = Relation{ID: int64(i + 1), PredecessorID: int64(i), SuccessorID: 1, Type: "FINISH_START"}
-			}
-		},
-		"successors per task": func(c *Contract) {
-			c.Relations = make([]Relation, MaxRelationsPerTask+1)
-			for i := range c.Relations {
-				c.Relations[i] = Relation{ID: int64(i + 1), PredecessorID: 1, SuccessorID: int64(i), Type: "FINISH_START"}
-			}
+			c.Relations = fanIn(MaxPredecessorsPerTask + 1)
 		},
 	}
 
@@ -102,6 +97,72 @@ func TestPolicyRejectsCollectionLimits(t *testing.T) {
 			mutate(&c)
 			if err := c.validate(); err == nil {
 				t.Fatal("accepted collection over limit")
+			}
+		})
+	}
+}
+
+func fanIn(n int) []Relation {
+	relations := make([]Relation, n)
+	for i := range relations {
+		relations[i] = Relation{ID: int64(i + 1), PredecessorID: int64(i + 2), SuccessorID: 1, Type: "FINISH_START"}
+	}
+	return relations
+}
+
+func fanOut(n int) []Relation {
+	relations := make([]Relation, n)
+	for i := range relations {
+		relations[i] = Relation{ID: int64(i + 1), PredecessorID: 1, SuccessorID: int64(i + 2), Type: "FINISH_START"}
+	}
+	return relations
+}
+
+func TestPolicyAcceptsPredecessorsUpToTheLimit(t *testing.T) {
+	c := Contract{Relations: fanIn(MaxPredecessorsPerTask)}
+
+	if err := c.validate(); err != nil {
+		t.Fatalf("%d predecessors rejected: %v", MaxPredecessorsPerTask, err)
+	}
+}
+
+func TestPolicyDoesNotLimitSuccessorsPerTask(t *testing.T) {
+	c := Contract{Relations: fanOut(1000)}
+
+	if err := c.validate(); err != nil {
+		t.Fatalf("a task with 1000 successors was rejected: %v", err)
+	}
+}
+
+func TestLimitErrorsAreTellableFromMalformedContracts(t *testing.T) {
+	long := strings.Repeat("a", MaxTextRunes+1)
+
+	tests := []struct {
+		name   string
+		mutate func(*Contract)
+		limit  bool
+	}{
+		{"too many tasks", func(c *Contract) { c.Tasks = make([]Task, MaxTasks+1) }, true},
+		{"too many predecessors", func(c *Contract) { c.Relations = fanIn(MaxPredecessorsPerTask + 1) }, true},
+		{"task name too long", func(c *Contract) { c.Tasks = []Task{{Name: &long}} }, true},
+		{"negative id", func(c *Contract) { c.Tasks = []Task{{ID: -1}} }, false},
+		{"completion over 100", func(c *Contract) { c.Tasks = []Task{{PercentComplete: 101}} }, false},
+		{"identifier too long", func(c *Contract) {
+			c.Relations = []Relation{{ID: 1, Type: strings.Repeat("A", MaxTokenRunes+1)}}
+		}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var c Contract
+			tt.mutate(&c)
+
+			err := c.validate()
+			if err == nil {
+				t.Fatal("accepted an invalid contract")
+			}
+			if got := errors.Is(err, ErrLimit); got != tt.limit {
+				t.Errorf("errors.Is(err, ErrLimit) = %v, want %v: %v", got, tt.limit, err)
 			}
 		})
 	}

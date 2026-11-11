@@ -14,6 +14,7 @@ const (
 	MsgTooManyTries    = "Too many attempts. Wait a minute and try again"
 	MsgConfirmEmail    = "Confirm your email address to share a link."
 	MsgProtectNeedsPro = "Password-protected links are a Pro feature. Public links stay free."
+	MsgTooLargeToSave  = "this plan is larger than we can store"
 )
 
 func MsgPasswordLength(min int) string {

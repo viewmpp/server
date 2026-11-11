@@ -2,10 +2,12 @@ package export
 
 import (
 	"bytes"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"server/internal/clientip"
+	"server/internal/contract"
 	"server/internal/fixtures"
 	"server/internal/ratelimit"
 	"testing"
@@ -72,6 +74,73 @@ func TestRejectsGarbage(t *testing.T) {
 				t.Errorf("got %d, want 400", rec.Code)
 			}
 		})
+	}
+}
+
+func planWithRelations(t *testing.T, relations []contract.Relation) []byte {
+	t.Helper()
+
+	name := "Handover"
+	tasks := make([]contract.Task, 0, len(relations)+1)
+	tasks = append(tasks, contract.Task{ID: 1, Name: &name})
+	for _, rel := range relations {
+		other := rel.PredecessorID
+		if other == 1 {
+			other = rel.SuccessorID
+		}
+		tasks = append(tasks, contract.Task{ID: other, Name: &name})
+	}
+
+	raw, err := json.Marshal(contract.Contract{Version: contract.Version, Tasks: tasks, Relations: relations})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	return raw
+}
+
+func TestExportsATaskWithManySuccessors(t *testing.T) {
+	relations := make([]contract.Relation, 300)
+	for i := range relations {
+		relations[i] = contract.Relation{ID: int64(i + 1), PredecessorID: 1, SuccessorID: int64(i + 2), Type: "FINISH_START"}
+	}
+
+	rec := post(t, newHandler(t, 100), planWithRelations(t, relations), "plan.mpp")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestSaysWhenAPlanIsTooLargeRatherThanInvalid(t *testing.T) {
+	relations := make([]contract.Relation, contract.MaxPredecessorsPerTask+1)
+	for i := range relations {
+		relations[i] = contract.Relation{ID: int64(i + 1), PredecessorID: int64(i + 2), SuccessorID: 1, Type: "FINISH_START"}
+	}
+
+	rec := post(t, newHandler(t, 100), planWithRelations(t, relations), "plan.mpp")
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("got %d, want 400", rec.Code)
+	}
+
+	var message string
+	if err := json.Unmarshal(rec.Body.Bytes(), &message); err != nil {
+		t.Fatalf("body is not a json string: %v", err)
+	}
+	if message != MsgTooLargeToConvert {
+		t.Errorf("got %q, want %q", message, MsgTooLargeToConvert)
+	}
+}
+
+func TestSaysWhenABodyIsNotAPlan(t *testing.T) {
+	rec := post(t, newHandler(t, 100), []byte(`{"contract_version":1,"surprise":true}`), "x.mpp")
+
+	var message string
+	if err := json.Unmarshal(rec.Body.Bytes(), &message); err != nil {
+		t.Fatalf("body is not a json string: %v", err)
+	}
+	if message != MsgNotAPlan {
+		t.Errorf("got %q, want %q", message, MsgNotAPlan)
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"server/internal/clientip"
 	"server/internal/config"
 	"server/internal/diagnostics"
+	"server/internal/events"
 	"server/internal/export"
 	"server/internal/htmlutil"
 	"server/internal/mailer"
@@ -44,10 +45,6 @@ func run() error {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Level()}))
 
-	diag := diagnostics.New(cfg.DiagAddr, logger)
-
-	go diag.ListenAndServe()
-
 	expvar.NewString("version").Set(vcs.Version)
 
 	client := &parser.Client{
@@ -69,6 +66,12 @@ func run() error {
 	expvar.Publish("database_stats", expvar.Func(func() any {
 		return pg.DB.Stats()
 	}))
+
+	eventStore := events.NewStore(pg.DB)
+
+	diag := diagnostics.New(cfg.DiagAddr, diagnostics.NewHandler(eventStore, logger), logger)
+
+	go diag.ListenAndServe()
 
 	htmlutil.SetBaseURL(cfg.AppBaseURL)
 
@@ -100,6 +103,10 @@ func run() error {
 	stop := make(chan struct{})
 	defer close(stop)
 
+	counts := events.NewRecorder(eventStore, logger)
+	counts.Start(stop)
+	defer counts.Close()
+
 	background.Sweep(stop, logger, "sessions", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Sessions.DeleteExpired)
 	background.Sweep(stop, logger, "tokens", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Tokens.DeleteExpired)
 	background.Sweep(stop, logger, "protected links", cfg.BGSweepRepetition, cfg.BGSweepTimeout, str.Projects.DemoteExpiredProtected)
@@ -107,7 +114,7 @@ func run() error {
 	mail := mailer.New(cfg.Resend, cfg.AppBaseURL, templates, logger, cfg.AppEnv == "prod")
 
 	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, logger)
-	uploadHandler := upload.NewHandler(client, str.Projects, uploadLimiter, logger)
+	uploadHandler := upload.NewHandler(client, str.Projects, uploadLimiter, counts, logger)
 	exportHandler := export.NewHandler(uploadLimiter, logger)
 	projectHandler := project.NewHandler(str.Projects, cfg.AppBaseURL, projectLimiter, cfg.ProjLenListLimit, templates, logger)
 	userHandler := user.NewHandler(str.Users, str.Projects, str.Tokens, str.Sessions, userLimiter, mail,

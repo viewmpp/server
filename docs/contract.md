@@ -45,6 +45,12 @@ Version 1 has one resource policy. The limits are checked by the Go contract
 decoder and apply regardless of whether the contract came directly from the
 parser, storage, or the export endpoint.
 
+A document over one of these limits is reported as too large, never as
+malformed. The decoder wraps every limit failure in `contract.ErrLimit`, and
+the export and save endpoints answer with a different message for it: telling
+someone that their genuine plan "is not a valid plan" sends them hunting for a
+broken file that does not exist.
+
 | Resource | Limit |
 |---|---:|
 | Encoded JSON document | 8 MiB |
@@ -54,8 +60,7 @@ parser, storage, or the export endpoint.
 | Assignments across the document | 20,000 |
 | Calendar exceptions | 1,000 |
 | Assignments on one task | 25 |
-| Predecessors on one task | 25 |
-| Successors on one task | 25 |
+| Predecessors on one task | 500 |
 | Non-working weekdays | 7 |
 | Project, calendar, exception, resource, task, WBS, and outline text | 255 Unicode characters |
 | Task notes | 32,767 Unicode characters |
@@ -86,6 +91,24 @@ vendor limits do not establish a safe request budget for this service.
 XLSX presentation is separately bounded to ten visible levels, so an extreme
 but valid outline value cannot cause proportional string allocation. Levels
 beyond ten retain their task data but receive the same 36-space visual indent.
+
+Predecessors and successors on one task were both capped at 25 until
+production showed the cost. Between 25 and 29 October 2026 four real plans
+carried a task with more than 25 successors, and each was refused at export
+and at save while the chart itself opened, because anonymous viewing never
+decodes the contract. One person signed up to save such a plan, was refused
+four times and left with nothing stored.
+
+Successors are no longer capped per task. Nothing renders them into a bounded
+space, and the relation total already bounds the work.
+
+Predecessors stay capped, because the XLSX export writes all of a task's
+predecessors into one cell. Excel holds at most 32,767 UTF-16 code units in a
+cell, and excelize truncates a longer value without an error (verified in
+v2.11.0, `setCellString`). The longest entry the export can write is 35
+characters, `2147483647 SF-9.99999999999999e+12e`, so 500 of them come to
+18,498 units, measured; one cell would hold 885. A test in `internal/xlsx`
+fails if the cap or the cell format ever lets that bound be crossed.
 
 ---
 

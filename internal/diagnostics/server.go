@@ -14,11 +14,10 @@ type Server struct {
 	logger *slog.Logger
 }
 
-func New(addr string, logger *slog.Logger) *Server {
-
+func New(addr string, handler *Handler, logger *slog.Logger) *Server {
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           route(),
+		Handler:           routes(handler),
 		ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		WriteTimeout:      2 * time.Minute,
 		ReadTimeout:       5 * time.Minute,

@@ -6,6 +6,20 @@
     serverSaid: function (status) { return 'server replied ' + status; }
   };
 
+  function refusal(response) {
+    var fallback = window.MppText.serverSaid(response.status);
+
+    return response.json().then(function (message) {
+      return typeof message === 'string' && message ? message : fallback;
+    }, function () {
+      return fallback;
+    }).then(function (message) {
+      var error = new Error(message);
+      error.status = response.status;
+      throw error;
+    });
+  }
+
   window.MppExport = {
     xlsx: function (contract, fileName) {
       return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {
@@ -13,7 +27,7 @@
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
         body: JSON.stringify(contract)
       }).then(function (response) {
-        if (!response.ok) { throw new Error(window.MppText.serverSaid(response.status)); }
+        if (!response.ok) { return refusal(response); }
         return response.blob();
       }).then(function (blob) {
         var a = document.createElement('a');
@@ -30,11 +44,7 @@
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
         body: JSON.stringify(contract)
       }).then(function (response) {
-        if (!response.ok) {
-          var error = new Error(window.MppText.serverSaid(response.status));
-          error.status = response.status;
-          throw error;
-        }
+        if (!response.ok) { return refusal(response); }
         return response.json();
       });
     }

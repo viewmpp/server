@@ -26,7 +26,11 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if _, err = contract.Decode(body); err != nil {
 		h.logger.Warn("save rejected", "err", err)
-		jsonutil.BadRequestResponse(w, "that is not a valid plan")
+		if errors.Is(err, contract.ErrLimit) {
+			jsonutil.BadRequestResponse(w, MsgTooLargeToSave)
+			return
+		}
+		jsonutil.BadRequestResponse(w, export.MsgNotAPlan)
 		return
 	}
 
