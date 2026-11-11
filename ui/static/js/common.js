@@ -35,6 +35,7 @@
         a.download = (String(fileName || '').replace(/\.[^.]*$/, '') || 'project') + '.xlsx';
         a.click();
         URL.revokeObjectURL(a.href);
+        document.dispatchEvent(new CustomEvent('mpp:exported'));
       });
     },
 

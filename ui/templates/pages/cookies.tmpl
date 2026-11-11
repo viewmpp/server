@@ -9,9 +9,10 @@
 
   <p>
     View MPP uses cookies to support sign-in, protect forms, and remember access to
-    password-protected plans. We also use local storage to remember your appearance preference
-    and when you dismiss the sharing prompt. We do not use these technologies to track you
-    across websites, and we do not use analytics or advertising trackers.
+    password-protected plans. We also use local storage to remember your appearance preference,
+    when you dismiss the sharing prompt, and how you responded to our questions about what to
+    build next, so we do not keep asking. We do not use these technologies to track you across
+    websites, and we do not use third-party analytics or advertising trackers.
   </p>
 
   <h2>Cookies and local storage</h2>
@@ -61,6 +62,16 @@
         <td role="cell" data-label="Purpose">Remembers that you dismissed the prompt about sharing your own plans when viewing someone else's shared plan. Saved only when you dismiss it.</td>
         <td role="cell" data-label="How long it lasts">No automatic expiry. Kept until you or your browser clear this site's data.</td>
       </tr>
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>mpp-wish-voted</code></th>
+        <td role="cell" data-label="Purpose">Remembers which features marked "soon" you have already clicked, so a second click is not counted as another vote. Saved the first time you click one.</td>
+        <td role="cell" data-label="How long it lasts">No automatic expiry. Kept until you or your browser clear this site's data.</td>
+      </tr>
+      <tr role="row">
+        <th role="rowheader" scope="row"><code>mpp-export-asked</code></th>
+        <td role="cell" data-label="Purpose">Remembers whether you answered the question about what you will do with an exported spreadsheet, or how many times you skipped it, so it is shown at most three times. Saved when you answer or skip it.</td>
+        <td role="cell" data-label="How long it lasts">No automatic expiry. Kept until you or your browser clear this site's data.</td>
+      </tr>
     </tbody>
   </table>
 
@@ -89,7 +100,7 @@
     accounts, uploaded files, and other personal data, read our <a href="/privacy">Privacy Policy</a>.
     Questions can be sent to <a href="mailto:support@viewmpp.com">support@viewmpp.com</a>.
   </p>
-  <p class="legal__meta">Last updated: 8 September 2026</p>
+  <p class="legal__meta">Last updated: 12 November 2026</p>
 </main>
 
 {{template "sitefooter" .}}

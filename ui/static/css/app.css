@@ -1387,6 +1387,26 @@ input:-webkit-autofill:focus {
 }
 .toast__close:hover { background: var(--bg-hover); color: var(--text); }
 
+.btn .tag { padding: 0 6.84px; line-height: 1.6; }
+
+.wish {
+  width: min(410.4px, calc(100% - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.wish::backdrop { background: rgba(0, 0, 0, .35); }
+.wish__body { display: flex; flex-direction: column; gap: 11.4px; padding: 18.24px 20.52px; }
+.wish__title { margin: 0; font-size: var(--text-md); font-weight: 600; letter-spacing: -.02em; }
+.wish__text { margin: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.5; }
+.wish__actions { display: flex; justify-content: flex-end; margin-top: 4.56px; }
+
+.ask__options { display: flex; flex-direction: column; gap: 6.84px; margin-top: 4.56px; }
+.ask__skip { align-self: center; margin-top: 2.28px; color: var(--secondary); font-size: var(--text-sm); }
+
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(6.84px); }
   to { opacity: 1; transform: none; }

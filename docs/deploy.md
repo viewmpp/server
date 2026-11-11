@@ -179,9 +179,15 @@ rather than to its loopback. `docker compose exec` is the only way in, and
 `Validate` refuses to start production on any address that is not loopback.
 
 Nothing guards the endpoint itself, so anything published there is readable by
-anyone who can reach it. Today that is `cmdline` and `memstats`, neither of them
-sensitive - secrets arrive through the environment, not as flags. Adding
-counters carrying business data would change that judgement.
+anyone who can reach it. `/debug/vars` serves `cmdline` and `memstats`, neither
+of them sensitive - secrets arrive through the environment, not as flags.
+`/events` serves the daily usage counts of the last 30 days. They are business
+data, which is exactly why the listener must stay on loopback. What each count
+means is in [measurement.md](measurement.md):
+
+```bash
+docker compose exec server wget -q -O - http://127.0.0.1:6060/events
+```
 
 Local development
 -----------------

@@ -110,6 +110,14 @@ func TestTheAppHeaderIsCheckedBeforeTheUser(t *testing.T) {
 	}
 }
 
+func TestASignalComesOnlyFromTheViewer(t *testing.T) {
+	w := dispatch(t, http.MethodPost, "/api/v1/signals?name=wish_pdf:file", user.AnonymousUser, nil)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("status = %d, want %d: anything that can post to the endpoint could vote", w.Code, http.StatusForbidden)
+	}
+}
+
 func TestTheGuardsThemselvesLetThroughWhoTheyShould(t *testing.T) {
 	s := newTestServer(t)
 

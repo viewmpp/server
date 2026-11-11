@@ -3,7 +3,8 @@
   <span class="loading__spin" aria-hidden="true"></span>
   <span class="loading__text" id="loading-text">{{if .FileName}}Opening {{.FileName}}{{else}}Opening the plan{{end}}</span>
 </div>
-<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}">
+<div class="app is-hidden" id="app" data-project-id="{{.ProjectID}}" data-example-name="{{.ExampleName}}" data-file-name="{{.FileName}}"
+     data-viewer="{{if .ProjectID}}{{if .IsOwner}}owner{{else}}shared{{end}}{{else if .ExampleName}}example{{else}}file{{end}}">
   <header class="bar">
     <div class="bar__row">
       <div class="bar__title">
@@ -65,7 +66,7 @@
 
       <div class="bar__actions">
         {{if .ProjectID}}
-          <a class="btn btn--sm" href="/p/{{.ProjectID}}/xlsx">
+          <a class="btn btn--sm" href="/p/{{.ProjectID}}/xlsx" data-export-link>
             <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
               <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
@@ -81,6 +82,13 @@
             Export to Excel
           </button>
         {{end}}
+
+        <button class="btn btn--sm" type="button" data-wish="wish_pdf" aria-haspopup="dialog" aria-controls="wish-pdf">
+          PDF <span class="tag tag--muted">soon</span>
+        </button>
+        <button class="btn btn--sm" type="button" data-wish="wish_xlsx_report" aria-haspopup="dialog" aria-controls="wish-xlsx-report">
+          Excel report <span class="tag tag--muted">soon</span>
+        </button>
 
         {{if .IsOwner}}
           <div class="menu menu--wide" data-menu>
@@ -269,5 +277,42 @@
       <span class="legend__item"><i class="sw sw--off"></i> non-working day</span>
     </span>
   </footer>
+
+  <dialog class="wish" id="wish-pdf" aria-labelledby="wish-pdf-title">
+    <form class="wish__body" method="dialog">
+      <h2 class="wish__title" id="wish-pdf-title">PDF of the chart isn't built yet</h2>
+      <p class="wish__text">We're choosing what to build next, and your click counts as a vote for this one.</p>
+      <p class="wish__text">It would put the whole chart in one file, every task and bar, ready to print or send.</p>
+      <div class="wish__actions">
+        <button class="btn btn--sm btn--primary" type="submit">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="wish" id="wish-xlsx-report" aria-labelledby="wish-xlsx-report-title">
+    <form class="wish__body" method="dialog">
+      <h2 class="wish__title" id="wish-xlsx-report-title">The Excel report isn't built yet</h2>
+      <p class="wish__text">We're choosing what to build next, and your click counts as a vote for this one.</p>
+      <p class="wish__text">It would draw the timeline right in the cells and add a summary sheet with milestones and overdue tasks.</p>
+      <div class="wish__actions">
+        <button class="btn btn--sm btn--primary" type="submit">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="wish" id="export-ask" aria-labelledby="export-ask-title">
+    <form class="wish__body" method="dialog">
+      <h2 class="wish__title" id="export-ask-title">What will you do with this spreadsheet?</h2>
+      <p class="wish__text">One click helps us decide what to build next.</p>
+      <div class="ask__options">
+        <button class="btn btn--sm" type="submit" value="share">Share it with a manager or client</button>
+        <button class="btn btn--sm" type="submit" value="import">Import it into another tool</button>
+        <button class="btn btn--sm" type="submit" value="analyze">Filter or analyze the data</button>
+        <button class="btn btn--sm" type="submit" value="print">Print it</button>
+        <button class="btn btn--sm" type="submit" value="other">Something else</button>
+      </div>
+      <button class="linkish ask__skip" type="submit" value="">Skip</button>
+    </form>
+  </dialog>
 </div>
 {{end}}

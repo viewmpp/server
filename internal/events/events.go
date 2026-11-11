@@ -28,12 +28,48 @@ const (
 	SharePageFromLink Name = "share_page_from_link"
 
 	ExampleOpen Name = "example_open"
+
+	WishPDF        Name = "wish_pdf"
+	WishXLSXReport Name = "wish_xlsx_report"
+	ExportAsked    Name = "export_asked"
+	ExportPurpose  Name = "export_purpose"
 )
 
 const OtherPage = "other"
 
 func UploadFrom(page string) Name {
 	return Name("upload_from:" + page)
+}
+
+var (
+	wishes   = []Name{WishPDF, WishXLSXReport}
+	viewers  = []string{"owner", "shared", "file", "example"}
+	purposes = []string{"share", "import", "analyze", "print", "other"}
+)
+
+var fromViewer = allowedFromViewer()
+
+func allowedFromViewer() map[string]Name {
+	allowed := map[string]Name{string(ExportAsked): ExportAsked}
+
+	for _, wish := range wishes {
+		for _, viewer := range viewers {
+			name := wish + Name(":"+viewer)
+			allowed[string(name)] = name
+		}
+	}
+
+	for _, purpose := range purposes {
+		name := ExportPurpose + Name(":"+purpose)
+		allowed[string(name)] = name
+	}
+
+	return allowed
+}
+
+func FromViewer(raw string) (Name, bool) {
+	name, ok := fromViewer[raw]
+	return name, ok
 }
 
 const (

@@ -31,6 +31,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimits, "read-ip:", s.projectHandler.Contract))
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.throttle(s.readLimits, "read-ip:", s.viewerHandler.ExampleContract))
+	mux.HandleFunc("POST /api/v1/signals", s.fromApp(s.throttle(s.readLimits, "signal-ip:", s.viewerHandler.Signal)))
 
 	mux.HandleFunc("GET /mpp-to-excel", s.projectHandler.ConvertPage)
 	mux.HandleFunc("GET /examples", s.viewerHandler.ExamplesPage)
