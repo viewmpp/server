@@ -22,8 +22,18 @@ func (e *ParseError) Error() string {
 }
 
 type Client struct {
-	URL  string
-	HTTP *http.Client
+	URL          string
+	HTTP         *http.Client
+	ParseTimeout time.Duration
+}
+
+const defaultParseTimeout = 15 * time.Second
+
+func (c *Client) parseTimeout() time.Duration {
+	if c.ParseTimeout > 0 {
+		return c.ParseTimeout
+	}
+	return defaultParseTimeout
 }
 
 func (c *Client) endpoint(path string) string {
@@ -84,7 +94,7 @@ func (c *Client) Healthcheck(ctx context.Context) error {
 }
 
 func (c *Client) Parse(ctx context.Context, body io.Reader, size int64) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, c.parseTimeout())
 	defer cancel()
 	res, err := c.request(ctx, body, size)
 	if err != nil {

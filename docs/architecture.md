@@ -233,7 +233,8 @@ One request does the whole thing. Nothing is queued and nothing touches the disk
 2. The user drops a file, so JS now holds a `File` object.
 3. `fetch POST /api/v1/upload` with the file bytes as the body.
 4. Go applies the size limit to the request body.
-5. Go streams those bytes on to `POST /parse` on the sidecar.
+5. Go reads the whole file into memory, then sends it to `POST /parse` on the
+   sidecar.
 6. The sidecar answers with the contract JSON.
 7. Go writes that JSON straight into its own response and is finished. The bytes
    were a local variable and the garbage collector takes them.
@@ -245,3 +246,16 @@ One request does the whole thing. Nothing is queued and nothing touches the disk
 For a signed-in user step 7 also writes the contract to Postgres, gzipped, and puts
 the new project id in a header. That is the only branch in the whole flow, which is
 why the frontend never has to know which tier it is talking to.
+
+Step 5 used to stream the request body straight through to the sidecar, and that
+put the visitor's connection inside the parse budget. Between 5 October and
+6 November 2026 production answered twelve uploads with a 500: nine stopped at
+the 15 second parse timeout, three on a dropped connection, and every time the
+sidecar logged `I/O error while reading input message` - the file had not
+finished arriving. Parsing itself is fast (a 1651-task plan takes under a
+second), so the timeout was being spent on someone's upload speed. The file is
+now read completely before the timeout starts, and a connection that drops
+mid-upload gets a 400 asking to try again instead of a server error. The cost is
+memory: one buffer of up to the upload limit per upload in flight. The sidecar
+already reads the whole body before parsing, so streaming saved nothing end to
+end.

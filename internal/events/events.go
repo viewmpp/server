@@ -11,9 +11,10 @@ import (
 type Name string
 
 const (
-	UploadOK       Name = "upload_ok"
-	UploadRejected Name = "upload_rejected"
-	UploadTooLarge Name = "upload_too_large"
+	UploadOK          Name = "upload_ok"
+	UploadRejected    Name = "upload_rejected"
+	UploadTooLarge    Name = "upload_too_large"
+	UploadInterrupted Name = "upload_interrupted"
 )
 
 const (

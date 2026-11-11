@@ -1,8 +1,10 @@
 package upload
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"server/internal/clientip"
@@ -15,6 +17,8 @@ import (
 	"server/internal/user"
 	"strconv"
 )
+
+const MsgInterrupted = "the upload was interrupted, try again"
 
 type Handler struct {
 	store   uploadStore
@@ -69,9 +73,16 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, limit)
+	file := make([]byte, r.ContentLength)
 
-	plan, err := h.client.Parse(r.Context(), r.Body, r.ContentLength)
+	if _, err := io.ReadFull(http.MaxBytesReader(w, r.Body, limit), file); err != nil {
+		h.counts.Count(events.UploadInterrupted)
+		h.logger.Warn("upload interrupted", "err", err)
+		jsonutil.BadRequestResponse(w, MsgInterrupted)
+		return
+	}
+
+	plan, err := h.client.Parse(r.Context(), bytes.NewReader(file), int64(len(file)))
 	if err != nil {
 		pe, exists := errors.AsType[*parser.ParseError](err)
 		if exists && pe.Status < 500 {
