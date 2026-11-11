@@ -36,6 +36,10 @@ func owns(u *user.User, p *Project) bool {
 	return !u.IsAnonymous() && u.ID == p.UserID
 }
 
+func seenBySomeoneElse(u *user.User, p *Project) bool {
+	return !owns(u, p)
+}
+
 func mayRead(r *http.Request, p *Project) bool {
 	if owns(user.GetUserContext(r), p) {
 		return true

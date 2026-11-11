@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"server/internal/clientip"
 	"server/internal/contract"
+	"server/internal/events"
 	"server/internal/jsonutil"
 	"server/internal/ratelimit"
 	"server/internal/safelog"
@@ -22,14 +23,20 @@ const (
 	MsgTooLargeToConvert = "this plan is larger than the converter supports"
 )
 
+type counter interface {
+	Count(name events.Name)
+}
+
 type Handler struct {
 	limiter *ratelimit.Limiter
+	counts  counter
 	logger  *slog.Logger
 }
 
-func NewHandler(limiter *ratelimit.Limiter, logger *slog.Logger) *Handler {
+func NewHandler(limiter *ratelimit.Limiter, counts counter, logger *slog.Logger) *Handler {
 	return &Handler{
 		limiter: limiter,
+		counts:  counts,
 		logger:  logger,
 	}
 }
@@ -58,6 +65,7 @@ func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.logger.Warn("export rejected", "err", err)
 		if errors.Is(err, contract.ErrLimit) {
+			h.counts.Count(events.ExportTooLarge)
 			jsonutil.BadRequestResponse(w, MsgTooLargeToConvert)
 			return
 		}
@@ -75,6 +83,8 @@ func (h *Handler) XLSX(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", xlsx.Disposition(r.URL.Query().Get("name")))
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
+
+	h.counts.Count(events.ExportXLSX)
 
 	_, _ = buf.WriteTo(w)
 }

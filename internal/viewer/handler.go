@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"server/internal/events"
 	"server/internal/examples"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
@@ -14,20 +15,27 @@ import (
 	"time"
 )
 
+type counter interface {
+	Count(name events.Name)
+}
+
 type Handler struct {
 	templates *htmlutil.Templates
 	baseURL   string
+	counts    counter
 	logger    *slog.Logger
 }
 
 func NewHandler(
 	templates *htmlutil.Templates,
 	baseURL string,
+	counts counter,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
 		templates: templates,
 		baseURL:   strings.TrimSuffix(baseURL, "/"),
+		counts:    counts,
 		logger:    logger,
 	}
 }
@@ -86,6 +94,8 @@ func (h *Handler) ExampleContract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.counts.Count(events.ExampleOpen)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int(time.Until(examples.NextWeek(now)).Seconds())))
 	_, _ = w.Write(plan)
@@ -132,6 +142,10 @@ func (h *Handler) XMLPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.Header.Get("Referer"), h.baseURL+"/p/") {
+		h.counts.Count(events.SharePageFromLink)
+	}
+
 	h.landing(w, r, "/share-a-project-plan", h.templates.Share)
 }
 

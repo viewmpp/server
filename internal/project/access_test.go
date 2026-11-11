@@ -2,8 +2,34 @@ package project
 
 import (
 	"server/internal/assert"
+	"server/internal/events"
+	"server/internal/user"
 	"testing"
 )
+
+type discard struct{}
+
+func (discard) Count(events.Name) {}
+
+func TestOnlySomeoneOtherThanTheOwnerOpensAShare(t *testing.T) {
+	p := &Project{UserID: 7}
+
+	tests := []struct {
+		name   string
+		reader *user.User
+		want   bool
+	}{
+		{"the owner", &user.User{ID: 7}, false},
+		{"another account", &user.User{ID: 8}, true},
+		{"an anonymous visitor", user.AnonymousUser, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, seenBySomeoneElse(tt.reader, p), tt.want)
+		})
+	}
+}
 
 func TestOpensNewShare(t *testing.T) {
 	tests := []struct {

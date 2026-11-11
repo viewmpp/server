@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"server/internal/assert"
+	"server/internal/events"
 	"server/internal/examples"
 	"server/internal/htmlutil"
 	"server/internal/landing"
@@ -21,7 +22,19 @@ const baseURL = "https://viewmpp.com"
 
 var schemaPattern = regexp.MustCompile(`(?s)<script type="application/ld\+json">(.*?)</script>`)
 
+type tally map[events.Name]int
+
+func (t tally) Count(name events.Name) {
+	t[name]++
+}
+
 func newTestHandler(t *testing.T) *Handler {
+	t.Helper()
+
+	return newCountingHandler(t, tally{})
+}
+
+func newCountingHandler(t *testing.T, counts tally) *Handler {
 	t.Helper()
 
 	htmlutil.SetBaseURL(baseURL)
@@ -29,7 +42,7 @@ func newTestHandler(t *testing.T) *Handler {
 	templates, err := htmlutil.NewTemplates()
 	assert.NilError(t, err)
 
-	return NewHandler(templates, baseURL, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	return NewHandler(templates, baseURL, counts, slog.New(slog.NewTextHandler(io.Discard, nil)))
 }
 
 func visit(t *testing.T, h http.HandlerFunc, path string) string {

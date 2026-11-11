@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"server/internal/clientip"
 	"server/internal/contract"
+	"server/internal/events"
 	"server/internal/fixtures"
 	"server/internal/ratelimit"
 	"testing"
@@ -16,13 +17,25 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+type tally map[events.Name]int
+
+func (t tally) Count(name events.Name) {
+	t[name]++
+}
+
 func newHandler(t *testing.T, limit int) *Handler {
+	t.Helper()
+
+	return newCountingHandler(t, limit, tally{})
+}
+
+func newCountingHandler(t *testing.T, limit int, counts tally) *Handler {
 	t.Helper()
 
 	limiter := ratelimit.New(limit, time.Minute)
 	t.Cleanup(limiter.Close)
 
-	return NewHandler(limiter, slog.New(slog.DiscardHandler))
+	return NewHandler(limiter, counts, slog.New(slog.DiscardHandler))
 }
 
 func post(t *testing.T, h *Handler, body []byte, name string) *httptest.ResponseRecorder {
@@ -141,6 +154,32 @@ func TestSaysWhenABodyIsNotAPlan(t *testing.T) {
 	}
 	if message != MsgNotAPlan {
 		t.Errorf("got %q, want %q", message, MsgNotAPlan)
+	}
+}
+
+func TestCountsAnExportOnlyWhenTheWorkbookIsSent(t *testing.T) {
+	counts := tally{}
+	h := newCountingHandler(t, 100, counts)
+
+	post(t, h, fixtures.All()["mpp8.json"], "plan.mpp")
+	post(t, h, []byte(`hello`), "x.mpp")
+
+	if counts[events.ExportXLSX] != 1 {
+		t.Errorf("export_xlsx counted %d times, want 1", counts[events.ExportXLSX])
+	}
+}
+
+func TestCountsAPlanOverTheLimit(t *testing.T) {
+	relations := make([]contract.Relation, contract.MaxPredecessorsPerTask+1)
+	for i := range relations {
+		relations[i] = contract.Relation{ID: int64(i + 1), PredecessorID: int64(i + 2), SuccessorID: 1, Type: "FINISH_START"}
+	}
+
+	counts := tally{}
+	post(t, newCountingHandler(t, 100, counts), planWithRelations(t, relations), "plan.mpp")
+
+	if counts[events.ExportTooLarge] != 1 || counts[events.ExportXLSX] != 0 {
+		t.Errorf("counts = %v, want one export_too_large and no export_xlsx", counts)
 	}
 }
 

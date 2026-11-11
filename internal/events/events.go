@@ -15,7 +15,26 @@ const (
 	UploadRejected    Name = "upload_rejected"
 	UploadTooLarge    Name = "upload_too_large"
 	UploadInterrupted Name = "upload_interrupted"
+
+	ExportXLSX     Name = "export_xlsx"
+	ExportSaved    Name = "export_saved"
+	ExportTooLarge Name = "export_too_large"
+	SaveTooLarge   Name = "save_too_large"
+	SaveLimit      Name = "save_limit"
+
+	ShareCreated      Name = "share_created"
+	ShareOpen         Name = "share_open"
+	ShareLimit        Name = "share_limit"
+	SharePageFromLink Name = "share_page_from_link"
+
+	ExampleOpen Name = "example_open"
 )
+
+const OtherPage = "other"
+
+func UploadFrom(page string) Name {
+	return Name("upload_from:" + page)
+}
 
 const (
 	FlushInterval = time.Minute

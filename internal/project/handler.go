@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"server/internal/contract"
+	"server/internal/events"
 	"server/internal/examples"
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
@@ -21,12 +22,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type counter interface {
+	Count(name events.Name)
+}
+
 type Handler struct {
 	store     *Store
 	baseURL   string
 	limiter   *ratelimit.Limiter
 	listLimit int
 	templates *htmlutil.Templates
+	counts    counter
 	logger    *slog.Logger
 }
 
@@ -36,6 +42,7 @@ func NewHandler(
 	limiter *ratelimit.Limiter,
 	listLimit int,
 	templates *htmlutil.Templates,
+	counts counter,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
@@ -44,6 +51,7 @@ func NewHandler(
 		limiter:   limiter,
 		listLimit: listLimit,
 		templates: templates,
+		counts:    counts,
 		logger:    logger,
 	}
 }
@@ -104,6 +112,8 @@ func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
+	h.counts.Count(events.ExportSaved)
+
 	_, _ = buf.WriteTo(w)
 }
 
@@ -111,6 +121,10 @@ func (h *Handler) Contract(w http.ResponseWriter, r *http.Request) {
 	p, ok := h.findWithContract(w, r, true)
 	if !ok {
 		return
+	}
+
+	if seenBySomeoneElse(user.GetUserContext(r), p) {
+		h.counts.Count(events.ShareOpen)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -188,6 +202,7 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, user.ErrShareLimit) {
 			var quota *user.QuotaError
 			if errors.As(err, &quota) {
+				h.counts.Count(events.ShareLimit)
 				sess.Put("flash", MsgShareLimit(quota.Limit))
 				http.Redirect(w, r, back, http.StatusSeeOther)
 				return
@@ -204,6 +219,10 @@ func (h *Handler) SetAccess(w http.ResponseWriter, r *http.Request) {
 		}
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
+	}
+
+	if opensNewShare(current, access) {
+		h.counts.Count(events.ShareCreated)
 	}
 
 	switch access {

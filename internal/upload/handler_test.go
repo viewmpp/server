@@ -74,8 +74,15 @@ func newHandler(t *testing.T, client *parser.Client, counts *tally) *Handler {
 }
 
 func upload(h *Handler, body io.Reader, size int64) *httptest.ResponseRecorder {
+	return uploadFrom(h, body, size, "")
+}
+
+func uploadFrom(h *Handler, body io.Reader, size int64, referer string) *httptest.ResponseRecorder {
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/upload?name=plan.mpp", body)
 	r.ContentLength = size
+	if referer != "" {
+		r.Header.Set("Referer", referer)
+	}
 	r = clientip.SetContext(r, "203.0.113.5")
 	r = user.SetUserContext(r, user.AnonymousUser)
 
@@ -139,6 +146,38 @@ func TestASlowUploadDoesNotSpendTheParseTimeout(t *testing.T) {
 	}
 	if got := counts.get(events.UploadOK); got != 1 {
 		t.Errorf("upload_ok counted %d times, want 1", got)
+	}
+}
+
+func TestAnUploadIsCountedAgainstThePageItCameFrom(t *testing.T) {
+	tests := map[string]struct {
+		referer string
+		page    string
+	}{
+		"a landing page":          {"https://viewmpp.com/mpp-to-excel", "/mpp-to-excel"},
+		"the home page":           {"https://viewmpp.com/", "/"},
+		"the project list":        {"https://viewmpp.com/projects", "/projects"},
+		"a page with a query":     {"https://viewmpp.com/open-mpp-file-on-mac?utm_source=x", "/open-mpp-file-on-mac"},
+		"an unknown path":         {"https://viewmpp.com/anything/else", events.OtherPage},
+		"no referer at all":       {"", events.OtherPage},
+		"a referer that is noise": {"::not a url", events.OtherPage},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, client := newSidecar(t)
+			counts := &tally{counts: map[events.Name]int{}}
+
+			const size = 10
+			rec := uploadFrom(newHandler(t, client, counts), &trickle{left: size, chunk: size}, size, tt.referer)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("got %d, want 200", rec.Code)
+			}
+			if got := counts.get(events.UploadFrom(tt.page)); got != 1 {
+				t.Errorf("upload_from:%s counted %d times, want 1 (counts %v)", tt.page, got, counts.counts)
+			}
+		})
 	}
 }
 

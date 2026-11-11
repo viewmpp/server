@@ -27,7 +27,7 @@ func TestTheConvertPageDeclaresTheApplication(t *testing.T) {
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	h := NewHandler(NewStore(nil), baseURL, nil, 10, templates, logger)
+	h := NewHandler(NewStore(nil), baseURL, nil, 10, templates, discard{}, logger)
 
 	r := httptest.NewRequest(http.MethodGet, "/mpp-to-excel", nil)
 	w := httptest.NewRecorder()

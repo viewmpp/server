@@ -7,10 +7,12 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"server/internal/clientip"
 	"server/internal/contract"
 	"server/internal/events"
 	"server/internal/jsonutil"
+	"server/internal/landing"
 	"server/internal/parser"
 	"server/internal/ratelimit"
 	"server/internal/safelog"
@@ -95,12 +97,17 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !u.IsAnonymous() {
-		if !storable(plan, h.logger) {
+		if _, err := contract.Decode(plan); err != nil {
+			h.logger.Error("parser produced a contract we cannot store", "err", err)
+			if errors.Is(err, contract.ErrLimit) {
+				h.counts.Count(events.SaveTooLarge)
+			}
 			w.Header().Set("X-Save-Refused", "unreadable")
 		} else {
 			publicID, err := h.store.Save(r.Context(), u.ID, r.URL.Query().Get("name"), plan)
 			switch {
 			case errors.Is(err, user.ErrSaveLimit):
+				h.counts.Count(events.SaveLimit)
 				w.Header().Set("X-Save-Refused", "limit")
 			case err != nil:
 				jsonutil.ServerErrorResponse(w, r, err, h.logger)
@@ -112,18 +119,23 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.counts.Count(events.UploadOK)
+	h.counts.Count(events.UploadFrom(sourcePage(r)))
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(plan)
 }
 
-func storable(plan []byte, logger *slog.Logger) bool {
-	if _, err := contract.Decode(plan); err != nil {
-		logger.Error("parser produced a contract we cannot store", "err", err)
-		return false
+func sourcePage(r *http.Request) string {
+	ref, err := url.Parse(r.Header.Get("Referer"))
+	if err != nil {
+		return events.OtherPage
 	}
 
-	return true
+	if ref.Path == "/projects" || (ref.Path != "" && landing.BySlug(ref.Path).Slug == ref.Path) {
+		return ref.Path
+	}
+
+	return events.OtherPage
 }
 
 func (h *Handler) allow(r *http.Request, u *user.User) bool {

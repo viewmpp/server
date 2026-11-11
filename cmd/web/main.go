@@ -113,10 +113,10 @@ func run() error {
 
 	mail := mailer.New(cfg.Resend, cfg.AppBaseURL, templates, logger, cfg.AppEnv == "prod")
 
-	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, logger)
+	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, counts, logger)
 	uploadHandler := upload.NewHandler(client, str.Projects, uploadLimiter, counts, logger)
-	exportHandler := export.NewHandler(uploadLimiter, logger)
-	projectHandler := project.NewHandler(str.Projects, cfg.AppBaseURL, projectLimiter, cfg.ProjLenListLimit, templates, logger)
+	exportHandler := export.NewHandler(exportLimiter, counts, logger)
+	projectHandler := project.NewHandler(str.Projects, cfg.AppBaseURL, projectLimiter, cfg.ProjLenListLimit, templates, counts, logger)
 	userHandler := user.NewHandler(str.Users, str.Projects, str.Tokens, str.Sessions, userLimiter, mail,
 		cfg.MailerVerificationTTL, cfg.MailerVerificationRC, cfg.ResetTTL, cfg.AppBaseURL, cfg.AppEarlyAccessSeats, cfg.AppEarlyAccessPeriod, templates, &wg, logger)
 

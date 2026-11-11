@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"server/internal/contract"
+	"server/internal/events"
 	"server/internal/export"
 	"server/internal/jsonutil"
 	"server/internal/user"
@@ -27,6 +28,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	if _, err = contract.Decode(body); err != nil {
 		h.logger.Warn("save rejected", "err", err)
 		if errors.Is(err, contract.ErrLimit) {
+			h.counts.Count(events.SaveTooLarge)
 			jsonutil.BadRequestResponse(w, MsgTooLargeToSave)
 			return
 		}
@@ -38,6 +40,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var quota *user.QuotaError
 		if errors.Is(err, user.ErrSaveLimit) && errors.As(err, &quota) {
+			h.counts.Count(events.SaveLimit)
 			jsonutil.SaveLimitResponse(w, MsgSaveLimit(quota.Used))
 			return
 		}
