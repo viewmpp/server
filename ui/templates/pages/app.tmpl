@@ -16,7 +16,7 @@
   </p>
 
   <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}" data-open-saved>
-    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer" hidden>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
     <p class="drop__hint">Drop a file here or <label for="file" class="link">pick one from disk</label></p>
     <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
     <ul class="drop__terms">
@@ -67,7 +67,8 @@
   <li>
     <strong>Drop the file.</strong> An <code>.mpp</code> saved by any modern version of
     Microsoft Project, a Project <code>.xml</code>, or the older <code>.mpx</code> and
-    <code>.mpd</code> exports. Primavera <code>.xer</code> files open too. Nothing is installed
+    <code>.mpd</code> exports - an <code>.mpd</code> from Project 2000 or later, since the Project 98
+    database does not open. Primavera <code>.xer</code> files open too. Nothing is installed
     and you are not asked to register.
   </li>
   <li>

@@ -145,6 +145,15 @@ MSPDI), comparing MPXJ `getID()` with the parser's task order:
 | 6 without one | ID is position + 1 | every task matches |
 | all 21 | IDs ascend in task order | true in every file |
 
+*Also measured on* one file in each of three more formats, from the format
+survey of 12 November 2026:
+
+| File | Summary row | Rule | Result |
+|---|---|---|---|
+| GanttProject `.gan` | no | position + 1 | every task matches |
+| Primavera PMXML | no | position + 1 | every task matches |
+| `.mpx` | yes | position | every task matches |
+
 *Not verified:*
 
 - **Blank rows.** Microsoft Project numbers them too, and none of the files has
@@ -724,6 +733,33 @@ it.
   about 1.5x the `.mpp`, not an order of magnitude. This is what upload limits
   should be reasoned from: 10 MB is roughly 6000 tasks as `.mpp` and 4000 as
   MSPDI.
+- **Formats beyond `.mpp` and MSPDI.** *Measured on: 23 files, 12 November
+  2026.* Sources were the MPXJ test set and the `HouseBuildingSample.gan` that
+  ships with GanttProject. Each file went through the real parser
+  (`POST /parse`), then through `contract.Decode` and the XLSX writer.
+
+  `UniversalProjectReader` in MPXJ 16.5.0 dispatches to 25 readers (read from
+  its bytecode). These are the ones we have files for:
+
+  | Format | Files | Result |
+  |---|---|---|
+  | GanttProject `.gan` | 1 | reads: 20 tasks, all dated; hierarchy, links, 7 resources, 30 assignments, progress |
+  | Primavera `.xer` | 7 | all read, one of them with a damaged calendar |
+  | `.mpx` | 5 | all read; one has no dates, and neither does the file |
+  | `.mpd`, Project 2000-2003 | 3 | all read |
+  | `.mpd`, Project 98 | 1 | **refused**: `unsupported_format`, no reader for that generation |
+  | Primavera PMXML | 1 | reads, 12 tasks, no project summary row |
+  | Gnome Planner `.planner` | 4 | all read |
+  | FastTrack `.fts` | 1 | 0 tasks; MPXJ itself reads none, it is a resource-only test file |
+
+  Every contract that came back passed `Decode` and produced a workbook.
+
+  *Not verified:*
+  - **Asta Powerproject.** No public sample exists, so it is not advertised.
+  - **FastTrack tasks.**
+  - **Rendering of any of these in the viewer.**
+  - **The size of the evidence.** One file per format for `.gan`, PMXML and
+    `.fts` is a smoke test, not a corpus.
 
 ---
 
