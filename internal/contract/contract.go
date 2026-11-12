@@ -323,6 +323,21 @@ func (c *Contract) ResourceNames() map[int64]string {
 	return names
 }
 
+func (c *Contract) RowIDs() map[int64]int {
+	offset := 1
+	if len(c.Tasks) > 0 && c.Tasks[0].ID == 0 {
+		offset = 0
+	}
+
+	rows := make(map[int64]int, len(c.Tasks))
+	for i, task := range c.Tasks {
+		if _, seen := rows[task.ID]; !seen {
+			rows[task.ID] = i + offset
+		}
+	}
+	return rows
+}
+
 func (c *Contract) PredecessorsOf() map[int64][]Relation {
 	byTask := make(map[int64][]Relation, len(c.Relations))
 	for _, rel := range c.Relations {

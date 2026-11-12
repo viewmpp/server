@@ -17,11 +17,17 @@ const (
 )
 
 var headers = []string{
-	"WBS", "Task", "Start", "Finish", "Duration", "Units",
+	"ID", "WBS", "Task", "Start", "Finish", "Duration", "Units",
 	"Complete", "Critical", "Milestone", "Resources", "Predecessors", "Notes",
 }
 
-var widths = []float64{10, 46, 18, 18, 10, 10, 10, 9, 10, 28, 22, 40}
+var widths = []float64{6, 10, 46, 18, 18, 10, 10, 10, 9, 10, 28, 22, 40}
+
+const (
+	startColumn    = 4
+	finishColumn   = 5
+	completeColumn = 8
+)
 
 func Write(w io.Writer, c *contract.Contract) error {
 	f := excelize.NewFile()
@@ -68,11 +74,13 @@ func Write(w io.Writer, c *contract.Contract) error {
 
 	names := c.ResourceNames()
 	predecessors := c.PredecessorsOf()
+	rowIDs := c.RowIDs()
 
 	for i, task := range c.Tasks {
 		row := i + 2
 
 		values := []any{
+			rowIDs[task.ID],
 			text(task.OutlineNumber, task.WBS),
 			indent(task),
 			nil, nil,
@@ -82,7 +90,7 @@ func Write(w io.Writer, c *contract.Contract) error {
 			flag(task.IsCritical),
 			flag(task.IsMilestone),
 			assigned(task, names),
-			predecessorList(predecessors[task.ID]),
+			predecessorList(predecessors[task.ID], rowIDs),
 			deref(task.Notes),
 		}
 
@@ -90,10 +98,10 @@ func Write(w io.Writer, c *contract.Contract) error {
 			return err
 		}
 
-		if err = setDate(f, cell(3, row), task.Start, date); err != nil {
+		if err = setDate(f, cell(startColumn, row), task.Start, date); err != nil {
 			return err
 		}
-		if err = setDate(f, cell(4, row), task.Finish, date); err != nil {
+		if err = setDate(f, cell(finishColumn, row), task.Finish, date); err != nil {
 			return err
 		}
 
@@ -108,7 +116,7 @@ func Write(w io.Writer, c *contract.Contract) error {
 	if err != nil {
 		return err
 	}
-	if err = f.SetCellStyle(sheet, "G2", cell(7, len(c.Tasks)+1), percent); err != nil {
+	if err = f.SetCellStyle(sheet, cell(completeColumn, 2), cell(completeColumn, len(c.Tasks)+1), percent); err != nil {
 		return err
 	}
 
@@ -210,14 +218,19 @@ func assigned(t contract.Task, names map[int64]string) string {
 	return strings.Join(parts, ", ")
 }
 
-func predecessorList(relations []contract.Relation) string {
+func predecessorList(relations []contract.Relation, rowIDs map[int64]int) string {
 	if len(relations) == 0 {
 		return ""
 	}
 
 	parts := make([]string, 0, len(relations))
 	for _, r := range relations {
-		part := fmt.Sprintf("%d", r.PredecessorID)
+		rowID, ok := rowIDs[r.PredecessorID]
+		if !ok {
+			continue
+		}
+
+		part := fmt.Sprintf("%d", rowID)
 		if r.Type != "FINISH_START" {
 			part += " " + short(r.Type)
 		}

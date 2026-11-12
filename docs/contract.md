@@ -105,10 +105,56 @@ space, and the relation total already bounds the work.
 Predecessors stay capped, because the XLSX export writes all of a task's
 predecessors into one cell. Excel holds at most 32,767 UTF-16 code units in a
 cell, and excelize truncates a longer value without an error (verified in
-v2.11.0, `setCellString`). The longest entry the export can write is 35
-characters, `2147483647 SF-9.99999999999999e+12e`, so 500 of them come to
-18,498 units, measured; one cell would hold 885. A test in `internal/xlsx`
-fails if the cap or the cell format ever lets that bound be crossed.
+v2.11.0, `setCellString`). When the export wrote the unique ID, the longest
+entry was 35 characters, `2147483647 SF-9.99999999999999e+12e`, and 500 of them
+came to 18,498 units, measured; one cell would hold 885. The export now writes
+the row ID, which is at most 10,000, so the longest entry is
+`10000 SF-9.99999999999999e+12e`, 30 characters, and 500 come to 15,998 units,
+computed the same way. A test in `internal/xlsx` fails if the cap or the cell
+format ever lets that bound be crossed.
+
+### Row IDs in exports
+
+A task carries two numbers in Microsoft Project:
+
+- **ID** is the row number the user sees, and the Predecessors column is
+  written in it;
+- **Unique ID** never changes, and stops matching the ID as soon as rows are
+  moved or inserted.
+
+The contract's `id` is the unique ID. An export that wrote it into
+Predecessors pointed at numbers the reader could not find. Measured on the
+server fixtures, `mspdi.json` has 19 of 23 rows where the two differ, and
+`mpp9`, `mpp12` and `mpp14baseline` have 2 each.
+
+So the exports add an `ID` column and write Predecessors in it.
+`Contract.RowIDs` derives the ID from the task's position. Position is used
+because saved plans already stored without any new field get correct numbers
+too, and the contract stays as it is.
+
+The rule is the position, plus one when the first task is not the project
+summary row. The summary row always has ID 0 and unique ID 0, so a first task
+with `id: 0` means counting starts at 0.
+
+*Measured on* the 21 real files in the parser's `testdata` (17 `.mpp`, 4
+MSPDI), comparing MPXJ `getID()` with the parser's task order:
+
+| Files | Rule | Result |
+|---|---|---|
+| 15 with a summary row | ID equals the position | every task matches |
+| 6 without one | ID is position + 1 | every task matches |
+| all 21 | IDs ascend in task order | true in every file |
+
+*Not verified:*
+
+- **Blank rows.** Microsoft Project numbers them too, and none of the files has
+  one.
+- **Primavera.** `.xer` has no such ID at all; its activities have codes like
+  `A1000`. There the column is simply the row number within the sheet, which
+  is still what Predecessors refers to.
+
+A predecessor the plan does not contain is left out of the cell rather than
+written as a number no row carries.
 
 ---
 

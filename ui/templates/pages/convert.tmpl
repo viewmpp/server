@@ -78,15 +78,16 @@
   <section class="prose">
 <p class="prose__answer">
   An <code>.mpp</code> file converts to an <code>.xlsx</code> workbook in the browser: one sheet
-  named <strong>Tasks</strong>, one row per task in the order the plan defines, and twelve columns
-  covering WBS, dates, duration, progress, resources and predecessors. Dates arrive as real Excel
-  dates, and a filter is already switched on across the header row.
+  named <strong>Tasks</strong>, one row per task in the order the plan defines, and thirteen columns
+  covering ID, WBS, dates, duration, progress, resources and predecessors. Dates arrive as real
+  Excel dates, and a filter is already switched on across the header row.
 </p>
 
 <h2>What the spreadsheet contains</h2>
 
 <table class="cols">
   <tr><th>Column</th><th>What it holds</th></tr>
+  <tr><td><code>ID</code></td><td>The row number Microsoft Project shows in its first column. Predecessors refer to it.</td></tr>
   <tr><td><code>WBS</code></td><td>The outline number - <code>1</code>, <code>1.2</code>, <code>1.2.3</code> - which is what tells you where a row sits in the plan once it is out of the chart.</td></tr>
   <tr><td><code>Task</code></td><td>The task name, indented one step per level of nesting.</td></tr>
   <tr><td><code>Start</code>, <code>Finish</code></td><td>Real Excel dates with the time of day, not text, so sorting and date arithmetic work.</td></tr>
@@ -128,8 +129,8 @@
 
 <p>
   Dependency arrows cannot be drawn in a spreadsheet, so they are written out instead. The
-  <code>Predecessors</code> column lists the tasks a row waits for, by task number, in the same
-  shorthand Microsoft Project uses:
+  <code>Predecessors</code> column lists the tasks a row waits for, by their <code>ID</code>, in the
+  same shorthand Microsoft Project uses:
 </p>
 
 <ul class="facts">
@@ -140,8 +141,9 @@
 </ul>
 
 <p>
-  The numbers refer to task numbers within the plan, so a predecessor can be found by searching
-  the sheet. What you lose against the chart is the ability to see a chain at a glance: following
+  The numbers are the same ones Microsoft Project shows, and the <code>ID</code> column carries them,
+  so a predecessor can be found by filtering that column. They are not the hidden Unique ID, which
+  stops matching the visible numbers as soon as rows are moved or inserted. What you lose against the chart is the ability to see a chain at a glance: following
   four links deep means four lookups here, where the Gantt view shows it in one look. If that is
   the question you are trying to answer, <a href="/">read it as a chart</a> and export afterward.
 </p>
@@ -150,7 +152,7 @@
 
 <p>
   The drawing itself, for one - there are no bars and no timeline, which is the nature of a
-  spreadsheet. Beyond that, the twelve columns above are the whole of it: the project calendar
+  spreadsheet. Beyond that, the thirteen columns above are the whole of it: the project calendar
   and its non-working days, baselines, costs and resource workloads stay behind in the original
   file. What is exported is the task list, which is what an exported plan is normally wanted for.
 </p>
@@ -173,7 +175,7 @@
 </p>
 
 <p>
-  What you get here is a real <code>.xlsx</code> workbook: twelve columns, one row per task,
+  What you get here is a real <code>.xlsx</code> workbook: thirteen columns, one row per task,
   dates stored as dates rather than text so sorting and arithmetic work, a filter already
   switched on across the header row, and the outline preserved twice over so structure survives
   whatever you do to the sheet afterwards. It is a working file, not a printout.
@@ -196,7 +198,7 @@
   <dd>Yes, in two ways: task names are indented one level at a time, and a WBS column carries the outline number such as 1.2.3. Summary rows are bold. Excel's own grouping is not used, so nothing collapses - every row stays visible and sortable.</dd>
 
   <dt>What happens to dependencies?</dt>
-  <dd>Each row lists the tasks it waits for in a Predecessors column, by task number. A plain number means finish-to-start; other link types are marked, and any lag is shown alongside, for example 12 SS+2d.</dd>
+  <dd>Each row lists the tasks it waits for in a Predecessors column, by the ID Microsoft Project shows, which the sheet carries in its own ID column. A plain number means finish-to-start; other link types are marked, and any lag is shown alongside, for example 12 SS+2d.</dd>
 
   <dt>Can I convert the spreadsheet back into a .mpp file?</dt>
   <dd>No, and neither can anything else: the .mpp format is <a href="/open-mpp-file-without-ms-project">readable but not writable</a> outside Microsoft Project. The spreadsheet is for reading, filtering and pasting into a report.</dd>

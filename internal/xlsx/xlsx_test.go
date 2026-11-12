@@ -5,6 +5,7 @@ import (
 	"server/internal/assert"
 	"server/internal/contract"
 	"server/internal/fixtures"
+	"strconv"
 	"strings"
 	"testing"
 	"unicode/utf16"
@@ -32,8 +33,8 @@ func TestWriteFixtures(t *testing.T) {
 				t.Fatalf("got %d rows, want %d (header + tasks)", got, want)
 			}
 
-			if rows[0][0] != "WBS" {
-				t.Errorf("header starts with %q, want WBS", rows[0][0])
+			if rows[0][0] != "ID" {
+				t.Errorf("header starts with %q, want ID", rows[0][0])
 			}
 		})
 	}
@@ -78,7 +79,7 @@ func TestWriteKeepsDatesAsDates(t *testing.T) {
 	assert.NilError(t, err)
 	defer f.Close()
 
-	got, err := f.GetCellValue(sheet, "C2")
+	got, err := f.GetCellValue(sheet, cell(startColumn, 2))
 	assert.NilError(t, err)
 
 	if got == "" || strings.Contains(got, "T") {
@@ -109,10 +110,93 @@ func TestTheLongestPredecessorCellFitsInOneExcelCell(t *testing.T) {
 		}
 	}
 
-	cell := predecessorList(relations)
+	longest := predecessorList(relations, map[int64]int{contract.MaxID: contract.MaxTasks})
 
-	if got := len(utf16.Encode([]rune(cell))); got > excelize.TotalCellChars {
+	if got := len(utf16.Encode([]rune(longest))); got > excelize.TotalCellChars {
 		t.Fatalf("%d predecessors make a %d unit cell; excelize truncates anything over %d without an error", contract.MaxPredecessorsPerTask, got, excelize.TotalCellChars)
+	}
+}
+
+func sheetRows(t *testing.T, c *contract.Contract) [][]string {
+	t.Helper()
+
+	var buf bytes.Buffer
+	assert.NilError(t, Write(&buf, c))
+
+	f, err := excelize.OpenReader(&buf)
+	assert.NilError(t, err)
+	defer f.Close()
+
+	rows, err := f.GetRows(sheet)
+	assert.NilError(t, err)
+
+	return rows
+}
+
+func column(t *testing.T, header string) int {
+	t.Helper()
+
+	for i, h := range headers {
+		if h == header {
+			return i
+		}
+	}
+
+	t.Fatalf("no %s column", header)
+	return -1
+}
+
+func TestPredecessorsPointAtTheIDColumnRatherThanTheUniqueID(t *testing.T) {
+	c := &contract.Contract{
+		Tasks: []contract.Task{{ID: 0}, {ID: 1}, {ID: 7}, {ID: 2}},
+		Relations: []contract.Relation{
+			{ID: 1, PredecessorID: 7, SuccessorID: 2, Type: "FINISH_START"},
+			{ID: 2, PredecessorID: 1, SuccessorID: 2, Type: "START_START"},
+		},
+	}
+
+	rows := sheetRows(t, c)
+
+	if got := rows[4][column(t, "Predecessors")]; got != "2, 1 SS" {
+		t.Errorf("Predecessors = %q, want %q: task 7 sits in the row with ID 2, and an MS Project reader looks for 2", got, "2, 1 SS")
+	}
+}
+
+func TestAPredecessorMissingFromThePlanIsLeftOut(t *testing.T) {
+	c := &contract.Contract{
+		Tasks: []contract.Task{{ID: 0}, {ID: 1}, {ID: 2}},
+		Relations: []contract.Relation{
+			{ID: 1, PredecessorID: 99, SuccessorID: 2, Type: "FINISH_START"},
+			{ID: 2, PredecessorID: 1, SuccessorID: 2, Type: "FINISH_START"},
+		},
+	}
+
+	rows := sheetRows(t, c)
+
+	if got := rows[3][column(t, "Predecessors")]; got != "1" {
+		t.Errorf("Predecessors = %q, want %q: no row has the number 99", got, "1")
+	}
+}
+
+func TestTheIDColumnNumbersRowsAsMSProjectDoes(t *testing.T) {
+	tests := map[string]int{
+		"mspdi.json": 0,
+		"mpp8.json":  1,
+	}
+
+	for name, first := range tests {
+		t.Run(name, func(t *testing.T) {
+			c, err := contract.Decode(fixtures.All()[name])
+			assert.NilError(t, err)
+
+			rows := sheetRows(t, c)
+
+			for i, row := range rows[1:] {
+				if want := strconv.Itoa(first + i); row[0] != want {
+					t.Fatalf("row %d has ID %q, want %s", i+1, row[0], want)
+				}
+			}
+		})
 	}
 }
 
@@ -135,7 +219,7 @@ func TestTheWBSColumnCarriesTheOutlineNumber(t *testing.T) {
 	rows, err := f.GetRows(sheet)
 	assert.NilError(t, err)
 
-	if got := rows[1][0]; got != outline {
+	if got := rows[1][1]; got != outline {
 		t.Errorf("WBS column holds %q, want the outline number %q: /mpp-to-excel promises a value such as 1.2.3, and the breakdown node code repeats for every task inside it", got, outline)
 	}
 }
