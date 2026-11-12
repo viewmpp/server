@@ -6,6 +6,21 @@
   var dialog = document.getElementById('compare');
   if (!open || !input || !dialog) { return; }
 
+  var app = document.getElementById('app');
+  var viewer = (app && app.dataset.viewer) || 'file';
+  var openProject = (app && app.dataset.projectId) || '';
+
+  var menu = document.getElementById('compare-menu');
+  var pickFile = document.getElementById('compare-pick-file');
+  var saved = document.getElementById('compare-saved');
+  var savedLoaded = false;
+
+  var MINUTES = {
+    MINUTES: 1, HOURS: 60, DAYS: 480, WEEKS: 2400, MONTHS: 9600, YEARS: 115200,
+    ELAPSED_MINUTES: 1, ELAPSED_HOURS: 60, ELAPSED_DAYS: 1440, ELAPSED_WEEKS: 10080,
+    ELAPSED_MONTHS: 43200, ELAPSED_YEARS: 525600
+  };
+
   var ui = {
     files: document.getElementById('compare-files'),
     status: document.getElementById('compare-status'),
@@ -32,6 +47,7 @@
   var other = null;
   var otherName = '';
   var swapped = false;
+  var guessed = false;
   var report = null;
   var tab = 'edited';
 
@@ -42,37 +58,157 @@
 
   open.addEventListener('click', function () {
     if (!current) { return; }
-    input.value = '';
-    input.click();
+    if (menu && open.getAttribute('aria-expanded') === 'true') { return; }
+
+    window.MppSignal('compare_open:' + viewer);
+
+    if (menu) {
+      loadSaved();
+      return;
+    }
+    chooseFile();
   });
+
+  if (pickFile) {
+    pickFile.addEventListener('click', function () {
+      closeMenu();
+      chooseFile();
+    });
+  }
 
   input.addEventListener('change', function () {
     var file = input.files[0];
     if (!file) { return; }
 
-    other = null;
-    otherName = file.name;
-    swapped = false;
-    report = null;
-    tab = 'edited';
+    window.MppSignal('compare_from:file');
+    begin(file.name);
 
-    reset();
-    if (typeof dialog.showModal === 'function' && !dialog.open) { dialog.showModal(); }
-    status('Reading ' + file.name + '...');
-
-    upload(file)
-      .then(function (contract) {
-        other = contract;
-        return run();
-      })
-      .catch(fail);
+    upload(file).then(compareWith).catch(fail);
   });
 
   ui.swap.addEventListener('click', function () {
     if (!other) { return; }
     swapped = !swapped;
+    guessed = false;
     run().catch(fail);
   });
+
+  function chooseFile() {
+    input.value = '';
+    input.click();
+  }
+
+  function closeMenu() {
+    if (!menu) { return; }
+    menu.querySelector('[data-menu-panel]').classList.add('is-hidden');
+    open.setAttribute('aria-expanded', 'false');
+  }
+
+  function begin(name) {
+    other = null;
+    otherName = name;
+    swapped = false;
+    guessed = false;
+    report = null;
+    tab = 'edited';
+
+    reset();
+    if (typeof dialog.showModal === 'function' && !dialog.open) { dialog.showModal(); }
+    status('Reading ' + name + '...');
+  }
+
+  function compareWith(contract) {
+    other = contract;
+
+    if (progress(other) > progress(current) + 0.01) {
+      swapped = true;
+      guessed = true;
+    }
+
+    return run();
+  }
+
+  function loadSaved() {
+    if (savedLoaded) { return; }
+    savedLoaded = true;
+
+    note(saved, 'Loading your plans...');
+
+    fetch('/api/v1/projects', { headers: { 'X-Requested-With': 'viewmpp' } })
+      .then(function (response) {
+        if (!response.ok) { return window.MppRefusal(response); }
+        return response.json();
+      })
+      .then(function (plans) {
+        saved.textContent = '';
+
+        plans.filter(function (plan) { return plan.id !== openProject; }).forEach(function (plan) {
+          var item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'menu__item compare-pick__plan';
+
+          var name = document.createElement('span');
+          name.className = 'compare-pick__name';
+          name.textContent = plan.file_name || 'Untitled plan';
+
+          var when = document.createElement('span');
+          when.className = 'compare-pick__date';
+          when.textContent = String(plan.created_at || '').slice(0, 10);
+
+          item.appendChild(name);
+          item.appendChild(when);
+          item.addEventListener('click', function () { pickSaved(plan); });
+          saved.appendChild(item);
+        });
+
+        if (!saved.children.length) { note(saved, 'No other saved plans yet.'); }
+      })
+      .catch(function () {
+        savedLoaded = false;
+        note(saved, 'Your plans could not be loaded.');
+      });
+  }
+
+  function pickSaved(plan) {
+    closeMenu();
+    window.MppSignal('compare_from:project');
+    begin(plan.file_name || 'saved plan');
+
+    fetch('/api/v1/projects/' + encodeURIComponent(plan.id))
+      .then(function (response) {
+        if (!response.ok) { return window.MppRefusal(response); }
+        return response.json();
+      })
+      .then(compareWith)
+      .catch(fail);
+  }
+
+  function note(box, text) {
+    box.textContent = '';
+    var p = document.createElement('p');
+    p.className = 'compare-pick__note';
+    p.textContent = text;
+    box.appendChild(p);
+  }
+
+  function progress(contract) {
+    var tasks = (contract && contract.tasks) || [];
+    var roots = tasks.filter(function (t) { return t.parent_id === null; });
+
+    if (roots.length === 1 && roots[0].is_summary) { return roots[0].percent_complete || 0; }
+
+    var done = 0;
+    var weight = 0;
+    tasks.forEach(function (t) {
+      if (t.is_summary) { return; }
+      var w = t.duration ? t.duration.value * (MINUTES[t.duration.units] || 0) : 0;
+      if (!(w > 0)) { w = 1; }
+      done += (t.percent_complete || 0) * w;
+      weight += w;
+    });
+
+    return weight ? done / weight : 0;
+  }
 
   function upload(file) {
     return fetch('/api/v1/upload?store=no&name=' + encodeURIComponent(file.name), {
@@ -89,7 +225,8 @@
     var previous = swapped ? current : other;
     var latest = swapped ? other : current;
 
-    ui.files.textContent = (swapped ? currentName : otherName) + '  →  ' + (swapped ? otherName : currentName);
+    ui.files.textContent = 'Older: ' + (swapped ? currentName : otherName) + '  →  Newer: ' + (swapped ? otherName : currentName) +
+      (guessed ? '  ·  order guessed from progress, swap if wrong' : '');
     ui.swap.disabled = true;
     status('Comparing...');
 
@@ -280,7 +417,10 @@
     if (!shift) { return '—'; }
 
     var cell = document.createElement('span');
-    cell.textContent = day(shift.old) + ' → ' + day(shift.new) + ' ';
+    cell.appendChild(dateSpan(shift.old));
+    cell.appendChild(document.createTextNode(' → '));
+    cell.appendChild(dateSpan(shift.new));
+    cell.appendChild(document.createTextNode(' '));
 
     var delta = document.createElement('b');
     delta.className = tone(shift.minutes);
@@ -288,6 +428,13 @@
     cell.appendChild(delta);
 
     return cell;
+  }
+
+  function dateSpan(value) {
+    var span = document.createElement('span');
+    span.className = 'compare__date';
+    span.textContent = day(value);
+    return span;
   }
 
   function dateChange(shift) {

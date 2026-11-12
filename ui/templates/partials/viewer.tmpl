@@ -81,12 +81,30 @@
           </button>
         {{end}}
 
-        <button class="btn btn--sm" id="compare-open" type="button" aria-haspopup="dialog" aria-controls="compare">
-          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M4 7h11l-3-3M16 13H5l3 3"/>
-          </svg>
-          Compare
-        </button>
+        {{if .UserEmail}}
+          <div class="menu" data-menu id="compare-menu">
+            <button class="btn btn--sm" id="compare-open" type="button" data-menu-toggle aria-haspopup="true" aria-expanded="false">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M4 7h11l-3-3M16 13H5l3 3"/>
+              </svg>
+              Compare
+            </button>
+            <div class="menu__panel compare-pick is-hidden" data-menu-panel>
+              <p class="compare-pick__title">Compare with</p>
+              <button class="menu__item" type="button" id="compare-pick-file">A file from your computer</button>
+              <hr class="menu__sep">
+              <p class="compare-pick__title">Your saved plans</p>
+              <div class="compare-pick__list" id="compare-saved"></div>
+            </div>
+          </div>
+        {{else}}
+          <button class="btn btn--sm" id="compare-open" type="button" aria-haspopup="dialog" aria-controls="compare">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M4 7h11l-3-3M16 13H5l3 3"/>
+            </svg>
+            Compare
+          </button>
+        {{end}}
         <input type="file" id="compare-file" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
 
         <button class="btn btn--sm" type="button" data-wish="wish_pdf" aria-haspopup="dialog" aria-controls="wish-pdf">

@@ -22,6 +22,14 @@
 
   window.MppRefusal = refusal;
 
+  window.MppSignal = function (name) {
+    fetch('/api/v1/signals?name=' + encodeURIComponent(name), {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'viewmpp' },
+      keepalive: true
+    }).catch(function () {});
+  };
+
   window.MppExport = {
     xlsx: function (contract, fileName) {
       return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {

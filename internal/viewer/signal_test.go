@@ -33,6 +33,12 @@ func TestTheViewerCanSendTheSignalsItKnows(t *testing.T) {
 		"export_purpose:analyze",
 		"export_purpose:print",
 		"export_purpose:other",
+		"compare_open:owner",
+		"compare_open:shared",
+		"compare_open:file",
+		"compare_open:example",
+		"compare_from:file",
+		"compare_from:project",
 	}
 
 	for _, name := range known {
@@ -60,6 +66,10 @@ func TestASignalOutsideTheListIsNotCounted(t *testing.T) {
 		"share_open",
 		"export_asked:owner",
 		"WISH_PDF:OWNER",
+		"compare_open",
+		"compare_from:elsewhere",
+		"compare_run",
+		"upload_for_compare",
 	}
 
 	for _, name := range unknown {

@@ -110,6 +110,14 @@ func TestTheAppHeaderIsCheckedBeforeTheUser(t *testing.T) {
 	}
 }
 
+func TestSavedPlansAreListedOnlyToTheirOwner(t *testing.T) {
+	w := dispatch(t, http.MethodGet, "/api/v1/projects", user.AnonymousUser, nil)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
 func TestAComparisonComesOnlyFromTheViewer(t *testing.T) {
 	w := dispatch(t, http.MethodPost, "/api/v1/compare", user.AnonymousUser, nil)
 

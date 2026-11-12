@@ -23,13 +23,7 @@
     } catch (e) {}
   }
 
-  function signal(name) {
-    fetch('/api/v1/signals?name=' + encodeURIComponent(name), {
-      method: 'POST',
-      headers: { 'X-Requested-With': 'viewmpp' },
-      keepalive: true
-    }).catch(function () {});
-  }
+  var signal = window.MppSignal;
 
   var voted = (read(VOTED) || '').split(',').filter(Boolean);
 

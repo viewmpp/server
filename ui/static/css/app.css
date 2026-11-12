@@ -1411,6 +1411,14 @@ input:-webkit-autofill:focus {
 .wish__text { margin: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.5; }
 .wish__actions { display: flex; justify-content: flex-end; margin-top: 4.56px; }
 
+.compare-pick { width: min(364.8px, calc(100vw - 32px)); }
+.compare-pick__title { margin: 4.56px 11.4px 2.28px; color: var(--secondary); font-size: var(--text-xs); }
+.compare-pick__list { display: flex; flex-direction: column; gap: 2.28px; max-height: 273.6px; overflow-y: auto; }
+.compare-pick__plan { justify-content: space-between; }
+.compare-pick__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.compare-pick__date { flex: none; color: var(--secondary); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.compare-pick__note { margin: 4.56px 11.4px 6.84px; color: var(--secondary); font-size: var(--text-sm); }
+
 .compare {
   width: min(1094.4px, calc(100% - 32px));
   height: min(86vh, 912px);
@@ -1464,6 +1472,12 @@ input:-webkit-autofill:focus {
 .compare__table td:first-child { width: 4.5em; color: var(--secondary); font-variant-numeric: tabular-nums; }
 .compare__body details { margin-top: 15.96px; }
 .compare__body summary { cursor: pointer; color: var(--secondary); font-size: var(--text-sm); }
+@media (max-width: 37.5rem) {
+  .compare__body { padding-left: 13.68px; padding-right: 13.68px; }
+  .compare__table th, .compare__table td { padding-right: 6.84px; }
+  .compare__table td:first-child { width: 2.5em; }
+}
+.compare__date, .compare__late, .compare__early { white-space: nowrap; }
 .compare__late { color: var(--error); font-weight: 600; }
 .compare__early { color: var(--success); font-weight: 600; }
 .compare__empty { color: var(--secondary); font-size: var(--text-sm); }

@@ -204,10 +204,11 @@ func TestAFileOpenedOnlyToCompareIsNotSavedToTheAccount(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			_, client := newSidecar(t)
 			store := &savingStore{}
+			counts := &tally{counts: map[events.Name]int{}}
 
 			limiter := ratelimit.New(100, time.Minute)
 			t.Cleanup(limiter.Close)
-			h := NewHandler(client, store, limiter, &tally{counts: map[events.Name]int{}}, slog.New(slog.DiscardHandler))
+			h := NewHandler(client, store, limiter, counts, slog.New(slog.DiscardHandler))
 
 			const size = 10
 			r := httptest.NewRequest(http.MethodPost, "/api/v1/upload?"+tt.query, &trickle{left: size, chunk: size})
@@ -226,6 +227,14 @@ func TestAFileOpenedOnlyToCompareIsNotSavedToTheAccount(t *testing.T) {
 			}
 			if tt.saves == 0 && rec.Header().Get("X-Project-Id") != "" {
 				t.Error("a file opened only to compare got a project id")
+			}
+
+			opened, forCompare := counts.get(events.UploadOK), counts.get(events.UploadForCompare)
+			if tt.saves == 0 && (opened != 0 || forCompare != 1) {
+				t.Errorf("upload_ok=%d upload_for_compare=%d, want 0 and 1: a comparison file is not a plan someone opened", opened, forCompare)
+			}
+			if tt.saves == 1 && (opened != 1 || forCompare != 0) {
+				t.Errorf("upload_ok=%d upload_for_compare=%d, want 1 and 0", opened, forCompare)
 			}
 		})
 	}

@@ -29,7 +29,10 @@ const (
 
 	ExampleOpen Name = "example_open"
 
-	CompareRun Name = "compare_run"
+	CompareRun       Name = "compare_run"
+	CompareOpen      Name = "compare_open"
+	CompareFrom      Name = "compare_from"
+	UploadForCompare Name = "upload_for_compare"
 
 	WishPDF        Name = "wish_pdf"
 	WishXLSXReport Name = "wish_xlsx_report"
@@ -44,9 +47,10 @@ func UploadFrom(page string) Name {
 }
 
 var (
-	wishes   = []Name{WishPDF, WishXLSXReport}
-	viewers  = []string{"owner", "shared", "file", "example"}
-	purposes = []string{"share", "import", "analyze", "print", "other"}
+	perViewer    = []Name{WishPDF, WishXLSXReport, CompareOpen}
+	viewers      = []string{"owner", "shared", "file", "example"}
+	purposes     = []string{"share", "import", "analyze", "print", "other"}
+	compareFroms = []string{"file", "project"}
 )
 
 var fromViewer = allowedFromViewer()
@@ -54,15 +58,20 @@ var fromViewer = allowedFromViewer()
 func allowedFromViewer() map[string]Name {
 	allowed := map[string]Name{string(ExportAsked): ExportAsked}
 
-	for _, wish := range wishes {
+	for _, event := range perViewer {
 		for _, viewer := range viewers {
-			name := wish + Name(":"+viewer)
+			name := event + Name(":"+viewer)
 			allowed[string(name)] = name
 		}
 	}
 
 	for _, purpose := range purposes {
 		name := ExportPurpose + Name(":"+purpose)
+		allowed[string(name)] = name
+	}
+
+	for _, from := range compareFroms {
+		name := CompareFrom + Name(":"+from)
 		allowed[string(name)] = name
 	}
 

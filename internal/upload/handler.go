@@ -96,7 +96,9 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !u.IsAnonymous() && r.URL.Query().Get("store") != "no" {
+	forCompare := r.URL.Query().Get("store") == "no"
+
+	if !u.IsAnonymous() && !forCompare {
 		if _, err := contract.Decode(plan); err != nil {
 			h.logger.Error("parser produced a contract we cannot store", "err", err)
 			if errors.Is(err, contract.ErrLimit) {
@@ -118,8 +120,12 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.counts.Count(events.UploadOK)
-	h.counts.Count(events.UploadFrom(sourcePage(r)))
+	if forCompare {
+		h.counts.Count(events.UploadForCompare)
+	} else {
+		h.counts.Count(events.UploadOK)
+		h.counts.Count(events.UploadFrom(sourcePage(r)))
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(plan)
