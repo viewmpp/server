@@ -593,12 +593,15 @@
 
   function projectRow(contract) {
     var tasks = contract.tasks || [];
+    var root = null;
 
     for (var i = 0; i < tasks.length; i++) {
-      if (tasks[i].parent_id === null) { return tasks[i]; }
+      if (tasks[i].parent_id !== null) { continue; }
+      if (root) { return null; }
+      root = tasks[i];
     }
 
-    return null;
+    return root;
   }
 
   function isNonWorking(date) {

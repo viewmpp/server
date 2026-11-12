@@ -711,11 +711,30 @@ it.
 - **The root row's `outline_level` is not the same across formats.** *Measured
   on: one real file per format.* `parent_id: null` and `is_summary: true` hold
   everywhere, but the level is `0` for `.mpp`, MSPDI, `.mpx` and `.mpd`, and `1`
-  for `.xer` - Primavera numbers levels from one. Find the project row by
-  `parent_id: null` alone; every file measured has exactly one such task.
-  Requiring `outline_level == 0` as well cost the viewer its project duration on
-  Primavera files until it was corrected - the bullet above, read as a rule
-  rather than as a measurement of one format, is where that came from.
+  for `.xer` - Primavera numbers levels from one. Requiring `outline_level == 0`
+  cost the viewer its project duration on Primavera files until it was
+  corrected - the bullet above, read as a rule rather than as a measurement of
+  one format, is where that came from.
+- **A plan does not always have a single root.** This bullet once said that
+  every file measured has exactly one task with `parent_id: null`. That was a
+  measurement of `.mpp` files that carry a project summary row, and it was
+  false even for two fixtures already in the repository. *Measured on: the
+  server fixtures and the format survey of 12 November 2026.*
+
+  | Contract | Tasks with `parent_id: null` |
+  |---|---|
+  | `.mpp` with a summary row, `.xer`, `.mpx`, `.mpd` | 1 |
+  | `mpp8.json` | 10 |
+  | `cyrillic.json` | 2 |
+  | GanttProject `.gan` | 5 |
+  | Primavera PMXML | 12 |
+  | Gnome Planner `project1.planner` | 29 |
+
+  The viewer took the first such task as the project row and showed its
+  duration as the project's, so a multi-root plan headed its chart with the
+  length of one phase or one task. It now treats a task as the project row only
+  when it is the only root. Otherwise it shows no project duration, since a
+  calendar span would be a different number under the same label.
 - **`project.name` depends on the format.** *Measured on: the whole corpus.*
   Empty for `.mpp`; for MSPDI it holds the file name as of the moment of saving.
   See the section on the file name above.
