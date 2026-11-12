@@ -395,7 +395,7 @@ fixtures exist to protect.
 | `parent_id` | int | `getParentTaskUniqueID()` | **yes** - that is the root |
 | `name` | string | `getName()` | no |
 | `wbs` | string | `getWBS()` | yes |
-| `outline_number` | string | `getOutlineNumber()` | yes |
+| `outline_number` | string | `getOutlineNumber()`, rebuilt from the tree when the file's numbers repeat | yes |
 | `outline_level` | int | `getOutlineLevel()` | yes |
 | `start` | date | `getStart()` | yes |
 | `finish` | date | `getFinish()` | yes |
@@ -417,6 +417,28 @@ stable type.
 `wbs` and `outline_number` are **different things** and must not be collapsed:
 WBS is user-editable and may be an arbitrary code, while the outline number is
 positional and generated automatically. They often match, but not always.
+
+**A repeated outline number is rebuilt from the hierarchy.**
+
+- **Why.** MPXJ reads GanttProject `.gan` with the position inside the parent
+  instead of the full number. Every phase arrives as `0` and its tasks as `1`,
+  `2`, `3`, repeated in every phase, and the same index is copied into `wbs`.
+  Shown as it came, the WBS column read `0, 1, 2, 0, 1, 2`.
+- **The rule.** A positional number cannot repeat. When any two tasks share
+  one, the parser numbers every task from the tree, the way Microsoft Project
+  generates the number itself:
+  - top-level tasks are `1`, `2`;
+  - their children are `1.1`, `1.2`;
+  - a project summary row stays `0`, and its children count from `1`.
+
+  A `wbs` equal to the old broken number is dropped. A real WBS code is kept.
+- **Scope.** `OutlineNumbers` in the parser does this.
+  - *Measured on* every contract we have: the server fixtures, the parser
+    corpus and the format survey. Only `.gan` has repeated outline numbers.
+  - `OtherFormatsTest` checks that every other file keeps exactly the numbers
+    MPXJ reads.
+  - `wbs` repeats are not touched: in Primavera the WBS node's code
+    legitimately repeats for every activity inside it.
 
 `is_summary` and `is_milestone` are independent: a summary task of zero duration
 can be a milestone at the same time.
