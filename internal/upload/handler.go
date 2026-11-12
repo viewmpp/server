@@ -120,11 +120,14 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if forCompare {
-		h.counts.Count(events.UploadForCompare)
-	} else {
+	switch {
+	case !forCompare:
 		h.counts.Count(events.UploadOK)
 		h.counts.Count(events.UploadFrom(sourcePage(r)))
+	case r.URL.Query().Get("for") == "version":
+		h.counts.Count(events.UploadForVersion)
+	default:
+		h.counts.Count(events.UploadForCompare)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

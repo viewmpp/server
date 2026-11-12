@@ -34,14 +34,16 @@ const (
 var ErrNotFound = errors.New("project not found")
 
 type Project struct {
-	ID        int64
-	PublicID  string
-	UserID    int64
-	FileName  string
-	Contract  []byte
-	Access    string
-	Password  []byte
-	CreatedAt time.Time
+	ID               int64
+	PublicID         string
+	UserID           int64
+	FileName         string
+	Contract         []byte
+	Access           string
+	Password         []byte
+	CreatedAt        time.Time
+	PreviousFileName *string
+	UpdatedAt        *time.Time
 }
 
 func (p *Project) IsPublic() bool {
@@ -170,12 +172,12 @@ func (s *Store) Save(ctx context.Context, userID int64, fileName string, contrac
 
 func (s *Store) GetByPublicID(ctx context.Context, publicID string, withContract bool) (*Project, error) {
 	query := `
-		SELECT id, public_id, user_id, file_name, access, password_hash, created_at
+		SELECT id, public_id, user_id, file_name, access, password_hash, created_at, previous_file_name, updated_at
 		FROM projects WHERE public_id = $1`
 
 	if withContract {
 		query = `
-		SELECT id, public_id, user_id, file_name, access, password_hash, created_at, contract
+		SELECT id, public_id, user_id, file_name, access, password_hash, created_at, previous_file_name, updated_at, contract
 		FROM projects WHERE public_id = $1`
 	}
 
@@ -186,7 +188,7 @@ func (s *Store) GetByPublicID(ctx context.Context, publicID string, withContract
 		p       Project
 		packed  []byte
 		targets = []any{
-			&p.ID, &p.PublicID, &p.UserID, &p.FileName, &p.Access, &p.Password, &p.CreatedAt,
+			&p.ID, &p.PublicID, &p.UserID, &p.FileName, &p.Access, &p.Password, &p.CreatedAt, &p.PreviousFileName, &p.UpdatedAt,
 		}
 	)
 

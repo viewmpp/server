@@ -48,6 +48,7 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		{"pro", Page{UserEmail: "a@b.c", Verified: true, Pro: true, CanShare: true}},
 		{"owner, private", Page{UserEmail: "a@b.c", Verified: true, ProjectID: "abc123", IsOwner: true, Access: "private", CanShare: true}},
 		{"owner, shared", Page{UserEmail: "a@b.c", Verified: true, ProjectID: "abc123", IsOwner: true, Access: "public"}},
+		{"updated link", Page{ProjectID: "abc123", Access: "public", PreviousFileName: "plan rev13.mpp", UpdatedOn: "12 Nov 2026"}},
 		{"example page", Page{ExampleName: "viaduct", ExampleLabel: "Viaduct", FileName: "виадук.mpp"}},
 		{"with flash", Page{UserEmail: "a@b.c", Flash: "done", SavedNote: "20 of 20"}},
 	}

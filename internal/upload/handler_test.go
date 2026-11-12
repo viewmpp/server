@@ -240,6 +240,35 @@ func TestAFileOpenedOnlyToCompareIsNotSavedToTheAccount(t *testing.T) {
 	}
 }
 
+func TestANewVersionIsCountedApartFromComparisons(t *testing.T) {
+	_, client := newSidecar(t)
+	counts := &tally{counts: map[events.Name]int{}}
+
+	const size = 10
+	rec := uploadFrom(newHandler(t, client, counts), &trickle{left: size, chunk: size}, size, "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("plain upload got %d", rec.Code)
+	}
+
+	limiter := ratelimit.New(100, time.Minute)
+	t.Cleanup(limiter.Close)
+	h := NewHandler(client, noStore{}, limiter, counts, slog.New(slog.DiscardHandler))
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/upload?name=plan.mpp&store=no&for=version", &trickle{left: size, chunk: size})
+	r.ContentLength = size
+	r = clientip.SetContext(r, "203.0.113.5")
+	r = user.SetUserContext(r, &user.User{ID: 7})
+	w := httptest.NewRecorder()
+	h.Upload(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("version upload got %d", w.Code)
+	}
+	if counts.get(events.UploadForVersion) != 1 || counts.get(events.UploadForCompare) != 0 || counts.get(events.UploadOK) != 1 {
+		t.Errorf("counts = %v, want one upload_ok, one upload_for_version and no upload_for_compare", counts.counts)
+	}
+}
+
 func TestAnInterruptedUploadIsNotAServerError(t *testing.T) {
 	side, client := newSidecar(t)
 	counts := &tally{counts: map[events.Name]int{}}

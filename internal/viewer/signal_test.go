@@ -43,6 +43,8 @@ func TestTheViewerCanSendTheSignalsItKnows(t *testing.T) {
 		"compare_export_locked:shared",
 		"compare_export_locked:file",
 		"compare_export_locked:example",
+		"version_changes_open:owner",
+		"version_changes_open:shared",
 	}
 
 	for _, name := range known {

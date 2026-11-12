@@ -32,6 +32,8 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.requireAuthAPI(s.projectHandler.Create)))
 	mux.HandleFunc("GET /api/v1/projects", s.requireAuthAPI(s.throttle(s.readLimits, "list-ip:", s.projectHandler.Mine)))
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimits, "read-ip:", s.projectHandler.Contract))
+	mux.HandleFunc("GET /api/v1/projects/{id}/previous", s.throttle(s.readLimits, "read-ip:", s.projectHandler.Previous))
+	mux.HandleFunc("POST /api/v1/projects/{id}/versions", s.fromApp(s.requireAuthAPI(s.projectHandler.AddVersion)))
 
 	mux.HandleFunc("GET /api/v1/examples/{name}", s.throttle(s.readLimits, "read-ip:", s.viewerHandler.ExampleContract))
 	mux.HandleFunc("POST /api/v1/signals", s.fromApp(s.throttle(s.readLimits, "signal-ip:", s.viewerHandler.Signal)))

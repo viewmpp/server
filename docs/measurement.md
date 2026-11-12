@@ -32,6 +32,8 @@ Events
 | `example_open` | An example plan was opened |
 | `compare_run` | Two versions were compared and the report was sent |
 | `compare_export` | A Pro user downloaded the change report workbook |
+| `version_uploaded` | An owner uploaded a new version to an existing link. The figure the living link bet is judged by |
+| `upload_for_version` | The file for that new version was uploaded and parsed; it is not counted as an opened plan |
 | `upload_for_compare` | A file was uploaded with `store=no` to be compared; it is not counted in `upload_ok` or `upload_from` |
 
 ### Sent by the browser
@@ -48,6 +50,7 @@ and is not counted. It sits behind `fromApp` and the read limiter.
 | `export_purpose:<answer>` | It was answered: `share`, `import`, `analyze`, `print` or `other` |
 | `compare_open:<viewer>` | The Compare button was pressed (opening its menu counts, closing it does not) |
 | `compare_from:<source>` | The second version came from a `file` on the computer or a saved `project` |
+| `version_changes_open:<viewer>` | "What changed" was pressed on an updated link; `shared` means a recipient, not the owner |
 | `compare_export_locked:<viewer>` | Someone without Pro pressed "Export to Excel" in the report and was shown the Pro dialog |
 
 The compare funnel reads, in order:

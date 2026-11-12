@@ -235,6 +235,9 @@
             </button>
 
             <div class="menu__panel is-hidden" data-menu-panel>
+              <button class="menu__item" type="button" id="version-upload">Upload new version</button>
+              <input type="file" id="version-file" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
+              <hr class="menu__sep">
               <form action="/p/{{.ProjectID}}/delete" method="POST" data-confirm="Delete this project?">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button class="menu__item menu__item--danger" type="submit">Delete plan</button>
@@ -245,6 +248,13 @@
       </div>
     </div>
   </header>
+
+  {{if .PreviousFileName}}
+    <div class="updated" id="version-banner" data-previous-name="{{.PreviousFileName}}">
+      <span class="updated__text">Updated {{.UpdatedOn}} &middot; previous version: {{.PreviousFileName}}</span>
+      <button class="btn btn--sm" type="button" id="version-changes">What changed</button>
+    </div>
+  {{end}}
 
   <div class="summary is-hidden" id="summary"></div>
 

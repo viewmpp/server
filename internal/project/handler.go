@@ -78,6 +78,10 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	page.Description = fmt.Sprintf("%s - an MS Project plan you can open in the browser, no install needed.", p.FileName)
 	page.ProjectID = p.PublicID
 	page.FileName = p.FileName
+	if p.PreviousFileName != nil && p.UpdatedAt != nil {
+		page.PreviousFileName = *p.PreviousFileName
+		page.UpdatedOn = p.UpdatedAt.UTC().Format("2 Jan 2006")
+	}
 	page.Access = p.Access
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID
 	page.CanShare = u.CanShare(shared)

@@ -30,6 +30,7 @@
     <tr><td>Email address</td><td>Signing in, password recovery, service notices</td><td>Until the account is deleted</td></tr>
     <tr><td>Password</td><td>Signing in</td><td>Stored only as a bcrypt hash; the password itself is never kept</td></tr>
     <tr><td>Saved plans</td><td>Returning to a plan, sharing a link</td><td>Until you delete them</td></tr>
+    <tr><td>Previous version of a saved plan</td><td>Showing what changed when you upload a new version to the same link</td><td>Until you upload the next version or delete the plan</td></tr>
     <tr><td>Sharing password</td><td>Protecting a shared link</td><td>Stored as a bcrypt hash; removed when sharing stops</td></tr>
     <tr><td>Subscription state</td><td>Access to paid features</td><td>Until the account is deleted</td></tr>
   </table>
@@ -96,7 +97,7 @@
     <a href="mailto:support@viewmpp.com">support@viewmpp.com</a>.
     Mail sent from <code>noreply@viewmpp.com</code> is automated and is not read.
   </p>
-  <p class="legal__meta">Last updated: 12 November 2026</p>
+  <p class="legal__meta">Last updated: 13 November 2026</p>
 </main>
 
 {{template "sitefooter" .}}

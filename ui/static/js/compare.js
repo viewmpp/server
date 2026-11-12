@@ -141,6 +141,15 @@
     return { previous: other, current: current, previousName: otherName, currentName: currentName };
   }
 
+  window.MppCompare = {
+    show: function (previous, previousName) {
+      if (!current) { return Promise.resolve(); }
+      begin(previousName || 'previous version');
+      other = previous;
+      return run().catch(fail);
+    }
+  };
+
   function chooseFile() {
     input.value = '';
     input.click();

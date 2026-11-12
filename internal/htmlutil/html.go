@@ -43,6 +43,8 @@ type Page struct {
 	ExampleName       string
 	ExampleLabel      string
 	FileName          string
+	PreviousFileName  string
+	UpdatedOn         string
 	Access            string
 	IsOwner           bool
 	CanShare          bool

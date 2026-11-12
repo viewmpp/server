@@ -31,6 +31,10 @@ func SaveLimitResponse(w http.ResponseWriter, message string) {
 	errorResponse(w, http.StatusConflict, message)
 }
 
+func ConflictResponse(w http.ResponseWriter, message string) {
+	errorResponse(w, http.StatusConflict, message)
+}
+
 func TooManyRequestsResponse(w http.ResponseWriter, message string) {
 	errorResponse(w, http.StatusTooManyRequests, message)
 }

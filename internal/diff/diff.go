@@ -192,6 +192,28 @@ func Compare(previous, current *contract.Contract) Report {
 	return r
 }
 
+func Overlap(previous, current *contract.Contract) float64 {
+	names := make(map[int64]string, len(previous.Tasks))
+	for _, t := range previous.Tasks {
+		if _, seen := names[t.ID]; !seen {
+			names[t.ID] = deref(t.Name)
+		}
+	}
+
+	shared := make(map[int64]bool, len(current.Tasks))
+	for _, t := range current.Tasks {
+		if name, ok := names[t.ID]; ok && name == deref(t.Name) {
+			shared[t.ID] = true
+		}
+	}
+
+	larger := max(len(names), len(current.Tasks))
+	if larger == 0 {
+		return 1
+	}
+	return float64(len(shared)) / float64(larger)
+}
+
 func compareTask(r *Report, old, cur *version, before, after *contract.Task) {
 	edit := Edit{Task: cur.ref(after)}
 	edited := false

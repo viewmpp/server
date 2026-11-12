@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 	"server/internal/assert"
 	"server/internal/contract"
+	"server/internal/examples"
 	"strings"
 	"testing"
+	"time"
 )
 
 func load(t *testing.T, name string) *contract.Contract {
@@ -249,6 +251,64 @@ func TestAPlanWithoutASummaryRowTakesItsFinishFromTheProject(t *testing.T) {
 
 	if r.Finish == nil || r.Finish.Minutes != 7*24*60 {
 		t.Fatalf("finish = %+v, want a week later", r.Finish)
+	}
+}
+
+func TestOverlapTellsAnUpdateFromAnotherPlan(t *testing.T) {
+	hospital := load(t, "hospital-v1.json")
+
+	tests := []struct {
+		name    string
+		a, b    *contract.Contract
+		atLeast float64
+		below   float64
+	}{
+		{"the same plan", hospital, hospital, 1, 1.01},
+		{"an update", hospital, load(t, "hospital-v2.json"), 0.95, 1.01},
+		{"two unrelated plans", plan([]contract.Task{{ID: 1}, {ID: 2}, {ID: 3}}), plan([]contract.Task{{ID: 7}, {ID: 8}, {ID: 9}}), 0, 0.01},
+		{"unrelated plans numbered the same way", plan([]contract.Task{{ID: 1, Name: str("Excavation")}, {ID: 2, Name: str("Footings")}}), plan([]contract.Task{{ID: 1, Name: str("Kick-off")}, {ID: 2, Name: str("Fit-out")}}), 0, 0.01},
+		{"a plan that grew threefold", plan([]contract.Task{{ID: 1}}), plan([]contract.Task{{ID: 1}, {ID: 2}, {ID: 3}}), 0.33, 0.34},
+		{"two empty plans", plan(nil), plan(nil), 1, 1.01},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Overlap(tt.a, tt.b)
+			if got < tt.atLeast || got >= tt.below {
+				t.Errorf("overlap = %.3f, want in [%.2f, %.2f)", got, tt.atLeast, tt.below)
+			}
+		})
+	}
+}
+
+func TestAnotherRealPlanIsNotMistakenForAnUpdate(t *testing.T) {
+	hospital := load(t, "hospital-v1.json")
+
+	for _, e := range examples.All() {
+		t.Run(e.Name, func(t *testing.T) {
+			raw, err := e.Contract(time.Now())
+			assert.NilError(t, err)
+			other, err := contract.Decode(raw)
+			assert.NilError(t, err)
+
+			byID := 0
+			ids := map[int64]bool{}
+			for _, task := range hospital.Tasks {
+				ids[task.ID] = true
+			}
+			for _, task := range other.Tasks {
+				if ids[task.ID] {
+					byID++
+				}
+			}
+
+			got := Overlap(hospital, other)
+			t.Logf("%s: %d of %d tasks share a unique ID with the hospital plan, overlap by ID and name %.3f", e.Name, byID, len(other.Tasks), got)
+
+			if got >= 1.0/3 {
+				t.Errorf("overlap with an unrelated plan is %.3f; it would pass as an update", got)
+			}
+		})
 	}
 }
 

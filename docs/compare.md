@@ -70,6 +70,62 @@ search would serve a few dozen queries a month (Keyword Planner, November
    - Every value from the files is set as text, never as HTML.
    - Highlighting changes on the chart itself is left for a later version.
 
+The living link, minimal version
+--------------------------------
+
+An owner can upload a new version to an existing link. Everyone with the link
+sees the new plan, and a banner says it was updated and offers "What changed".
+That opens the same report, the previous version against the current one.
+
+**Why it is this small.** It tests one bet: whether senders update links at all.
+That is cheap to answer before a version history is built.
+
+- **Stored:** exactly one previous version, in `projects.previous_contract`,
+  `previous_file_name` and `updated_at` (migration `000008`).
+  - Uploading again replaces it.
+  - `projects.contract` stays the current plan, so every existing reader
+    (page, export, share, password) is unchanged.
+  - A version does not count as a saved plan, and it is free.
+- **Uploading:**
+  1. The browser parses the file through `/api/v1/upload?store=no&for=version`.
+  2. It sends the contract to `POST /api/v1/projects/{id}/versions`, owner
+     only and from the viewer.
+  3. The contract goes through `contract.Decode` and every limit.
+  4. `version_uploaded` is counted.
+- **Reading:** `GET /api/v1/projects/{id}/previous` follows the same access rule
+  as the plan. Private plans are the owner's alone; a protected link needs its
+  password.
+- **The banner** carries no numbers. Counting them would mean running a
+  comparison on every open of the link, so the report shows them when asked.
+
+**A different plan needs confirming.** When fewer than a third of the tasks
+match the current plan, the server answers 409. The browser then asks before
+sending again with `force=1`. Without this, one wrong file replaces the plan
+every recipient sees.
+
+A task matches only when both its unique ID **and** its name are the same.
+Unique IDs alone tell nothing, because every plan numbers its tasks 1, 2, 3.
+Measured against the hospital plan, every task of all four example plans shares
+a unique ID with it: 62 of 62, 53 of 53, 50 of 50, 57 of 57. By ID and name the
+overlap is 0 for all four, and the hospital update keeps above 95%. The test is
+in `internal/diff`.
+
+**Not verified in a browser:** picking the file from the owner's "⋯" menu. The
+Playwright browser would not click elements on signed-in pages ("not stable",
+although no animation was running). Everything after the file was checked from
+the page itself:
+
+- the 409 for an unrelated plan;
+- the 204 for an update;
+- the previous version served;
+- the banner and the report it opens.
+
+What comes next, once `version_uploaded` shows senders use it:
+
+- **A history table** with every version, in Pro.
+- **Opening and comparing any two versions.**
+- **A written update narrative.**
+
 Free and Pro
 ------------
 
