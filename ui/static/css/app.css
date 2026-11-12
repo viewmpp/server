@@ -1020,13 +1020,13 @@ input:-webkit-autofill:focus {
 
 .bar__row {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--unit) 13.68px;
   padding: 11.4px calc(var(--unit) * 2);
 }
 
-.bar__title { display: flex; align-items: center; gap: 11.4px; min-width: 0; flex: 0 1 auto; }
+.bar__title { display: flex; align-items: center; gap: 11.4px; min-width: 12ch; flex: 0 1 auto; }
 .bar__name {
   min-width: 3ch;
   overflow: hidden;
@@ -1038,8 +1038,15 @@ input:-webkit-autofill:focus {
 }
 .bar__name:empty::before { content: "Untitled plan"; color: var(--disabled); }
 
-.bar__actions { display: flex; align-items: center; gap: var(--unit); flex: none; }
-.bar__spacer { flex: 1 1 0; min-width: 0; }
+.bar__actions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--unit);
+  min-width: 0;
+}
 .bar__group { display: flex; align-items: center; gap: 6.84px; flex: none; }
 .bar__group--switches { gap: calc(var(--unit) * 2); }
 .bar__sep { width: 1.14px; height: 22.8px; margin: 0; border: 0; background: var(--line); flex: none; }
@@ -1615,9 +1622,6 @@ input:-webkit-autofill:focus {
 .summary b { color: var(--text); font-weight: 600; }
 
 @media (max-width: 820.8px) {
-  .bar__row { flex-wrap: wrap; }
-  .bar__spacer { display: none; }
-
   body { flex-direction: column; }
   .side {
     overflow: visible;

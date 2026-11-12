@@ -91,6 +91,20 @@ front, so nobody clicks expecting a download.
   only if the demand is there.
 - **When they come out.** Remove a button once its decision is made, either
   way. A door left up for months stops being honest.
+- **Votes from the first release are skewed.** The release of 12 November 2026
+  put both buttons in a toolbar that did not wrap. Measured in a browser, the
+  row was wider than the space for it:
+
+  | Viewport | Too wide by |
+  |---|---|
+  | 1366 px | 328 px |
+  | 1024 px | 670 px |
+  | 390 px | 147 px |
+
+  At 1366, the most common laptop width, "PDF" was cut in half and "Excel
+  report" was off screen. Votes until the toolbar fix went live came mostly
+  from wide screens and favour PDF. Count both buttons from the day the fix was
+  deployed, and do not compare them on the earlier days.
 
 Thresholds
 ----------
