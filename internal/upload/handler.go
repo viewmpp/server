@@ -96,7 +96,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !u.IsAnonymous() {
+	if !u.IsAnonymous() && r.URL.Query().Get("store") != "no" {
 		if _, err := contract.Decode(plan); err != nil {
 			h.logger.Error("parser produced a contract we cannot store", "err", err)
 			if errors.Is(err, contract.ErrLimit) {

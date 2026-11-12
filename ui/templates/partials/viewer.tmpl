@@ -81,6 +81,14 @@
           </button>
         {{end}}
 
+        <button class="btn btn--sm" id="compare-open" type="button" aria-haspopup="dialog" aria-controls="compare">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M4 7h11l-3-3M16 13H5l3 3"/>
+          </svg>
+          Compare
+        </button>
+        <input type="file" id="compare-file" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
+
         <button class="btn btn--sm" type="button" data-wish="wish_pdf" aria-haspopup="dialog" aria-controls="wish-pdf">
           PDF <span class="tag tag--muted">soon</span>
         </button>
@@ -296,6 +304,26 @@
         <button class="btn btn--sm btn--primary" type="submit">OK</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog class="compare" id="compare" aria-labelledby="compare-title">
+    <div class="compare__head">
+      <div class="compare__heading">
+        <h2 class="compare__title" id="compare-title">What changed</h2>
+        <p class="compare__files" id="compare-files"></p>
+      </div>
+      <div class="compare__tools">
+        <button class="btn btn--sm" type="button" id="compare-swap">Swap versions</button>
+        <form method="dialog">
+          <button class="btn btn--sm btn--icon" type="submit" aria-label="Close">&times;</button>
+        </form>
+      </div>
+    </div>
+    <p class="compare__status" id="compare-status" role="status"></p>
+    <div class="compare__summary" id="compare-summary"></div>
+    <div class="compare__tabs" id="compare-tabs" role="tablist"></div>
+    <div class="compare__body" id="compare-body"></div>
+    <p class="compare__note" id="compare-note">Shifts are counted in calendar days. The report lists what differs between the two files, not why it changed.</p>
   </dialog>
 
   <dialog class="wish" id="export-ask" aria-labelledby="export-ask-title">

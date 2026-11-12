@@ -41,6 +41,15 @@ func (noStore) Save(context.Context, int64, string, []byte) (string, error) {
 	return "", nil
 }
 
+type savingStore struct {
+	saves atomic.Int32
+}
+
+func (s *savingStore) Save(context.Context, int64, string, []byte) (string, error) {
+	s.saves.Add(1)
+	return "abc", nil
+}
+
 type sidecar struct {
 	calls    atomic.Int32
 	received atomic.Int64
@@ -176,6 +185,47 @@ func TestAnUploadIsCountedAgainstThePageItCameFrom(t *testing.T) {
 			}
 			if got := counts.get(events.UploadFrom(tt.page)); got != 1 {
 				t.Errorf("upload_from:%s counted %d times, want 1 (counts %v)", tt.page, got, counts.counts)
+			}
+		})
+	}
+}
+
+func TestAFileOpenedOnlyToCompareIsNotSavedToTheAccount(t *testing.T) {
+	tests := map[string]struct {
+		query string
+		saves int32
+	}{
+		"an ordinary upload":     {"name=plan.mpp", 1},
+		"a file for comparison":  {"name=plan.mpp&store=no", 0},
+		"any other store answer": {"name=plan.mpp&store=yes", 1},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, client := newSidecar(t)
+			store := &savingStore{}
+
+			limiter := ratelimit.New(100, time.Minute)
+			t.Cleanup(limiter.Close)
+			h := NewHandler(client, store, limiter, &tally{counts: map[events.Name]int{}}, slog.New(slog.DiscardHandler))
+
+			const size = 10
+			r := httptest.NewRequest(http.MethodPost, "/api/v1/upload?"+tt.query, &trickle{left: size, chunk: size})
+			r.ContentLength = size
+			r = clientip.SetContext(r, "203.0.113.5")
+			r = user.SetUserContext(r, &user.User{ID: 7})
+
+			rec := httptest.NewRecorder()
+			h.Upload(rec, r)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("got %d, want 200: %s", rec.Code, rec.Body.String())
+			}
+			if got := store.saves.Load(); got != tt.saves {
+				t.Errorf("saved %d times, want %d", got, tt.saves)
+			}
+			if tt.saves == 0 && rec.Header().Get("X-Project-Id") != "" {
+				t.Error("a file opened only to compare got a project id")
 			}
 		})
 	}

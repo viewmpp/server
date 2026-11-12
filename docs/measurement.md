@@ -30,6 +30,7 @@ Events
 | `share_limit` | A free account tried to share past its limit |
 | `share_page_from_link` | `/share-a-project-plan` was reached from a shared plan |
 | `example_open` | An example plan was opened |
+| `compare_run` | Two versions were compared and the report was sent |
 
 ### Sent by the browser
 

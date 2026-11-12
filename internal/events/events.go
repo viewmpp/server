@@ -29,6 +29,8 @@ const (
 
 	ExampleOpen Name = "example_open"
 
+	CompareRun Name = "compare_run"
+
 	WishPDF        Name = "wish_pdf"
 	WishXLSXReport Name = "wish_xlsx_report"
 	ExportAsked    Name = "export_asked"

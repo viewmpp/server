@@ -24,6 +24,31 @@ Every one of those tasks was still matched correctly by unique ID.
 
 If a contract repeats an `id`, its first occurrence is used.
 
+How a reader gets there
+-----------------------
+
+The viewer has a **Compare** button. There is no separate `/compare` page:
+someone with two files opens one and compares with the other. A page aimed at
+search would serve a few dozen queries a month (Keyword Planner, November
+2026), and it would be one more near-copy of a landing page.
+
+1. **The second file is uploaded with `store=no`.** That stops a signed-in
+   user's comparison file from being saved to their projects and spending
+   their free quota. It is still counted as an upload.
+2. **The browser sends both contracts** to `POST /api/v1/compare` as
+   `{"previous": ..., "current": ...}`.
+   - The route is behind `fromApp` and the export limiter, under its own key.
+   - Each contract goes through `contract.Decode` with every policy limit.
+   - The body may hold two full contracts plus 1 KB.
+   - `compare_run` is counted when the report is sent.
+3. **The plan already open is taken as the current version.** "Swap versions"
+   reverses them. The contract carries no save date, so the order cannot be
+   told reliably.
+4. **The report opens in a dialog** with a summary and four tabs: what changed,
+   what moved, links, critical path.
+   - Every value from the files is set as text, never as HTML.
+   - Highlighting changes on the chart itself is left for a later version.
+
 What the report holds
 ---------------------
 

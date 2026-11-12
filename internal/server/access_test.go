@@ -110,6 +110,14 @@ func TestTheAppHeaderIsCheckedBeforeTheUser(t *testing.T) {
 	}
 }
 
+func TestAComparisonComesOnlyFromTheViewer(t *testing.T) {
+	w := dispatch(t, http.MethodPost, "/api/v1/compare", user.AnonymousUser, nil)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusForbidden)
+	}
+}
+
 func TestASignalComesOnlyFromTheViewer(t *testing.T) {
 	w := dispatch(t, http.MethodPost, "/api/v1/signals?name=wish_pdf:file", user.AnonymousUser, nil)
 

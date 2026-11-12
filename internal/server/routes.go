@@ -27,6 +27,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /api/v1/healthcheck", s.serverHealthcheck)
 	mux.HandleFunc("POST /api/v1/upload", s.fromApp(s.uploadHandler.Upload))
 	mux.HandleFunc("POST /api/v1/xlsx", s.fromApp(s.exportHandler.XLSX))
+	mux.HandleFunc("POST /api/v1/compare", s.fromApp(s.exportHandler.Compare))
 	mux.HandleFunc("POST /api/v1/projects", s.fromApp(s.requireAuthAPI(s.projectHandler.Create)))
 	mux.HandleFunc("GET /api/v1/projects/{id}", s.throttle(s.readLimits, "read-ip:", s.projectHandler.Contract))
 

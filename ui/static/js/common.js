@@ -20,6 +20,8 @@
     });
   }
 
+  window.MppRefusal = refusal;
+
   window.MppExport = {
     xlsx: function (contract, fileName) {
       return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {
