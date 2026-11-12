@@ -1016,17 +1016,18 @@ input:-webkit-autofill:focus {
   flex-direction: column;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
+  container-type: inline-size;
 }
 
 .bar__row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--unit) 13.68px;
+  gap: 5.7px 13.68px;
   padding: 11.4px calc(var(--unit) * 2);
 }
 
-.bar__title { display: flex; align-items: center; gap: 11.4px; min-width: 12ch; flex: 0 1 auto; }
+.bar__title { display: flex; align-items: center; gap: 11.4px; min-width: 12ch; max-width: max-content; flex: 1 1 12ch; }
 .bar__name {
   min-width: 3ch;
   overflow: hidden;
@@ -1051,6 +1052,47 @@ input:-webkit-autofill:focus {
 .bar__group--switches { gap: calc(var(--unit) * 2); }
 .bar__sep { width: 1.14px; height: 22.8px; margin: 0; border: 0; background: var(--line); flex: none; }
 .bar__row > .searchbox, .bar__row > .seg { flex: none; }
+
+.bar__view { display: flex; align-items: center; gap: 13.68px; flex: none; order: 2; }
+.bar__title { order: 1; }
+.bar__row > .bar__actions { order: 3; flex: 0 1 auto; margin-left: auto; }
+.bar__row::after { content: ""; order: 4; flex-basis: 100%; height: 0; }
+.bar__row > .searchbox { order: 5; }
+.bar__row > .zoom { order: 6; }
+.bar__row > .summary {
+  order: 7;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 4.56px calc(var(--unit) * 2);
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+@container (max-width: 1306px) {
+  .bar__row > .bar__view { order: 5; }
+  .bar__row > .searchbox { order: 6; flex: 1 1 auto; }
+  .bar__row .search { width: 100%; }
+  .bar__row > .zoom { order: 7; }
+  .bar__row > .summary { order: 8; flex-basis: 100%; justify-content: flex-start; }
+}
+
+@container (max-width: 1000px) {
+  .bar__row.bar__row { row-gap: var(--unit); }
+  .bar__row::after { content: none; }
+  .bar__row > .bar__view { order: 2; }
+  .bar__row > .bar__actions { order: 3; margin-left: 0; flex-basis: 100%; justify-content: flex-start; }
+  .bar__row > .searchbox { order: 5; }
+  .bar__row > .zoom { order: 6; flex: 1 1 160px; }
+  .bar__row .zoom__range { flex: 1 1 auto; width: auto; min-width: 0; }
+  .bar__row > .summary { order: 7; }
+}
+
+@container (max-width: 640px) {
+  .bar__row { position: relative; }
+  .bar__row .menu { position: static; }
+  .bar__row .menu__panel { left: 13.68px; right: 13.68px; width: auto; min-width: 0; }
+}
 
 .label { color: var(--secondary); font-size: var(--text-sm); font-weight: 500; }
 .muted { max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--secondary); }

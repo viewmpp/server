@@ -226,7 +226,21 @@
     closeMenus(menu);
     panel.classList.toggle('is-hidden', !open);
     toggle.setAttribute('aria-expanded', String(open));
+
+    if (open) { keepInside(menu, panel); }
   });
+
+  function keepInside(menu, panel) {
+    panel.style.left = '';
+    panel.style.right = '';
+
+    if (getComputedStyle(menu).position === 'static') { return; }
+
+    if (menu.getBoundingClientRect().right - panel.offsetWidth < 0) {
+      panel.style.left = '0';
+      panel.style.right = 'auto';
+    }
+  }
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') { closeMenus(null); }
