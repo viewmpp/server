@@ -251,7 +251,7 @@
 
   {{if .PreviousFileName}}
     <div class="updated" id="version-banner" data-previous-name="{{.PreviousFileName}}">
-      <span class="updated__text">Updated {{.UpdatedOn}} &middot; previous version: {{.PreviousFileName}}</span>
+      <span class="updated__text">Updated <time id="version-updated" datetime="{{.UpdatedAt}}">{{.UpdatedOn}}</time> &middot; previous version: {{.PreviousFileName}}</span>
       <button class="btn btn--sm" type="button" id="version-changes">What changed</button>
     </div>
   {{end}}

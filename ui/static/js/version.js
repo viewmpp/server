@@ -40,6 +40,15 @@
     });
   }
 
+  var updated = document.getElementById('version-updated');
+  if (updated) {
+    var when = new Date(updated.getAttribute('datetime'));
+    if (!isNaN(when.getTime())) {
+      updated.textContent = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      updated.title = when.toLocaleString();
+    }
+  }
+
   if (banner && changes) {
     changes.addEventListener('click', function () {
       window.MppSignal('version_changes_open:' + viewer);

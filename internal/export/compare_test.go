@@ -78,6 +78,32 @@ func TestComparesTwoVersionsAndCountsIt(t *testing.T) {
 	}
 }
 
+func TestSwappingTheVersionsIsNotAnotherComparison(t *testing.T) {
+	counts := tally{}
+	h := newCountingHandler(t, 100, counts)
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/compare?repeat=1", bytes.NewReader(versions(t)))
+	r = clientip.SetContext(r, "203.0.113.5")
+	rec := httptest.NewRecorder()
+	h.Compare(rec, r)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200: the report is still built", rec.Code)
+	}
+	if counts[events.CompareRun] != 0 {
+		t.Errorf("compare_run counted %d times for a re-run after swapping, want 0", counts[events.CompareRun])
+	}
+
+	for _, query := range []string{"", "?repeat=0", "?repeat=yes"} {
+		r := httptest.NewRequest(http.MethodPost, "/api/v1/compare"+query, bytes.NewReader(versions(t)))
+		r = clientip.SetContext(r, "203.0.113.5")
+		h.Compare(httptest.NewRecorder(), r)
+	}
+	if counts[events.CompareRun] != 3 {
+		t.Errorf("compare_run = %d after three ordinary comparisons, want 3: only repeat=1 is skipped", counts[events.CompareRun])
+	}
+}
+
 func TestRefusesAComparisonWithOnePlan(t *testing.T) {
 	counts := tally{}
 

@@ -45,6 +45,7 @@ type Page struct {
 	FileName          string
 	PreviousFileName  string
 	UpdatedOn         string
+	UpdatedAt         string
 	Access            string
 	IsOwner           bool
 	CanShare          bool

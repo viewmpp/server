@@ -30,7 +30,7 @@ Events
 | `share_limit` | A free account tried to share past its limit |
 | `share_page_from_link` | `/share-a-project-plan` was reached from a shared plan |
 | `example_open` | An example plan was opened |
-| `compare_run` | Two versions were compared and the report was sent |
+| `compare_run` | Two versions were compared and the report was sent. A re-run after "Swap versions" is sent with `repeat=1` and not counted. Reports opened from the "What changed" banner of an updated link are counted |
 | `compare_export` | A Pro user downloaded the change report workbook |
 | `version_uploaded` | An owner uploaded a new version to an existing link. The figure the living link bet is judged by |
 | `upload_for_version` | The file for that new version was uploaded and parsed; it is not counted as an opened plan |

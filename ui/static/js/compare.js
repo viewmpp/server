@@ -93,7 +93,7 @@
     if (!other) { return; }
     swapped = !swapped;
     guessed = false;
-    run().catch(fail);
+    run(true).catch(fail);
   });
 
   exportButton.addEventListener('click', function () {
@@ -278,7 +278,7 @@
     });
   }
 
-  function run() {
+  function run(repeat) {
     var pair = versions();
 
     ui.files.textContent = 'Older: ' + pair.previousName + '  →  Newer: ' + pair.currentName +
@@ -287,7 +287,7 @@
     exportButton.disabled = true;
     status('Comparing...');
 
-    return fetch('/api/v1/compare', {
+    return fetch('/api/v1/compare' + (repeat ? '?repeat=1' : ''), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
       body: JSON.stringify({ previous: pair.previous, current: pair.current })

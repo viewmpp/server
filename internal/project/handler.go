@@ -17,6 +17,7 @@ import (
 	"server/internal/xlsx"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -81,6 +82,7 @@ func (h *Handler) Page(w http.ResponseWriter, r *http.Request) {
 	if p.PreviousFileName != nil && p.UpdatedAt != nil {
 		page.PreviousFileName = *p.PreviousFileName
 		page.UpdatedOn = p.UpdatedAt.UTC().Format("2 Jan 2006")
+		page.UpdatedAt = p.UpdatedAt.UTC().Format(time.RFC3339)
 	}
 	page.Access = p.Access
 	page.IsOwner = !u.IsAnonymous() && u.ID == p.UserID

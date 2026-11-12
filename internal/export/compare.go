@@ -46,7 +46,9 @@ func (h *Handler) Compare(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.counts.Count(events.CompareRun)
+	if r.URL.Query().Get("repeat") != "1" {
+		h.counts.Count(events.CompareRun)
+	}
 }
 
 func (h *Handler) CompareXLSX(w http.ResponseWriter, r *http.Request) {

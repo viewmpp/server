@@ -97,6 +97,10 @@ That is cheap to answer before a version history is built.
   password.
 - **The banner** carries no numbers. Counting them would mean running a
   comparison on every open of the link, so the report shows them when asked.
+- **The update date** is sent as UTC in `<time datetime>` and shown in the
+  reader's own time zone. An update at 21:20 UTC is the next day east of
+  Greenwich, and the UTC date stays only as the text shown without
+  JavaScript.
 
 **A different plan needs confirming.** When fewer than a third of the tasks
 match the current plan, the server answers 409. The browser then asks before
