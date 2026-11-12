@@ -30,6 +30,8 @@ const (
 	ExampleOpen Name = "example_open"
 
 	CompareRun       Name = "compare_run"
+	CompareExport    Name = "compare_export"
+	CompareLocked    Name = "compare_export_locked"
 	CompareOpen      Name = "compare_open"
 	CompareFrom      Name = "compare_from"
 	UploadForCompare Name = "upload_for_compare"
@@ -47,7 +49,7 @@ func UploadFrom(page string) Name {
 }
 
 var (
-	perViewer    = []Name{WishPDF, WishXLSXReport, CompareOpen}
+	perViewer    = []Name{WishPDF, WishXLSXReport, CompareOpen, CompareLocked}
 	viewers      = []string{"owner", "shared", "file", "example"}
 	purposes     = []string{"share", "import", "analyze", "print", "other"}
 	compareFroms = []string{"file", "project"}

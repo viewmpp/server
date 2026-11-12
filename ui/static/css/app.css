@@ -1442,7 +1442,9 @@ input:-webkit-autofill:focus {
 .compare__heading { min-width: 0; }
 .compare__title { margin: 0; font-size: var(--text-md); font-weight: 600; letter-spacing: -.02em; }
 .compare__files { margin: 4.56px 0 0; color: var(--secondary); font-size: var(--text-sm); overflow-wrap: anywhere; }
-.compare__tools { display: flex; align-items: center; gap: var(--unit); flex: none; }
+.compare__tools { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--unit); }
+.compare-gate__actions { gap: var(--unit); }
+.compare-gate__actions form { margin: 0; }
 .compare__tools form { margin: 0; }
 .compare__status { margin: 0; padding: 11.4px 18.24px; color: var(--secondary); font-size: var(--text-sm); }
 .compare__status[hidden] { display: none; }

@@ -31,6 +31,7 @@ Events
 | `share_page_from_link` | `/share-a-project-plan` was reached from a shared plan |
 | `example_open` | An example plan was opened |
 | `compare_run` | Two versions were compared and the report was sent |
+| `compare_export` | A Pro user downloaded the change report workbook |
 | `upload_for_compare` | A file was uploaded with `store=no` to be compared; it is not counted in `upload_ok` or `upload_from` |
 
 ### Sent by the browser
@@ -47,9 +48,19 @@ and is not counted. It sits behind `fromApp` and the read limiter.
 | `export_purpose:<answer>` | It was answered: `share`, `import`, `analyze`, `print` or `other` |
 | `compare_open:<viewer>` | The Compare button was pressed (opening its menu counts, closing it does not) |
 | `compare_from:<source>` | The second version came from a `file` on the computer or a saved `project` |
+| `compare_export_locked:<viewer>` | Someone without Pro pressed "Export to Excel" in the report and was shown the Pro dialog |
 
-The compare funnel reads, in order: `compare_open`, then `compare_from`, then
-`compare_run`.
+The compare funnel reads, in order:
+
+1. `compare_open`
+2. `compare_from`
+3. `compare_run`
+4. `compare_export` or `compare_export_locked`
+
+The change report is the first feature behind Pro that people can actually use.
+During early access Pro costs nothing, so `compare_export_locked` measures the
+wish for a paid feature before billing exists. Compare it with the turns to Pro
+on the account page that follow it.
 
 `compare_from:project` is the count the version-history decision waits on. If
 people often compare two plans they saved, they already keep versions with us.

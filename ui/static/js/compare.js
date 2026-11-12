@@ -10,6 +10,9 @@
   var viewer = (app && app.dataset.viewer) || 'file';
   var openProject = (app && app.dataset.projectId) || '';
 
+  var exportButton = document.getElementById('compare-export');
+  var gate = document.getElementById('compare-gate');
+
   var menu = document.getElementById('compare-menu');
   var pickFile = document.getElementById('compare-pick-file');
   var saved = document.getElementById('compare-saved');
@@ -92,6 +95,51 @@
     guessed = false;
     run().catch(fail);
   });
+
+  exportButton.addEventListener('click', function () {
+    if (!report || !other) { return; }
+    if (!menu) {
+      locked();
+      return;
+    }
+
+    var pair = versions();
+    exportButton.disabled = true;
+
+    fetch('/api/v1/compare/xlsx?previous_name=' + encodeURIComponent(pair.previousName) + '&current_name=' + encodeURIComponent(pair.currentName), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
+      body: JSON.stringify({ previous: pair.previous, current: pair.current })
+    }).then(function (response) {
+      if (response.status === 401 || response.status === 403) {
+        locked();
+        return null;
+      }
+      if (!response.ok) { return window.MppRefusal(response); }
+      return response.blob();
+    }).then(function (blob) {
+      if (!blob) { return; }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (String(pair.currentName).replace(/\.[^.]*$/, '') || 'plan') + ' changes.xlsx';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }).catch(fail).then(function () {
+      exportButton.disabled = false;
+    });
+  });
+
+  function locked() {
+    window.MppSignal('compare_export_locked:' + viewer);
+    if (gate && typeof gate.showModal === 'function') { gate.showModal(); }
+  }
+
+  function versions() {
+    if (swapped) {
+      return { previous: current, current: other, previousName: currentName, currentName: otherName };
+    }
+    return { previous: other, current: current, previousName: otherName, currentName: currentName };
+  }
 
   function chooseFile() {
     input.value = '';
@@ -222,24 +270,25 @@
   }
 
   function run() {
-    var previous = swapped ? current : other;
-    var latest = swapped ? other : current;
+    var pair = versions();
 
-    ui.files.textContent = 'Older: ' + (swapped ? currentName : otherName) + '  →  Newer: ' + (swapped ? otherName : currentName) +
+    ui.files.textContent = 'Older: ' + pair.previousName + '  →  Newer: ' + pair.currentName +
       (guessed ? '  ·  order guessed from progress, swap if wrong' : '');
     ui.swap.disabled = true;
+    exportButton.disabled = true;
     status('Comparing...');
 
     return fetch('/api/v1/compare', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
-      body: JSON.stringify({ previous: previous, current: latest })
+      body: JSON.stringify({ previous: pair.previous, current: pair.current })
     }).then(function (response) {
       if (!response.ok) { return window.MppRefusal(response); }
       return response.json();
     }).then(function (result) {
       report = result;
       ui.swap.disabled = false;
+      exportButton.disabled = false;
       render();
     });
   }
@@ -255,6 +304,7 @@
     ui.tabs.textContent = '';
     ui.body.textContent = '';
     ui.swap.disabled = true;
+    exportButton.disabled = true;
     ui.note.textContent = NOTE;
     status('');
   }

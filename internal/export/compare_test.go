@@ -9,8 +9,11 @@ import (
 	"path/filepath"
 	"server/internal/clientip"
 	"server/internal/events"
+	"server/internal/user"
 	"strings"
 	"testing"
+
+	"github.com/xuri/excelize/v2"
 )
 
 func comparePlans(t *testing.T, h *Handler, body []byte) *httptest.ResponseRecorder {
@@ -108,6 +111,51 @@ func TestRefusesAnOversizedComparison(t *testing.T) {
 
 	if rec.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("got %d, want 413", rec.Code)
+	}
+}
+
+func exportChanges(t *testing.T, h *Handler, as *user.User) *httptest.ResponseRecorder {
+	t.Helper()
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/compare/xlsx?previous_name=hospital-v1.mpp&current_name=hospital-v2.mpp", bytes.NewReader(versions(t)))
+	r = clientip.SetContext(r, "203.0.113.5")
+	r = user.SetUserContext(r, as)
+
+	rec := httptest.NewRecorder()
+	h.CompareXLSX(rec, r)
+
+	return rec
+}
+
+func TestTheChangeReportIsAProFeature(t *testing.T) {
+	counts := tally{}
+
+	rec := exportChanges(t, newCountingHandler(t, 100, counts), &user.User{ID: 7})
+
+	if rec.Code != http.StatusForbidden || !strings.Contains(rec.Body.String(), MsgChangesArePro) {
+		t.Errorf("got %d %s, want 403 saying it is part of Pro", rec.Code, rec.Body.String())
+	}
+	if counts[events.CompareExport] != 0 {
+		t.Error("a refused export was counted")
+	}
+}
+
+func TestAProUserDownloadsTheChangeReport(t *testing.T) {
+	counts := tally{}
+
+	rec := exportChanges(t, newCountingHandler(t, 100, counts), &user.User{ID: 7, Subscription: user.SubscriptionPro})
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+	if _, err := excelize.OpenReader(bytes.NewReader(rec.Body.Bytes())); err != nil {
+		t.Fatalf("result is not a workbook: %v", err)
+	}
+	if got := rec.Header().Get("Content-Disposition"); !strings.Contains(got, `filename="hospital-v2 changes.xlsx"`) {
+		t.Errorf("disposition = %q, want the current file's name with changes", got)
+	}
+	if counts[events.CompareExport] != 1 {
+		t.Errorf("compare_export counted %d times, want 1", counts[events.CompareExport])
 	}
 }
 

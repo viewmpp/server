@@ -331,6 +331,13 @@
         <p class="compare__files" id="compare-files"></p>
       </div>
       <div class="compare__tools">
+        <button class="btn btn--sm" type="button" id="compare-export">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
+            <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
+          </svg>
+          Export to Excel
+        </button>
         <button class="btn btn--sm" type="button" id="compare-swap">Swap versions</button>
         <form method="dialog">
           <button class="btn btn--sm btn--icon" type="submit" aria-label="Close">&times;</button>
@@ -342,6 +349,29 @@
     <div class="compare__tabs" id="compare-tabs" role="tablist"></div>
     <div class="compare__body" id="compare-body"></div>
     <p class="compare__note" id="compare-note">Shifts are counted in calendar days. The report lists what differs between the two files, not why it changed.</p>
+  </dialog>
+
+  <dialog class="wish" id="compare-gate" aria-labelledby="compare-gate-title">
+    <div class="wish__body">
+      <h2 class="wish__title" id="compare-gate-title">The change report is part of Pro</h2>
+      <p class="wish__text">Download every change as an Excel workbook to send on: what was added, removed and edited, what moved and by how much, and how the critical path changed.</p>
+      <p class="wish__text">Pro is free during early access{{if and .UserEmail (not .Verified)}} - confirm your email address first, then turn it on from your account{{end}}.</p>
+      <div class="wish__actions compare-gate__actions">
+        <form method="dialog">
+          <button class="btn btn--sm" type="submit">Not now</button>
+        </form>
+        {{if and .UserEmail (not .Verified)}}
+          <a class="btn btn--sm btn--primary btn--inline" href="/verify" target="_blank" rel="noopener">Confirm your email</a>
+        {{else if .UserEmail}}
+          <form action="/subscribe" method="POST" target="_blank">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <button class="btn btn--sm btn--primary btn--inline" type="submit">Turn on Pro</button>
+          </form>
+        {{else}}
+          <a class="btn btn--sm btn--primary btn--inline" href="/signup" target="_blank" rel="noopener">Create a free account</a>
+        {{end}}
+      </div>
+    </div>
   </dialog>
 
   <dialog class="wish" id="export-ask" aria-labelledby="export-ask-title">

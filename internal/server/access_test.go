@@ -110,6 +110,17 @@ func TestTheAppHeaderIsCheckedBeforeTheUser(t *testing.T) {
 	}
 }
 
+func TestTheChangeReportNeedsTheViewerAndAnAccount(t *testing.T) {
+	if w := dispatch(t, http.MethodPost, "/api/v1/compare/xlsx", someone, nil); w.Code != http.StatusForbidden {
+		t.Errorf("without the app header: status = %d, want %d", w.Code, http.StatusForbidden)
+	}
+
+	app := map[string]string{appHeader: appHeaderValue}
+	if w := dispatch(t, http.MethodPost, "/api/v1/compare/xlsx", user.AnonymousUser, app); w.Code != http.StatusUnauthorized {
+		t.Errorf("signed out: status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
 func TestSavedPlansAreListedOnlyToTheirOwner(t *testing.T) {
 	w := dispatch(t, http.MethodGet, "/api/v1/projects", user.AnonymousUser, nil)
 

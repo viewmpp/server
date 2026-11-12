@@ -70,6 +70,48 @@ search would serve a few dozen queries a month (Keyword Planner, November
    - Every value from the files is set as text, never as HTML.
    - Highlighting changes on the chart itself is left for a later version.
 
+Free and Pro
+------------
+
+Reading the report is free for everyone, signed in or not. The pricing page
+says reading stays free, and seeing the report once is what makes someone want
+more of it.
+
+**Downloading the report as a workbook is Pro.**
+
+- It is the file a planner sends a client every week, so it belongs to someone
+  who updates schedules regularly and has a budget.
+- `POST /api/v1/compare/xlsx` takes the same body as the comparison and
+  `previous_name` / `current_name` in the query.
+- It is behind `fromApp` and requires an account.
+- The handler itself refuses users without Pro with a 403.
+- The workbook is built from the two contracts again, never from a report sent
+  by the browser.
+
+**Sheets:**
+
+| Sheet | Contents |
+|---|---|
+| Summary | Both file names; project start and finish with the shift in calendar days; the counts; the calendar-days note |
+| Changed | One row per added or removed task and per edited field, with before and now |
+| Moved | Working tasks, then summary tasks marked as such; start and finish before and now as Excel dates; shifts in days as numbers |
+| Links | Changed relations with both tasks' rows and names |
+| Critical path | Tasks that became critical or stopped being critical |
+
+**Who sees the Pro dialog:**
+
+- An anonymous visitor sees it at once, with a link to sign up.
+- A signed-in user's export is sent to the server, and the server decides.
+  - On a 403 the browser shows the dialog. Its "Turn on Pro" posts the account
+    page's early access form in a new tab, so the report stays open.
+  - The next press downloads.
+  - Early access is granted only to a confirmed email address. A user who has
+    not confirmed theirs gets a "Confirm your email" link instead of "Turn on
+    Pro". The button would only bring them back with a message to confirm
+    first, which the browser test ran into.
+  - The page never trusts its own idea of whether the user has Pro, which
+    could be out of date.
+
 What the report holds
 ---------------------
 
