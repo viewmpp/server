@@ -307,6 +307,10 @@ before payments existed.
 3. Put the live key and secret in `.env`, set `LEMONSQUEEZY_TEST_MODE=false`,
    then `up -d`. The log says `billing on test_mode=false`. From now on every
    visitor sees the trial and the payment buttons, and early access stops.
+4. Open Manage subscription on a paying account. Lemon Squeezy refuses the
+   customer portal with "This store has not been activated" until the store is
+   approved, so it cannot be checked in the test phase; cancel a test
+   subscription from Store, Subscriptions in the dashboard instead.
 
 ### What the code relies on
 
