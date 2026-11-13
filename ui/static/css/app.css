@@ -1920,8 +1920,8 @@ input:-webkit-autofill:focus {
 
 .foot__nav {
   display: grid;
-  grid-template-columns: 1fr 1.6fr 1fr;
-  gap: calc(var(--unit) * 3);
+  grid-template-columns: repeat(4, max-content);
+  gap: calc(var(--unit) * 3) calc(var(--unit) * 6);
 }
 .foot__heading {
   margin: 0 0 calc(var(--unit) * 2);
@@ -1971,6 +1971,10 @@ input:-webkit-autofill:focus {
 }
 .foot__legal a { color: var(--secondary); }
 .foot__legal a:hover { color: var(--text); }
+
+@media (max-width: 56rem) {
+  .foot__nav { grid-template-columns: 1fr 1fr; }
+}
 
 @media (max-width: 37.5rem) {
   .foot__nav { grid-template-columns: 1fr; gap: calc(var(--unit) * 3); }

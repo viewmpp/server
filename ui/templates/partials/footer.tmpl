@@ -15,6 +15,12 @@
         </ul>
       </div>
       <div class="foot__group">
+        <h2 class="foot__heading">Compare versions</h2>
+        <ul class="foot__links">
+          {{range footerLinks}}{{if eq .Group "compare"}}<li><a href="{{.Slug}}">{{.Label}}</a></li>{{end}}{{end}}
+        </ul>
+      </div>
+      <div class="foot__group">
         <h2 class="foot__heading">Convert</h2>
         <ul class="foot__links">
           {{range footerLinks}}{{if eq .Group "convert"}}<li><a href="{{.Slug}}">{{.Label}}</a></li>{{end}}{{end}}

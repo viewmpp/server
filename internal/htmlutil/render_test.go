@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"server/internal/assert"
 	"server/internal/examples"
+	"server/internal/landing"
 	"server/internal/session"
 	"strings"
 	"testing"
@@ -272,5 +273,27 @@ func TestNoDialogLivesInsideTheHiddenViewer(t *testing.T) {
 	}
 	if strings.Count(body, "<dialog") < 5 {
 		t.Error("the dialogs are gone from the page altogether")
+	}
+}
+
+func TestEveryLandingPageIsLinkedFromTheFooter(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	body := renderState(t, pages.Terms, Page{})
+	start := strings.Index(body, `<footer class="foot"`)
+	end := strings.Index(body, "</footer>")
+	if start < 0 || end < start {
+		t.Fatal("no site footer on the page")
+	}
+	footer := body[start:end]
+
+	for _, page := range landing.All() {
+		if page.Slug == "/" {
+			continue
+		}
+		if !strings.Contains(footer, `href="`+page.Slug+`"`) {
+			t.Errorf("%s is not in the footer: a page reached only through the sitemap looks like an orphan to a crawler", page.Slug)
+		}
 	}
 }
