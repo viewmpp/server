@@ -2096,6 +2096,10 @@ input:-webkit-autofill:focus {
 .buy__note { flex-basis: 100%; text-align: right; color: var(--secondary); font-size: var(--text-sm); }
 .setting .buy { justify-content: flex-start; }
 .setting .buy__note { text-align: left; }
+@media (max-width: 44rem) {
+  .plans__buy, .plans__buy .buy { justify-content: flex-start; }
+  .plans__buy .buy__note { text-align: left; }
+}
 .sr-only {
   position: absolute;
   width: 1.14px;
@@ -2133,6 +2137,7 @@ input:-webkit-autofill:focus {
 .page--account .setting__strong { font-size: var(--text-sm); font-weight: 500; }
 .page--account .setting .btn { font-size: var(--text-sm); font-weight: 500; }
 .page--account .setting__actions { flex-wrap: wrap; }
+.page--account .setting > .buy { grid-column: 2 / -1; margin-top: calc(var(--unit) * 1); }
 .page--account .setting__note { color: var(--secondary); font-weight: 400; line-height: 1.55; }
 .page--account .setting__inner { padding-bottom: calc(var(--unit) * .5); }
 .page--account .setting__inner input { background: var(--bg); }
@@ -2147,4 +2152,5 @@ input:-webkit-autofill:focus {
   .page--account .setting { grid-template-columns: minmax(0, 1fr); }
   .page--account .setting > .tag { justify-self: start; }
   .page--account .setting > form { margin-block: calc(var(--unit) * .5) 0; }
+  .page--account .setting > .buy { grid-column: 1 / -1; margin-top: calc(var(--unit) * .5); }
 }
