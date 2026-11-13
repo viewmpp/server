@@ -14,11 +14,12 @@ const (
 	GroupConvert Group = "convert"
 	GroupView    Group = "view"
 	GroupFormat  Group = "format"
+	GroupCompare Group = "compare"
 	GroupProduct Group = "product"
 	GroupLegal   Group = "legal"
 )
 
-var groupOrder = []Group{GroupConvert, GroupView, GroupFormat, GroupProduct}
+var groupOrder = []Group{GroupConvert, GroupView, GroupCompare, GroupFormat, GroupProduct}
 
 var pages = []Page{
 	{
@@ -79,6 +80,13 @@ var pages = []Page{
 		Label:       "Open Project .xml",
 		Tool:        true,
 		Description: "A Project .xml holds the whole schedule as text - and still cannot be read in a text editor. What is inside it, and how to see the chart in your browser.",
+	},
+	{
+		Slug:        "/schedule-comparison",
+		Group:       GroupCompare,
+		Label:       "Schedule comparison",
+		Tool:        true,
+		Description: "Compare two versions of an MS Project .mpp or Primavera .xer schedule in your browser: what moved, what was added or removed, which links and critical tasks changed.",
 	},
 	{
 		Slug:        "/cookies",

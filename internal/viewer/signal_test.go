@@ -39,6 +39,7 @@ func TestTheViewerCanSendTheSignalsItKnows(t *testing.T) {
 		"compare_open:example",
 		"compare_from:file",
 		"compare_from:project",
+		"compare_from:page",
 		"compare_export_locked:owner",
 		"compare_export_locked:shared",
 		"compare_export_locked:file",

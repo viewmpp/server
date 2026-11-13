@@ -17,6 +17,7 @@ var llmsSections = []struct {
 	group landing.Group
 }{
 	{"Open a schedule", landing.GroupView},
+	{"Compare versions", landing.GroupCompare},
 	{"Convert", landing.GroupConvert},
 	{"Product", landing.GroupProduct},
 	{"Policies", landing.GroupLegal},

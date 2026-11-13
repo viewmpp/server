@@ -1,0 +1,161 @@
+{{define "title"}}Schedule comparison for MS Project and P6 files | View MPP{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+{{template "crumbs" .}}
+
+  <h1>Schedule comparison for .mpp and .xer files</h1>
+  <p class="lead">
+    Two versions of one schedule - last week's and this week's, or the contractor's and yours.
+    Drop both below and see what moved, what was added or removed, which links changed and how the
+    critical path shifted. No Microsoft Project, no P6, nothing to install.
+  </p>
+
+  <div class="pair" id="pair" data-max-upload="{{.MaxUpload}}">
+    <div class="drop pair__slot" data-slot="previous">
+      <input type="file" id="pair-previous" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
+      <p class="pair__label">Earlier version</p>
+      <p class="pair__name" data-name></p>
+      <p class="drop__hint">Drop a file here or <label for="pair-previous" class="link">pick one</label></p>
+    </div>
+    <div class="drop pair__slot" data-slot="current">
+      <input type="file" id="pair-current" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
+      <p class="pair__label">Later version</p>
+      <p class="pair__name" data-name></p>
+      <p class="drop__hint">Drop a file here or <label for="pair-current" class="link">pick one</label></p>
+    </div>
+  </div>
+
+  <p class="drop__promise">Neither file is saved. Both are read in memory, compared and forgotten.</p>
+  <ul class="drop__terms pair__terms">
+    <li>.mpp .xml .mpx .mpd .xer</li>
+    <li>up to {{.MaxUploadLabel}} each</li>
+    <li>no signup</li>
+  </ul>
+
+  <p class="drop__error is-hidden" id="pair-error" role="alert"></p>
+
+  <p class="aside-link">
+    No second file to hand? <button class="link" type="button" data-compare-example="{{.Form.Pair}}">Try it with a sample pair</button>
+  </p>
+
+  <section class="prose">
+    <h2>What a report looks like</h2>
+    <p>
+      This is a real comparison of two saves of a small office refurbishment plan, made in
+      Microsoft Project two weeks apart. The plan is invented; the dates were recalculated by
+      Project itself when the update went in.
+    </p>
+    <ul>
+      {{with .Form}}
+        {{if .FinishOld}}<li>The project finish moved from <strong>{{.FinishOld}}</strong> to <strong>{{.FinishNew}}</strong> - {{.FinishDays}} days later.</li>{{end}}
+        {{if .Added}}<li>Added: {{range $i, $n := .Added}}{{if $i}}, {{end}}{{$n}}{{end}}.</li>{{end}}
+        {{if .Removed}}<li>Removed: {{range $i, $n := .Removed}}{{if $i}}, {{end}}{{$n}}{{end}}.</li>{{end}}
+        <li>{{.Edited}} tasks edited - durations, progress and a name - and {{.Links}} links changed.</li>
+        <li>{{.MovedCount}} tasks moved. The largest shifts:
+          <ul>
+            {{range .Moved}}<li>{{.Name}}: {{if gt .Days 0}}+{{end}}{{.Days}} days</li>{{end}}
+          </ul>
+        </li>
+        {{if .Entered}}<li>Joined the critical path: {{range $i, $n := .Entered}}{{if $i}}, {{end}}{{$n}}{{end}}.</li>{{end}}
+        {{if .Left}}<li>Left the critical path: {{range $i, $n := .Left}}{{if $i}}, {{end}}{{$n}}{{end}}.</li>{{end}}
+      {{end}}
+    </ul>
+    <p>
+      The survey and the layout sign-off left the critical path because they are finished:
+      Project stops counting a completed task as critical.
+    </p>
+    <p>
+      <button class="btn btn--sm btn--inline" type="button" data-compare-example="{{.Form.Pair}}">Open the full report</button>
+    </p>
+
+    <h2>What the comparison picks up</h2>
+    <ul>
+      <li>The project start and finish, and how far each moved.</li>
+      <li>Tasks added and tasks removed.</li>
+      <li>Edits to a task: its name, duration, percent complete, milestone flag and place in the outline.</li>
+      <li>Every task whose start or finish moved, the largest shift first. Summary tasks are listed apart, so a phase that slipped because of one task inside it does not drown the task itself.</li>
+      <li>Links added, removed or changed - the type and the lag.</li>
+      <li>Tasks that joined or left the critical path.</li>
+    </ul>
+    <p>
+      Shifts are counted in calendar days. The report says what differs between the two files, not
+      why: a task that moved because its predecessor slipped looks the same as one moved by hand.
+    </p>
+
+    <h2>How tasks are matched</h2>
+    <p>
+      Row numbers change every time a task is inserted above, so they cannot tell you which task is
+      which. Microsoft Project gives every task a unique ID that stays with it through renames and
+      re-sorting, and the comparison pairs tasks by that ID. Row numbers are shown next to each task
+      so you can find it in your own copy, but nothing is matched on them.
+    </p>
+    <p>
+      If the two files have few tasks in common by ID and name, they are probably not versions of the
+      same plan, and the report says so at the top before you read anything into it.
+    </p>
+
+    <h2>Compare .mpp files without Microsoft Project</h2>
+    <p>
+      Project has its own Compare Projects command on the Report tab. It needs a Project licence, both
+      files opened in Project, and a Windows computer, since there is no Project for Mac. Here both
+      files go into a browser on any computer, and the report is on screen a few seconds later.
+      Project <code>.xml</code>, <code>.mpx</code> and <code>.mpd</code> files work the same way.
+    </p>
+
+    <h2>Compare .xer files without Primavera P6</h2>
+    <p>
+      In P6 the same job is done by Schedule Comparison, which needs P6 itself. An <code>.xer</code>
+      export carries an internal ID for each activity, and that is what the comparison matches on.
+    </p>
+    <p>
+      To be plain about it: comparing <code>.xer</code> updates has not yet been checked against real
+      P6 update cycles the way <code>.mpp</code> has. If a project was imported into P6 again between
+      the two exports, P6 may have given its activities new internal IDs, and they would show as
+      removed and added. Check anything surprising in P6.
+    </p>
+
+    <h2>Neither file is kept</h2>
+    <p>
+      Both files are read in memory to build the report and then discarded; nothing about them is
+      written to disk, and no account is needed. With an account, the viewer can also compare the
+      plan you have open against one of your saved plans, and uploading a new version to a shared
+      link shows its readers what changed since the last one.
+    </p>
+
+    <h2>Take the report with you</h2>
+    <p>
+      Reading the report is free. <a href="/pricing">Pro</a> adds an Excel workbook of every change -
+      a summary, the edited and moved tasks, the links and the critical path on separate sheets - to
+      send to a client or attach to a monthly report.
+    </p>
+
+    <h2>Common questions</h2>
+    <dl class="faq">
+      <dt>Which file goes on the left?</dt>
+      <dd>The earlier save. If they end up the wrong way round, <strong>Swap versions</strong> in the report turns it over.</dd>
+
+      <dt>Can I compare an .mpp with an .xer?</dt>
+      <dd>Not usefully. A plan moved from P6 into Project, or back, gets new task IDs on the way, so nearly every task shows as removed and added. Compare two saves made by the same tool.</dd>
+
+      <dt>Does it compare against the baseline?</dt>
+      <dd>No - it compares two files, using the scheduled dates in each. To see how a plan drifted from its baseline, keep a copy saved when the baseline was set and compare the current file with that copy.</dd>
+
+      <dt>How large can the files be?</dt>
+      <dd>Up to {{.MaxUploadLabel}} each on the free plan, which covers schedules of several thousand tasks. Pro raises the limit to 50 MB.</dd>
+
+      <dt>Is it free?</dt>
+      <dd>Yes. Comparing and reading the report cost nothing and need no account. Only the Excel workbook of the changes is part of Pro.</dd>
+    </dl>
+  </section>
+</main>
+
+{{template "sitefooter" .}}
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/compare.js?v={{.Version}}"></script>
+<script src="/static/js/compare-page.js?v={{.Version}}"></script>
+{{end}}

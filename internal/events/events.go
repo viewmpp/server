@@ -34,6 +34,7 @@ const (
 	CompareLocked    Name = "compare_export_locked"
 	CompareOpen      Name = "compare_open"
 	CompareFrom      Name = "compare_from"
+	CompareExample   Name = "compare_example"
 	UploadForCompare Name = "upload_for_compare"
 
 	VersionUploaded    Name = "version_uploaded"
@@ -67,7 +68,7 @@ var (
 	perViewer    = []Name{WishPDF, WishXLSXReport, CompareOpen, CompareLocked, VersionChangesOpen}
 	viewers      = []string{"owner", "shared", "file", "example"}
 	purposes     = []string{"share", "import", "analyze", "print", "other"}
-	compareFroms = []string{"file", "project"}
+	compareFroms = []string{"file", "project", "page"}
 )
 
 var fromViewer = allowedFromViewer()

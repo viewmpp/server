@@ -27,10 +27,32 @@ If a contract repeats an `id`, its first occurrence is used.
 How a reader gets there
 -----------------------
 
-The viewer has a **Compare** button. There is no separate `/compare` page:
-someone with two files opens one and compares with the other. A page aimed at
-search would serve a few dozen queries a month (Keyword Planner, November
-2026), and it would be one more near-copy of a landing page.
+The viewer has a **Compare** button, and `/schedule-comparison` takes both files
+at once.
+
+The page was first ruled out: the searches it serves are a few dozen a month
+(Keyword Planner, November 2026: "compare mpp files", "ms project compare
+versions", "schedule comparison tool", "p6 schedule comparison tool" and the
+like, each in the 10-100 band), and Google had already refused near-copies of
+the landing pages. It was built once the event counts showed about one real
+upload a day: traffic, not features, became the limit. Two things keep it from
+being a copy - it is the only page with two drop zones, and it shows a real
+report rather than a description of one.
+
+- **The sample pair** (`internal/examples/comparison-*.json`) is an invented
+  25-task office refurbishment built in Microsoft Project through COM, saved,
+  updated the way a fortnightly update goes (progress, a longer approval, a
+  task added, one removed and absorbed, a lag changed, a rename, a longer
+  duration), and saved again; Project recalculated every date. The hospital
+  pair stays a test fixture only: it came from a downloaded sample of unknown
+  licence and is not shown publicly.
+- **The page renders the report server-side** from that pair through
+  `diff.Compare`, so the facts on the page cannot drift from what the tool
+  returns, and "Open the full report" runs the same pair through the API with
+  `example=1`.
+- **Unrelated files are flagged.** The compare response carries `overlap`, the
+  share of tasks matching by ID and name; under a third, the report opens with
+  a warning. This holds in the viewer too.
 
 1. **Where the second version comes from.**
    - An anonymous visitor's button opens the file picker straight away.

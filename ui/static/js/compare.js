@@ -53,6 +53,7 @@
   var guessed = false;
   var report = null;
   var tab = 'edited';
+  var exampleRun = false;
 
   document.addEventListener('mpp:loaded', function (event) {
     current = event.detail.contract;
@@ -147,6 +148,25 @@
       begin(previousName || 'previous version');
       other = previous;
       return run().catch(fail);
+    },
+    pairFiles: function (previousFile, currentFile) {
+      current = null;
+      currentName = currentFile.name;
+      begin(previousFile.name);
+      status('Reading both files...');
+      return Promise.all([upload(previousFile), upload(currentFile)]).then(function (plans) {
+        other = plans[0];
+        current = plans[1];
+        return run();
+      }).catch(fail);
+    },
+    example: function (previous, previousName, next, nextName) {
+      current = next;
+      currentName = nextName;
+      begin(previousName);
+      exampleRun = true;
+      other = previous;
+      return run().catch(fail);
     }
   };
 
@@ -163,6 +183,7 @@
 
   function begin(name) {
     other = null;
+    exampleRun = false;
     otherName = name;
     swapped = false;
     guessed = false;
@@ -287,7 +308,11 @@
     exportButton.disabled = true;
     status('Comparing...');
 
-    return fetch('/api/v1/compare' + (repeat ? '?repeat=1' : ''), {
+    var query = [];
+    if (repeat) { query.push('repeat=1'); }
+    if (exampleRun) { query.push('example=1'); }
+
+    return fetch('/api/v1/compare' + (query.length ? '?' + query.join('&') : ''), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
       body: JSON.stringify({ previous: pair.previous, current: pair.current })
@@ -332,7 +357,9 @@
     };
     var total = counts.edited + counts.moved + counts.links + counts.critical;
 
-    status(total === 0 && !report.start && !report.finish ? 'These two files hold the same plan.' : '');
+    var unrelated = typeof report.overlap === 'number' && report.overlap < 1 / 3;
+    status(total === 0 && !report.start && !report.finish ? 'These two files hold the same plan.'
+      : unrelated ? 'These files share few tasks with the same ID and name, so they may not be versions of one plan. Read the report with care.' : '');
     ui.note.textContent = NOTE + (/\.xer$/i.test(currentName) || /\.xer$/i.test(otherName) ? XER_NOTE : '');
 
     renderSummary();

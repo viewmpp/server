@@ -28,6 +28,19 @@ type stubForm struct {
 	FieldErrors map[string]string
 }
 
+type stubMove struct {
+	Name string
+	Days int64
+}
+
+type stubComparison struct {
+	Pair, FinishOld, FinishNew    string
+	FinishDays                    int64
+	Added, Removed, Entered, Left []string
+	Edited, Links, MovedCount     int
+	Moved                         []stubMove
+}
+
 func projects() []stubProject {
 	return []stubProject{{PublicID: "abc123", FileName: "plan.mpp", Access: "public", CreatedAt: time.Now()}}
 }
@@ -68,6 +81,7 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		"signup": pages.Signup, "verify": pages.Verify, "forgot": pages.Forgot,
 		"reset": pages.Reset, "unlock": pages.Unlock, "mac": pages.Mac,
 		"without-project": pages.WithoutProject,
+		"comparison":      pages.Comparison,
 	}
 
 	for name, tmpl := range templates {
@@ -81,6 +95,9 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 					page.Form = examples.All()
 				case "convert", "projects":
 					page.Form = projects()
+				case "comparison":
+					page.Form = stubComparison{Pair: `{"previous":{}}`, FinishOld: "12 Jun 2026", FinishNew: "19 Jun 2026", FinishDays: 7,
+						Added: []string{"Asbestos re-inspection"}, Moved: []stubMove{{Name: "Snagging", Days: 7}}}
 				default:
 					page.Form = form
 				}
@@ -216,5 +233,44 @@ func TestThePricingPageSellsOnlyOncePaymentsAreOffered(t *testing.T) {
 	pro := renderState(t, pages.Pricing, Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true})
 	if strings.Contains(pro, `action="/billing/checkout"`) {
 		t.Error("a Pro user is offered a second purchase on the pricing page")
+	}
+}
+
+func TestNoDialogLivesInsideTheHiddenViewer(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	body := renderState(t, pages.Comparison, Page{Form: stubComparison{Pair: "{}"}})
+
+	start := strings.Index(body, `id="app"`)
+	if start < 0 {
+		t.Fatal("no viewer on the page")
+	}
+	open := strings.LastIndex(body[:start], "<div")
+
+	depth, end := 0, -1
+	for i := open; i < len(body); i++ {
+		switch {
+		case strings.HasPrefix(body[i:], "<div"):
+			depth++
+		case strings.HasPrefix(body[i:], "</div>"):
+			depth--
+			if depth == 0 {
+				end = i
+			}
+		}
+		if end >= 0 {
+			break
+		}
+	}
+	if end < 0 {
+		t.Fatal("the viewer is never closed")
+	}
+
+	if inside := strings.Count(body[open:end], "<dialog"); inside != 0 {
+		t.Errorf("%d dialogs sit inside #app: while the viewer is hidden, a modal inside it opens and stays invisible", inside)
+	}
+	if strings.Count(body, "<dialog") < 5 {
+		t.Error("the dialogs are gone from the page altogether")
 	}
 }

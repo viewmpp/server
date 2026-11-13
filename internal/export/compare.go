@@ -33,20 +33,33 @@ type comparison struct {
 	Current  json.RawMessage `json:"current"`
 }
 
+type comparisonReport struct {
+	diff.Report
+	Overlap float64 `json:"overlap"`
+}
+
 func (h *Handler) Compare(w http.ResponseWriter, r *http.Request) {
 	previous, current, ok := h.readComparison(w, r, "compare-ip:")
 	if !ok {
 		return
 	}
 
-	report := diff.Compare(previous, current)
+	report := comparisonReport{
+		Report:  diff.Compare(previous, current),
+		Overlap: diff.Overlap(previous, current),
+	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusOK, report, nil); err != nil {
 		jsonutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
-	if r.URL.Query().Get("repeat") != "1" {
+	query := r.URL.Query()
+	switch {
+	case query.Get("repeat") == "1":
+	case query.Get("example") == "1":
+		h.counts.Count(events.CompareExample)
+	default:
 		h.counts.Count(events.CompareRun)
 	}
 }

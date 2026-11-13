@@ -34,6 +34,7 @@ type Pages struct {
 	Mac            *template.Template
 	XER            *template.Template
 	XML            *template.Template
+	Comparison     *template.Template
 }
 
 type Emails struct {
@@ -157,6 +158,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	comparison, err := parsePage("schedule-comparison.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := parsePage("account.tmpl")
 	if err != nil {
 		return nil, err
@@ -191,6 +197,7 @@ func NewPages() (*Pages, error) {
 		Mac:            mac,
 		XER:            xer,
 		XML:            xml,
+		Comparison:     comparison,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

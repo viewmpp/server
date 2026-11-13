@@ -196,3 +196,67 @@ func TestComparisonsAreRateLimited(t *testing.T) {
 		t.Errorf("second comparison got %d, want 429", rec.Code)
 	}
 }
+
+func compareWithQuery(t *testing.T, h *Handler, query string, body []byte) *httptest.ResponseRecorder {
+	t.Helper()
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/compare"+query, bytes.NewReader(body))
+	r = clientip.SetContext(r, "203.0.113.5")
+	rec := httptest.NewRecorder()
+	h.Compare(rec, r)
+	return rec
+}
+
+func TestTheSamplePairIsCountedApartFromRealComparisons(t *testing.T) {
+	counts := tally{}
+	h := newCountingHandler(t, 100, counts)
+
+	if rec := compareWithQuery(t, h, "?example=1", versions(t)); rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200", rec.Code)
+	}
+	compareWithQuery(t, h, "?example=1&repeat=1", versions(t))
+
+	if counts[events.CompareRun] != 0 {
+		t.Errorf("compare_run = %d after opening the sample pair, want 0: a sample is not a schedule someone compared", counts[events.CompareRun])
+	}
+	if counts[events.CompareExample] != 1 {
+		t.Errorf("compare_example = %d, want 1: swapping the sample is not a second look", counts[events.CompareExample])
+	}
+}
+
+func TestTheReportSaysHowMuchTheTwoPlansShare(t *testing.T) {
+	rec := comparePlans(t, newCountingHandler(t, 100, tally{}), versions(t))
+
+	var report struct {
+		Overlap *float64 `json:"overlap"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	if report.Overlap == nil || *report.Overlap < 0.9 || *report.Overlap > 1 {
+		t.Errorf("overlap = %v, want two versions of one plan to share almost every task", report.Overlap)
+	}
+
+	read := func(name string) json.RawMessage {
+		raw, err := os.ReadFile(filepath.Join("..", "examples", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return raw
+	}
+	unrelated, err := json.Marshal(map[string]json.RawMessage{
+		"previous": read("viaduct.json"),
+		"current":  read("office-fit-out.json"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec = comparePlans(t, newCountingHandler(t, 100, tally{}), unrelated)
+	if err := json.Unmarshal(rec.Body.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	if report.Overlap == nil || *report.Overlap >= 1.0/3 {
+		t.Errorf("overlap = %v for two unrelated plans, want under a third so the page warns", report.Overlap)
+	}
+}

@@ -54,6 +54,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /open-mpp-file-on-mac", s.viewerHandler.MacPage)
 	mux.HandleFunc("GET /open-xer-file-without-primavera", s.viewerHandler.XERPage)
 	mux.HandleFunc("GET /open-microsoft-project-xml", s.viewerHandler.XMLPage)
+	mux.HandleFunc("GET /schedule-comparison", s.viewerHandler.ComparisonPage)
 	mux.HandleFunc("GET /mpp-viewer-mac", s.moved("/open-mpp-file-on-mac"))
 
 	mux.HandleFunc("GET /share-a-project-plan", s.viewerHandler.SharePage)
