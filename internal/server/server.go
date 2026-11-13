@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"server/internal/billing"
 	"server/internal/clientip"
 	"server/internal/config"
 	"server/internal/diagnostics"
@@ -83,6 +84,7 @@ type Handlers struct {
 	exportHandler  *export.Handler
 	projectHandler *project.Handler
 	userHandler    *user.Handler
+	billingHandler *billing.Handler
 }
 
 func NewHandlers(
@@ -91,6 +93,7 @@ func NewHandlers(
 	exportHandler *export.Handler,
 	projectHandler *project.Handler,
 	userHandler *user.Handler,
+	billingHandler *billing.Handler,
 ) Handlers {
 	return Handlers{
 		viewerHandler:  viewerHandler,
@@ -98,6 +101,7 @@ func NewHandlers(
 		exportHandler:  exportHandler,
 		projectHandler: projectHandler,
 		userHandler:    userHandler,
+		billingHandler: billingHandler,
 	}
 }
 

@@ -39,6 +39,13 @@ type Page struct {
 	UserEmail         string
 	Verified          bool
 	Pro               bool
+	Billing           bool
+	TrialOpen         bool
+	TrialDays         int
+	PaidStatus        string
+	PaidYearly        bool
+	PaidDate          string
+	CheckoutDone      bool
 	ProjectID         string
 	ExampleName       string
 	ExampleLabel      string
@@ -129,4 +136,13 @@ func cacheControl(page Page, sess *session.Session) string {
 		return "public, max-age=300"
 	}
 	return "no-store"
+}
+
+func BackTo(r *http.Request, base string) string {
+	reference, err := url.Parse(r.Header.Get("Referer"))
+	if err != nil || reference.Scheme+"://"+reference.Host != strings.TrimSuffix(base, "/") {
+		return "/"
+	}
+
+	return reference.RequestURI()
 }

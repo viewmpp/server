@@ -1,6 +1,7 @@
 package viewer
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -19,9 +20,14 @@ type counter interface {
 	Count(name events.Name)
 }
 
+type trials interface {
+	TrialOpen(ctx context.Context, userID int64) (bool, error)
+}
+
 type Handler struct {
 	templates *htmlutil.Templates
 	baseURL   string
+	trials    trials
 	counts    counter
 	logger    *slog.Logger
 }
@@ -29,12 +35,14 @@ type Handler struct {
 func NewHandler(
 	templates *htmlutil.Templates,
 	baseURL string,
+	trials trials,
 	counts counter,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
 		templates: templates,
 		baseURL:   strings.TrimSuffix(baseURL, "/"),
+		trials:    trials,
 		counts:    counts,
 		logger:    logger,
 	}
@@ -150,13 +158,28 @@ func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) PricingPage(w http.ResponseWriter, r *http.Request) {
-	h.landing(w, r, "/pricing", h.templates.Pricing)
+	page := user.NewPage(r, nil)
+
+	u := user.GetUserContext(r)
+	if page.Billing && !u.IsAnonymous() && !page.Pro && h.trials != nil {
+		open, err := h.trials.TrialOpen(r.Context(), u.ID)
+		if err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+		page.TrialOpen = open
+	}
+
+	h.landingPage(w, r, "/pricing", h.templates.Pricing, page)
 }
 
 func (h *Handler) landing(w http.ResponseWriter, r *http.Request, slug string, tmpl *template.Template) {
+	h.landingPage(w, r, slug, tmpl, user.NewPage(r, nil))
+}
+
+func (h *Handler) landingPage(w http.ResponseWriter, r *http.Request, slug string, tmpl *template.Template, page htmlutil.Page) {
 	c := landing.BySlug(slug)
 
-	page := user.NewPage(r, nil)
 	page.Description = c.Description
 	page.Canonical = h.baseURL + c.Slug
 	page.Slug = c.Slug

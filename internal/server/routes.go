@@ -5,6 +5,10 @@ import (
 )
 
 func (s *Server) routes() http.Handler {
+	return s.securityHeaders(s.logRequest(s.recoverPanic(s.top())))
+}
+
+func (s *Server) top() *http.ServeMux {
 	top := http.NewServeMux()
 
 	top.Handle("GET /static/", s.static())
@@ -14,9 +18,13 @@ func (s *Server) routes() http.Handler {
 	top.HandleFunc("GET /sitemap.xml", s.sitemap)
 	top.HandleFunc("GET /llms.txt", s.llms)
 
+	if s.billingHandler != nil {
+		top.HandleFunc("POST /webhooks/lemonsqueezy", s.billingHandler.Webhook)
+	}
+
 	top.Handle("/", s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
 
-	return s.securityHeaders(s.logRequest(s.recoverPanic(top)))
+	return top
 }
 
 func (s *Server) mux() *http.ServeMux {
@@ -84,6 +92,11 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("POST /account/delete", s.requireAuthUser(s.userHandler.DeleteAccount))
 
 	mux.HandleFunc("POST /subscribe", s.requireAuthUser(s.userHandler.Subscribe))
+
+	if s.billingHandler != nil {
+		mux.HandleFunc("POST /billing/checkout", s.requireAuthUser(s.billingHandler.Checkout))
+		mux.HandleFunc("GET /billing/portal", s.requireAuthUser(s.billingHandler.Portal))
+	}
 
 	mux.HandleFunc("/", s.notFound)
 

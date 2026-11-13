@@ -1,0 +1,28 @@
+{{define "buy"}}
+<div class="buy">
+  {{if not .UserEmail}}
+    <a class="btn btn--sm btn--primary btn--inline" href="/signup">Start a {{.TrialDays}}-day free trial</a>
+    <span class="buy__note">No card needed. It ends by itself.</span>
+  {{else if not .Verified}}
+    <a class="btn btn--sm btn--primary btn--inline" href="/verify">Confirm your email to start</a>
+  {{else}}
+    {{if .TrialOpen}}
+      <form action="/subscribe" method="POST">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button class="btn btn--sm btn--primary btn--inline" type="submit">Start a {{.TrialDays}}-day free trial</button>
+      </form>
+    {{end}}
+    <form action="/billing/checkout" method="POST">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <input type="hidden" name="plan" value="monthly">
+      <button class="btn btn--sm btn--inline{{if not .TrialOpen}} btn--primary{{end}}" type="submit">$6.99 / month</button>
+    </form>
+    <form action="/billing/checkout" method="POST">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <input type="hidden" name="plan" value="yearly">
+      <button class="btn btn--sm btn--inline" type="submit">$59 / year</button>
+    </form>
+    {{if .TrialOpen}}<span class="buy__note">The trial needs no card and ends by itself.</span>{{end}}
+  {{end}}
+</div>
+{{end}}

@@ -51,6 +51,12 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		{"updated link", Page{ProjectID: "abc123", Access: "public", PreviousFileName: "plan rev13.mpp", UpdatedOn: "12 Nov 2026", UpdatedAt: "2026-11-12T21:20:59Z"}},
 		{"example page", Page{ExampleName: "viaduct", ExampleLabel: "Viaduct", FileName: "виадук.mpp"}},
 		{"with flash", Page{UserEmail: "a@b.c", Flash: "done", SavedNote: "20 of 20"}},
+		{"billing, anonymous", Page{Billing: true, TrialDays: 7}},
+		{"billing, trial open", Page{UserEmail: "a@b.c", Verified: true, Billing: true, TrialOpen: true, TrialDays: 7}},
+		{"billing, on trial", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, TrialDays: 7, ProUntil: "20 Nov 2026", ProWarning: "ends in 7 days"}},
+		{"billing, paid", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, PaidStatus: "active", PaidDate: "13 Dec 2026", CheckoutDone: true}},
+		{"billing, cancelled", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, PaidStatus: "cancelled", PaidYearly: true, PaidDate: "13 Nov 2027"}},
+		{"billing, past due", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, PaidStatus: "past_due"}},
 	}
 
 	templates := map[string]*template.Template{
@@ -127,5 +133,88 @@ func TestOnlyPagesWithoutAFormAreCachedPublicly(t *testing.T) {
 
 	if got := cacheControl(Page{Public: true}, withForm); got != "no-store" {
 		t.Errorf("cache-control = %q for a page carrying a csrf token: a shared cache would hand one token to every visitor", got)
+	}
+}
+
+func renderState(t *testing.T, tmpl *template.Template, page Page) string {
+	t.Helper()
+	page.sess = &session.Session{}
+	if page.Form == nil {
+		page.Form = stubForm{}
+	}
+	var buf bytes.Buffer
+	assert.NilError(t, tmpl.ExecuteTemplate(&buf, "base", page))
+	return buf.String()
+}
+
+func TestEachAccountStateOffersTheRightAction(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	const (
+		trial    = `action="/subscribe"`
+		checkout = `action="/billing/checkout"`
+		portal   = `href="/billing/portal"`
+	)
+
+	tests := []struct {
+		name    string
+		page    Page
+		want    []string
+		without []string
+	}{
+		{"before launch, free", Page{UserEmail: "a@b.c", Verified: true},
+			[]string{trial, "Upgrade to Pro"}, []string{checkout, portal}},
+		{"trial still open", Page{UserEmail: "a@b.c", Verified: true, Billing: true, TrialOpen: true, TrialDays: 7},
+			[]string{trial, "Start a 7-day free trial", checkout, `value="monthly"`, `value="yearly"`}, []string{portal}},
+		{"trial used up", Page{UserEmail: "a@b.c", Verified: true, Billing: true, TrialDays: 7},
+			[]string{checkout}, []string{trial, portal}},
+		{"on trial", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, ProUntil: "20 Nov 2026"},
+			[]string{checkout, "free until 20 Nov 2026"}, []string{trial, portal}},
+		{"paying", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, PaidStatus: "active", PaidDate: "13 Dec 2026"},
+			[]string{portal, "monthly, renews 13 Dec 2026"}, []string{trial, checkout}},
+		{"cancelled", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, PaidStatus: "cancelled", PaidDate: "13 Dec 2026"},
+			[]string{portal, "Pro stays until 13 Dec 2026"}, []string{checkout}},
+		{"unconfirmed email", Page{UserEmail: "a@b.c", Billing: true, TrialDays: 7},
+			[]string{`href="/verify"`}, []string{checkout}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := renderState(t, pages.Account, tt.page)
+			for _, s := range tt.want {
+				if !strings.Contains(body, s) {
+					t.Errorf("missing %s", s)
+				}
+			}
+			for _, s := range tt.without {
+				if strings.Contains(body, s) {
+					t.Errorf("offers %s, which this state must not see", s)
+				}
+			}
+		})
+	}
+}
+
+func TestThePricingPageSellsOnlyOncePaymentsAreOffered(t *testing.T) {
+	pages, err := NewPages()
+	assert.NilError(t, err)
+
+	before := renderState(t, pages.Pricing, Page{UserEmail: "a@b.c", Verified: true})
+	if strings.Contains(before, `action="/billing/checkout"`) || strings.Contains(before, "free trial") {
+		t.Error("the pricing page sells Pro before payments are offered")
+	}
+	if strings.Contains(before, "plans__was") {
+		t.Error("a struck-through price that was never charged is back on the page")
+	}
+
+	anonymous := renderState(t, pages.Pricing, Page{Billing: true, TrialDays: 7})
+	if !strings.Contains(anonymous, `href="/signup">Start a 7-day free trial`) {
+		t.Error("a visitor is not invited to start the trial")
+	}
+
+	pro := renderState(t, pages.Pricing, Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true})
+	if strings.Contains(pro, `action="/billing/checkout"`) {
+		t.Error("a Pro user is offered a second purchase on the pricing page")
 	}
 }

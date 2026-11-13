@@ -94,10 +94,14 @@ r.setAttribute('data-gantt-theme',m==='dark'?'dark':'terrace');}catch(e){}})();
             </form>
             <hr class="menu__sep">
           {{else if not .Pro}}
-            <form action="/subscribe" method="POST">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-              <button class="menu__item menu__item--pro" type="submit">Upgrade to Pro</button>
-            </form>
+            {{if .Billing}}
+              <a class="menu__item menu__item--pro" href="/pricing">Upgrade to Pro</a>
+            {{else}}
+              <form action="/subscribe" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <button class="menu__item menu__item--pro" type="submit">Upgrade to Pro</button>
+              </form>
+            {{end}}
             <hr class="menu__sep">
           {{end}}
 

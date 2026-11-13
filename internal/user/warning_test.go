@@ -39,3 +39,18 @@ func TestProWarning(t *testing.T) {
 		})
 	}
 }
+
+func TestASubscriptionThatRenewsIsNotWarnedAbout(t *testing.T) {
+	now := time.Date(2026, 3, 14, 9, 0, 0, 0, time.UTC)
+	until := now.Add(3 * 24 * time.Hour)
+
+	renewing := &User{Verified: true, Subscription: SubscriptionPro, SubscriptionUntil: &until, Renews: true}
+	if got := proWarning(renewing, now); got != "" {
+		t.Errorf("proWarning() = %q for a subscription that renews by itself", got)
+	}
+
+	renewing.Renews = false
+	if got := proWarning(renewing, now); got == "" {
+		t.Error("a cancelled subscription about to end got no warning")
+	}
+}

@@ -3,9 +3,9 @@ package user
 import (
 	"errors"
 	"net/http"
-	"net/url"
+	"server/internal/events"
 	"server/internal/htmlutil"
-	"strings"
+	"server/internal/session"
 	"time"
 )
 
@@ -30,6 +30,11 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.offered(u.ID) {
+		h.startTrial(w, r, sess, u, back)
+		return
+	}
+
 	until := time.Now().Add(h.earlyAccessPeriod)
 
 	seat, err := h.store.GrantSubscription(r.Context(), u.ID, &until, h.earlyAccessSeats)
@@ -50,11 +55,31 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, back, http.StatusSeeOther)
 }
 
-func (h *Handler) backTo(r *http.Request) string {
-	reference, err := url.Parse(r.Header.Get("Referer"))
-	if err != nil || reference.Scheme+"://"+reference.Host != strings.TrimSuffix(h.baseURL, "/") {
-		return "/"
+func (h *Handler) startTrial(w http.ResponseWriter, r *http.Request, sess *session.Session, u *User, back string) {
+	until := time.Now().Add(h.trialPeriod)
+
+	err := h.store.StartTrial(r.Context(), u.ID, until)
+	switch {
+	case errors.Is(err, ErrTrialUsed):
+		sess.Put("flash", MsgTrialUsed)
+		http.Redirect(w, r, "/pricing", http.StatusSeeOther)
+		return
+	case errors.Is(err, ErrEditConflict):
+		http.Redirect(w, r, back, http.StatusSeeOther)
+		return
+	case err != nil:
+		htmlutil.ServerErrorResponse(w, r, err, h.logger)
+		return
 	}
 
-	return reference.RequestURI()
+	h.counts.Count(events.TrialStart)
+	h.logger.Info("trial started", "user_id", u.ID, "until", until)
+
+	sess.Put("flash", MsgTrialStarted(h.trialPeriod, until))
+
+	http.Redirect(w, r, back, http.StatusSeeOther)
+}
+
+func (h *Handler) backTo(r *http.Request) string {
+	return htmlutil.BackTo(r, h.baseURL)
 }

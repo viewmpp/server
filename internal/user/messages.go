@@ -39,6 +39,16 @@ func MsgEarlyAccessGranted(seat int, until time.Time) string {
 		seat, until.Format("2 January 2006"))
 }
 
+const (
+	MsgTrialUsed    = "You have already used your free trial. Choose a plan below to keep Pro."
+	MsgCancelFailed = "Your subscription could not be cancelled with our payment provider, so the account was not deleted. Try again in a few minutes"
+)
+
+func MsgTrialStarted(period time.Duration, until time.Time) string {
+	return fmt.Sprintf("Your %d-day Pro trial is on. It runs until %s and ends by itself - nothing is charged.",
+		TrialDays(period), until.Format("2 January 2006"))
+}
+
 func MsgLinkLife(d time.Duration) string {
 	if d < time.Hour {
 		return fmt.Sprintf("%d minutes", int(d.Minutes()))

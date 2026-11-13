@@ -40,6 +40,7 @@ type Emails struct {
 	Verification  *template.Template
 	AccountExists *template.Template
 	PasswordReset *template.Template
+	TrialEnding   *template.Template
 }
 
 type Errors struct {
@@ -212,10 +213,16 @@ func NewEmails() (*Emails, error) {
 		return nil, err
 	}
 
+	trialEnding, err := parseEmail("email_trial_ending.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Emails{
 		Verification:  verification,
 		AccountExists: accExists,
 		PasswordReset: passwordReset,
+		TrialEnding:   trialEnding,
 	}, nil
 }
 
@@ -252,6 +259,7 @@ func parsePage(name string) (*template.Template, error) {
 	return template.New(name).Funcs(funcs).ParseFS(ui.Files,
 		"templates/base.tmpl",
 		"templates/partials/viewer.tmpl",
+		"templates/partials/billing.tmpl",
 		"templates/partials/footer.tmpl",
 		"templates/partials/crumbs.tmpl",
 		fmt.Sprintf("templates/pages/%s", name))

@@ -46,6 +46,13 @@ func (h *Handler) AccountPage(w http.ResponseWriter, r *http.Request) {
 		page.ProUntil = u.SubscriptionUntil.Format("2 Jan 2006")
 	}
 
+	if h.offered(u.ID) {
+		if err = h.describePlan(r, u, &page); err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+	}
+
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Account, page, h.logger)
 }
 
@@ -153,6 +160,14 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.billing != nil {
+		if err = h.billing.Cancel(r.Context(), u.ID); err != nil {
+			h.logger.Error("subscription not cancelled, account kept", "user_id", u.ID, "err", err)
+			h.accountError(w, r, "confirm", MsgCancelFailed)
+			return
+		}
+	}
+
 	if err = h.store.Delete(r.Context(), u.ID); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
@@ -177,4 +192,28 @@ func (h *Handler) accountError(w http.ResponseWriter, r *http.Request, field, me
 	sess.Put(accountErrorMessage, message)
 
 	http.Redirect(w, r, "/account", http.StatusSeeOther)
+}
+
+func (h *Handler) describePlan(r *http.Request, u *User, page *htmlutil.Page) error {
+	page.CheckoutDone = r.URL.Query().Get("checkout") == "done"
+
+	plan, err := h.billing.Plan(r.Context(), u.ID)
+	if err != nil {
+		return err
+	}
+	if plan != nil {
+		page.PaidStatus = plan.Status
+		page.PaidYearly = plan.Yearly
+		if plan.PeriodEnd != nil {
+			page.PaidDate = plan.PeriodEnd.Format("2 Jan 2006")
+		}
+		return nil
+	}
+
+	if page.Pro {
+		return nil
+	}
+
+	page.TrialOpen, err = h.store.TrialOpen(r.Context(), u.ID)
+	return err
 }

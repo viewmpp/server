@@ -33,6 +33,8 @@
     <tr><td>Previous version of a saved plan</td><td>Showing what changed when you upload a new version to the same link</td><td>Until you upload the next version or delete the plan</td></tr>
     <tr><td>Sharing password</td><td>Protecting a shared link</td><td>Stored as a bcrypt hash; removed when sharing stops</td></tr>
     <tr><td>Subscription state</td><td>Access to paid features</td><td>Until the account is deleted</td></tr>
+    <tr><td>Free trial record: when it started and ends, and whether the reminder was sent</td><td>Giving the trial once per account and sending one reminder before it ends</td><td>Until the account is deleted</td></tr>
+    <tr><td>Paid subscription record: the Lemon Squeezy subscription and customer numbers, monthly or yearly, status and renewal date</td><td>Turning Pro on and off as payments happen, and opening subscription management</td><td>Until the account is deleted</td></tr>
   </table>
 
   <h2>Cookies and local storage</h2>
@@ -73,7 +75,16 @@
   <h2>Who else sees the data</h2>
   <p>
     Email is delivered by <strong>Resend</strong>, which receives your address and the message
-    text in order to send it. No other third party receives anything.
+    text in order to send it.
+  </p>
+  <p>
+    Payments are handled by <strong>Lemon Squeezy</strong>, our reseller and merchant of record.
+    When you choose a paid plan, we pass them your email address and your account number so the
+    payment can be matched to your account; on their checkout page you give them your card and
+    billing details, which they process under their own
+    <a href="https://www.lemonsqueezy.com/privacy" rel="noopener">privacy policy</a>. They send
+    us back the subscription status and dates - never your card details. No other third party
+    receives anything.
   </p>
   <p>
     A public or password-protected link is readable by anyone who has it. That is what sharing

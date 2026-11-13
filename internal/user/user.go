@@ -48,6 +48,7 @@ type User struct {
 	SubscriptionUntil *time.Time `json:"subscription_until"`
 	CreatedAt         time.Time  `json:"created_at"`
 	Version           int        `json:"version"`
+	Renews            bool       `json:"-"`
 }
 
 func (u *User) IsAnonymous() bool {
@@ -85,7 +86,7 @@ func (u *User) CanSave(saved int) bool {
 const proWarningWindow = 7 * 24 * time.Hour
 
 func proWarning(u *User, now time.Time) string {
-	if !u.hasSubscriptionAt(now) || u.SubscriptionUntil == nil {
+	if !u.hasSubscriptionAt(now) || u.SubscriptionUntil == nil || u.Renews {
 		return ""
 	}
 
@@ -316,6 +317,13 @@ func (s *Store) GrantSubscription(ctx context.Context, userID int64, until *time
 		WHERE id = $3`, SubscriptionPro, until, userID); err != nil {
 		return 0, err
 	}
+	if until != nil {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO trials (user_id, ends_at) VALUES ($1, $2)
+			ON CONFLICT (user_id) DO UPDATE SET ends_at = EXCLUDED.ends_at, reminded_at = NULL`, userID, *until); err != nil {
+			return 0, err
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -396,7 +404,8 @@ func (s *Store) GetByEmail(ctx context.Context, email string) (*User, error) {
 
 func (s *Store) GetByID(ctx context.Context, id int64) (*User, error) {
 	query :=
-		`SELECT id, email, password_hash, verified, subscription, subscription_until, created_at, version
+		`SELECT id, email, password_hash, verified, subscription, subscription_until, created_at, version,
+		       EXISTS (SELECT 1 FROM billing_subscriptions b WHERE b.user_id = users.id AND b.status IN ('active', 'on_trial'))
 		FROM users WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -413,6 +422,7 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*User, error) {
 		&user.SubscriptionUntil,
 		&user.CreatedAt,
 		&user.Version,
+		&user.Renews,
 	)
 
 	if err != nil {

@@ -233,6 +233,13 @@ untrusted binary input, so it is the one that gets nothing worth stealing.
 | `RESEND_SENDER` | `noreply@viewmpp.com` | The domain must be verified in Resend first |
 | `SECRET_KEY` | 32+ random characters | Signs every csrf token. The process refuses to start in prod without it |
 | `EARLY_ACCESS_SEATS` | `100` | `0` closes early access |
+| `LEMONSQUEEZY_API_KEY` | | Test or live key; it must match `LEMONSQUEEZY_TEST_MODE`. Billing is on only with all five `LEMONSQUEEZY_` values set; a partial set stops the process at start |
+| `LEMONSQUEEZY_WEBHOOK_SECRET` | | The signing secret of the webhook pointed at `https://viewmpp.com/webhooks/lemonsqueezy` |
+| `LEMONSQUEEZY_STORE_ID` | | Events from any other store are acknowledged and ignored |
+| `LEMONSQUEEZY_VARIANT_MONTHLY` / `_YEARLY` | `2370696` / `2370717` | Events for any other variant are acknowledged and ignored |
+| `LEMONSQUEEZY_TEST_MODE` | `true` until launch | `true` creates test checkouts and accepts only test events; `false` the reverse |
+| `LEMONSQUEEZY_TEST_USERS` | your test account ids, comma separated | Only these accounts see the trial and the payment buttons while `LEMONSQUEEZY_TEST_MODE=true`; everyone else keeps early access. Ignored once live |
+| `TRIAL_PERIOD` | unset | Defaults to `168h`. The length of the free trial once payments are offered |
 | `DIAGNOSTIC_SERVER_ADDRESS` | unset | Defaults to `127.0.0.1:6060`. Must stay on loopback in prod, and off 4000, 5432 and 8080 |
 | `LOG_LEVEL` | unset | Defaults to `info`. `debug` adds a line per request |
 
@@ -260,6 +267,61 @@ ordinary campaign data. Seat claims lock it before counting active subscribers
 and granting Pro. Save and share transactions instead lock the owner row before
 counting, with access changes locking the project row second. Deleting the
 campaign row makes seat claims fail closed.
+
+Payments
+--------
+
+Pro is sold through Lemon Squeezy. Everything is off until all five
+`LEMONSQUEEZY_` values are in `.env`; with them missing, the site behaves as
+before payments existed.
+
+### Test phase
+
+1. In Lemon Squeezy test mode, create an API key and a webhook pointed at
+   `https://viewmpp.com/webhooks/lemonsqueezy` with every `subscription_*`
+   event. Its signing secret is `LEMONSQUEEZY_WEBHOOK_SECRET`.
+2. Put the test key, the secret, the store id, both variant ids,
+   `LEMONSQUEEZY_TEST_MODE=true` and your own account ids (`SELECT id FROM users WHERE email = ...`) in
+   `LEMONSQUEEZY_TEST_USERS` into `.env`, then `up -d`. The log says
+   `billing on test_mode=true`.
+3. Only the listed accounts see the trial and the payment buttons. Pay with the
+   test card `4242 4242 4242 4242`, any future date, any CVC. An account that
+   already had early access has used its trial: test the trial on a new one.
+4. Check after each step: the account page, `billing:` counts in `/events`, and
+   `billing webhook` lines in `docker compose logs server`.
+
+### Going live
+
+1. Create the live API key and a live webhook (same URL, same events). Test and
+   live webhooks have different secrets.
+2. Remove what the test purchases left behind. Test subscriptions are already
+   ignored once live, but the Pro they granted to the test accounts stays until
+   its date:
+
+   ```sql
+   UPDATE users SET subscription_until = now()
+   WHERE id IN (SELECT user_id FROM billing_subscriptions WHERE test_mode);
+   DELETE FROM billing_subscriptions WHERE test_mode;
+   ```
+
+3. Put the live key and secret in `.env`, set `LEMONSQUEEZY_TEST_MODE=false`,
+   then `up -d`. The log says `billing on test_mode=false`. From now on every
+   visitor sees the trial and the payment buttons, and early access stops.
+
+### What the code relies on
+
+- The webhook is the only thing that changes a paid plan. It is checked by its
+  `X-Signature`; an event for another store, another variant or the other mode
+  is answered 200 and ignored. A failure is answered with an error so Lemon
+  Squeezy retries it.
+- Every checkout carries the site it was made on (`BASE_URL`), and the webhook
+  ignores a checkout made elsewhere. There is one webhook and it points at
+  production, so a test purchase from a laptop arrives there with a local
+  account id that belongs to someone else in production.
+- Deleting an account cancels its subscription first. If Lemon Squeezy cannot
+  be reached, the account is not deleted and the user is asked to try again.
+- The trial reminder runs hourly and claims a row before sending, so a failure
+  loses that one email rather than sending it twice.
 
 Backups
 -------

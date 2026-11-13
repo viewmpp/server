@@ -365,7 +365,7 @@
     <div class="wish__body">
       <h2 class="wish__title" id="compare-gate-title">The change report is part of Pro</h2>
       <p class="wish__text">Download every change as an Excel workbook to send on: what was added, removed and edited, what moved and by how much, and how the critical path changed.</p>
-      <p class="wish__text">Pro is free during early access{{if and .UserEmail (not .Verified)}} - confirm your email address first, then turn it on from your account{{end}}.</p>
+      <p class="wish__text">{{if .Billing}}Try Pro free for {{.TrialDays}} days, no card needed{{else}}Pro is free during early access{{end}}{{if and .UserEmail (not .Verified)}} - confirm your email address first, then turn it on from your account{{end}}.</p>
       <div class="wish__actions compare-gate__actions">
         <form method="dialog">
           <button class="btn btn--sm" type="submit">Not now</button>
@@ -375,7 +375,7 @@
         {{else if .UserEmail}}
           <form action="/subscribe" method="POST" target="_blank">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <button class="btn btn--sm btn--primary btn--inline" type="submit">Turn on Pro</button>
+            <button class="btn btn--sm btn--primary btn--inline" type="submit">{{if .Billing}}Start free trial{{else}}Turn on Pro{{end}}</button>
           </form>
         {{else}}
           <a class="btn btn--sm btn--primary btn--inline" href="/signup" target="_blank" rel="noopener">Create a free account</a>

@@ -19,6 +19,7 @@ type Config struct {
 	Background
 	Session
 	Reset
+	Billing
 }
 
 func Load() Config {
@@ -37,15 +38,21 @@ func Load() Config {
 	cfg.loadBackground()
 	cfg.loadSession()
 	cfg.loadReset()
+	cfg.loadBilling()
 
 	flag.Parse()
 
 	cfg.fillSecretKey()
+	cfg.fillBilling()
 
 	return cfg
 }
 
 func (cfg *Config) Validate() error {
+	if err := cfg.Billing.validate(); err != nil {
+		return err
+	}
+
 	switch {
 	case cfg.AppEnv != "prod":
 		return nil

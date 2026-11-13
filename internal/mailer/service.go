@@ -1,5 +1,7 @@
 package mailer
 
+import "time"
+
 type CodeEmailData struct {
 	Subject string
 	Message string
@@ -75,6 +77,37 @@ func (m *Mailer) SendExistingAccount(email string) error {
 	}
 
 	text := plainText(data.Message, data.Hint, m.signature())
+
+	return m.send(data.Subject, html, text, email)
+}
+
+type TrialEndingData struct {
+	Subject string
+	Message string
+	Detail  string
+	Hint    string
+	Link    string
+	Site    string
+}
+
+func (m *Mailer) SendTrialEnding(email string, endsAt time.Time) error {
+	data := TrialEndingData{
+		Subject: "Your View MPP Pro ends " + endsAt.UTC().Format("2 January"),
+		Message: "Your free Pro on View MPP ends on " + endsAt.UTC().Format("2 January 2006, 15:04") + " UTC. " +
+			"To keep it, choose a plan: $6.99 a month or $59 a year, cancel any time.",
+		Detail: "If you do nothing, the account moves to the free plan. No plan is deleted, but password-protected links " +
+			"turn private, sharing goes back to 2 links at a time and saving stops above 20 plans.",
+		Hint: "This is the only reminder we send about it.",
+		Link: m.site + "/pricing",
+		Site: m.site,
+	}
+
+	html, err := m.renderTemplate(m.templates.TrialEnding, data)
+	if err != nil {
+		return err
+	}
+
+	text := plainText(data.Message, data.Detail, data.Link, data.Hint, m.signature())
 
 	return m.send(data.Subject, html, text, email)
 }

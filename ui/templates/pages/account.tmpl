@@ -42,13 +42,25 @@
         <span class="setting__label">Plan</span>
         <span class="setting__value">
           <span class="setting__strong">{{if .Pro}}Pro{{else}}Free{{end}}</span>
-          {{if .Pro}}
-            {{with .ProUntil}}<span class="setting__note">until {{.}}</span>{{end}}
+          {{if .PaidStatus}}
+            {{if eq .PaidStatus "cancelled"}}
+              <span class="setting__note">cancelled, Pro stays until {{.PaidDate}}</span>
+            {{else if eq .PaidStatus "past_due"}}
+              <span class="setting__note">the last payment failed and will be retried - update your card to keep Pro</span>
+            {{else}}
+              <span class="setting__note">{{if .PaidYearly}}yearly{{else}}monthly{{end}}{{with .PaidDate}}, renews {{.}}{{end}}</span>
+            {{end}}
+          {{else if .Pro}}
+            {{with .ProUntil}}<span class="setting__note">free until {{.}}</span>{{end}}
           {{else}}
             <a href="/pricing">See what Pro adds</a>
           {{end}}
         </span>
-        {{if not .Pro}}
+        {{if .PaidStatus}}
+          <a class="btn btn--sm btn--inline" href="/billing/portal">Manage subscription</a>
+        {{else if .Billing}}
+          {{template "buy" .}}
+        {{else if not .Pro}}
           <form action="/subscribe" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <button class="btn btn--sm btn--primary btn--inline" type="submit">
@@ -57,6 +69,15 @@
           </form>
         {{end}}
       </div>
+
+      {{if .CheckoutDone}}
+        <div class="setting">
+          <span class="setting__label"></span>
+          <span class="setting__value setting__note">
+            {{if .PaidStatus}}Thank you - Pro is on.{{else}}Payment received. Pro turns on as soon as Lemon Squeezy confirms it, usually within a minute - refresh this page.{{end}}
+          </span>
+        </div>
+      {{end}}
 
       <div class="setting">
         <span class="setting__label">Saved plans</span>
@@ -91,7 +112,7 @@
         <div class="setting">
           <span class="setting__label"></span>
           <span class="setting__value setting__note">
-            Password-protected links turn private when Pro ends, and renewing is one click.
+            Password-protected links turn private when Pro ends{{if $.Billing}} - choose a plan to keep them open{{else}}, and renewing is one click{{end}}.
           </span>
         </div>
       {{end}}{{end}}

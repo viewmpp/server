@@ -30,8 +30,8 @@
           <td>Free</td>
           <td>Free</td>
           <td class="plans__best">
-            <span class="plans__was">$9.99</span> <strong>$6.99</strong> / month<br>
-            <span class="plans__was">$84</span> <strong>$59</strong> / year
+            <strong>$6.99</strong> / month<br>
+            <strong>$59</strong> / year
           </td>
         </tr>
         <tr>
@@ -74,6 +74,16 @@
     </table>
   </div>
 
+  {{if .Billing}}
+    <div class="plans__buy">
+      {{if .Pro}}
+        <p class="plans__have">You have Pro. Your plan and billing are on the <a href="/account">account page</a>.</p>
+      {{else}}
+        {{template "buy" .}}
+      {{end}}
+    </div>
+  {{end}}
+
   <p class="plans__note">
     Revoking a link is free on any plan - making a project private again kills its link for
     everyone, immediately. Sharing needs a confirmed email address on any plan. A link sent from an unproven mailbox is
@@ -105,7 +115,21 @@
       <dd>They stay. The free tier keeps up to 20 saved plans and 2 live share links; going over the cap stops new saves, it never deletes an old one.</dd>
 
       <dt>What happens when Pro ends?</dt>
-      <dd>You drop back to the free tier. No plan is deleted and public links keep working, but sharing returns to 2 links at a time, saving stops above 20 plans, and <strong>any password-protected link becomes private and stops opening for the people you sent it to</strong>. Renewing is one click on the account page.</dd>
+      <dd>You drop back to the free tier. No plan is deleted and public links keep working, but sharing returns to 2 links at a time, saving stops above 20 plans, and <strong>any password-protected link becomes private and stops opening for the people you sent it to</strong>. {{if .Billing}}Subscribing again brings it all back.{{else}}Renewing is one click on the account page.{{end}}</dd>
+      {{if .Billing}}
+
+      <dt>Is there a free trial?</dt>
+      <dd>Yes - {{.TrialDays}} days of Pro, once per account, with no card. It ends by itself and nothing is charged. We send one email the day before it ends.</dd>
+
+      <dt>How do I cancel?</dt>
+      <dd>From the account page, under <strong>Manage subscription</strong>. Cancelling stops the next charge; Pro stays until the end of the period you already paid for.</dd>
+
+      <dt>Can I get a refund?</dt>
+      <dd>Yes, within 14 days of your first payment, in full - write to <a href="mailto:support@viewmpp.com">support@viewmpp.com</a>. The details are in the <a href="/terms">terms</a>.</dd>
+
+      <dt>Who handles the payment?</dt>
+      <dd>Lemon Squeezy, our reseller. They take the payment, add sales tax or VAT where it applies and send the receipt. Your card details go to them and never reach us.</dd>
+      {{end}}
     </dl>
   </section>
 </main>

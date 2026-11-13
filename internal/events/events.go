@@ -40,6 +40,9 @@ const (
 	VersionChangesOpen Name = "version_changes_open"
 	UploadForVersion   Name = "upload_for_version"
 
+	TrialStart    Name = "trial_start"
+	TrialReminder Name = "trial_reminder_sent"
+
 	WishPDF        Name = "wish_pdf"
 	WishXLSXReport Name = "wish_xlsx_report"
 	ExportAsked    Name = "export_asked"
@@ -50,6 +53,14 @@ const OtherPage = "other"
 
 func UploadFrom(page string) Name {
 	return Name("upload_from:" + page)
+}
+
+func CheckoutStart(plan string) Name {
+	return Name("checkout_start:" + plan)
+}
+
+func Billing(event string) Name {
+	return Name("billing:" + event)
 }
 
 var (

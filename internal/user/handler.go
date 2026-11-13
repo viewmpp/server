@@ -30,6 +30,9 @@ type Handler struct {
 	baseURL           string
 	earlyAccessSeats  int
 	earlyAccessPeriod time.Duration
+	trialPeriod       time.Duration
+	billing           Billing
+	counts            counter
 	templates         *htmlutil.Templates
 	wg                *sync.WaitGroup
 	logger            *slog.Logger
@@ -48,6 +51,9 @@ func NewHandler(
 	baseURL string,
 	earlyAccessSeats int,
 	earlyAccessPeriod time.Duration,
+	trialPeriod time.Duration,
+	billing Billing,
+	counts counter,
 	templates *htmlutil.Templates,
 	wg *sync.WaitGroup,
 	logger *slog.Logger,
@@ -65,8 +71,15 @@ func NewHandler(
 		baseURL:           baseURL,
 		earlyAccessSeats:  earlyAccessSeats,
 		earlyAccessPeriod: earlyAccessPeriod,
+		trialPeriod:       trialPeriod,
+		billing:           billing,
+		counts:            counts,
 		templates:         templates,
 		wg:                wg,
 		logger:            logger,
 	}
+}
+
+func (h *Handler) offered(userID int64) bool {
+	return h.billing != nil && h.billing.Offered(userID)
 }

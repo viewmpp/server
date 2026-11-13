@@ -42,7 +42,7 @@ func newCountingHandler(t *testing.T, counts tally) *Handler {
 	templates, err := htmlutil.NewTemplates()
 	assert.NilError(t, err)
 
-	return NewHandler(templates, baseURL, counts, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	return NewHandler(templates, baseURL, nil, counts, slog.New(slog.NewTextHandler(io.Discard, nil)))
 }
 
 func visit(t *testing.T, h http.HandlerFunc, path string) string {

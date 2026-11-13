@@ -35,6 +35,10 @@ Events
 | `version_uploaded` | An owner uploaded a new version to an existing link. The figure the living link bet is judged by |
 | `upload_for_version` | The file for that new version was uploaded and parsed; it is not counted as an opened plan |
 | `upload_for_compare` | A file was uploaded with `store=no` to be compared; it is not counted in `upload_ok` or `upload_from` |
+| `trial_start` | The free trial started. Counted only where payments are offered; early access grants are not counted |
+| `trial_reminder_sent` | The email the day before a trial or early access ends went out |
+| `checkout_start:<plan>` | A buyer was sent to the Lemon Squeezy checkout; `monthly` or `yearly` |
+| `billing:<event>` | A Lemon Squeezy webhook changed a subscription: `subscription_created`, `subscription_cancelled`, `subscription_expired` and the rest. Repeats and late deliveries are not counted |
 
 ### Sent by the browser
 

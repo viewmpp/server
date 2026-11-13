@@ -35,6 +35,10 @@ func NewPage(r *http.Request, form any) htmlutil.Page {
 		MaxSavedFree:      MaxSavedFree,
 		MinPasswordLength: MinPasswordLength,
 	}
+	if offer.billing != nil && offer.billing(u.ID) {
+		page.Billing = true
+		page.TrialDays = offer.trialDays
+	}
 	if !u.IsAnonymous() {
 		page.UserEmail = u.Email
 		page.Verified = u.Verified
