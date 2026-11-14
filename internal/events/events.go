@@ -16,11 +16,12 @@ const (
 	UploadTooLarge    Name = "upload_too_large"
 	UploadInterrupted Name = "upload_interrupted"
 
-	ExportXLSX     Name = "export_xlsx"
-	ExportSaved    Name = "export_saved"
-	ExportTooLarge Name = "export_too_large"
-	SaveTooLarge   Name = "save_too_large"
-	SaveLimit      Name = "save_limit"
+	ExportXLSX      Name = "export_xlsx"
+	ExportLookahead Name = "export_lookahead"
+	ExportSaved     Name = "export_saved"
+	ExportTooLarge  Name = "export_too_large"
+	SaveTooLarge    Name = "save_too_large"
+	SaveLimit       Name = "save_limit"
 
 	ShareCreated      Name = "share_created"
 	ShareOpen         Name = "share_open"
@@ -40,6 +41,8 @@ const (
 	VersionUploaded    Name = "version_uploaded"
 	VersionChangesOpen Name = "version_changes_open"
 	UploadForVersion   Name = "upload_for_version"
+
+	LookaheadOn Name = "lookahead_on"
 
 	TrialStart    Name = "trial_start"
 	TrialReminder Name = "trial_reminder_sent"
@@ -69,6 +72,7 @@ var (
 	viewers      = []string{"owner", "shared", "file", "example"}
 	purposes     = []string{"share", "import", "analyze", "print", "other"}
 	compareFroms = []string{"file", "project", "page"}
+	lookaheads   = []string{"2", "3", "6"}
 )
 
 var fromViewer = allowedFromViewer()
@@ -90,6 +94,11 @@ func allowedFromViewer() map[string]Name {
 
 	for _, from := range compareFroms {
 		name := CompareFrom + Name(":"+from)
+		allowed[string(name)] = name
+	}
+
+	for _, weeks := range lookaheads {
+		name := LookaheadOn + Name(":"+weeks)
 		allowed[string(name)] = name
 	}
 

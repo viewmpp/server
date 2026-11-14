@@ -144,6 +144,18 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 `server:local`, so a plain `up -d` reuses the existing layers and quietly keeps
 running the old binary.
 
+**When the contract gains a field, the server goes first.** The server decodes
+contracts with unknown fields refused, so a parser that already sends a new field
+to an old server breaks every upload until the server catches up. Release the
+server with the parser left as it is, then the parser:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build --no-deps server
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build parser
+```
+
+That order applies to `project.status_date`, added with the lookahead.
+
 Migrations run on the way up, and the server waits for them. Deploys are not
 zero-downtime: `stop_grace_period: 40s` gives the old container room to finish
 any verification email already in flight before Docker escalates to SIGKILL.

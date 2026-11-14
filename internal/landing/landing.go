@@ -14,12 +14,12 @@ const (
 	GroupConvert Group = "convert"
 	GroupView    Group = "view"
 	GroupFormat  Group = "format"
-	GroupCompare Group = "compare"
+	GroupTools   Group = "tools"
 	GroupProduct Group = "product"
 	GroupLegal   Group = "legal"
 )
 
-var groupOrder = []Group{GroupConvert, GroupView, GroupCompare, GroupFormat, GroupProduct}
+var groupOrder = []Group{GroupConvert, GroupView, GroupTools, GroupFormat, GroupProduct}
 
 var pages = []Page{
 	{
@@ -83,10 +83,17 @@ var pages = []Page{
 	},
 	{
 		Slug:        "/schedule-comparison",
-		Group:       GroupCompare,
+		Group:       GroupTools,
 		Label:       "Schedule comparison",
 		Tool:        true,
 		Description: "Compare two versions of an MS Project .mpp or Primavera .xer schedule in your browser: what moved, what was added or removed, which links and critical tasks changed.",
+	},
+	{
+		Slug:        "/lookahead-schedule",
+		Group:       GroupTools,
+		Label:       "Lookahead schedule",
+		Tool:        true,
+		Description: "Turn an MS Project or Primavera P6 schedule into a 2, 3 or 6-week lookahead in your browser, counted from the file's data date and exported to Excel by resource.",
 	},
 	{
 		Slug:        "/cookies",

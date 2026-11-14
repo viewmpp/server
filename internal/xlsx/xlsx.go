@@ -29,55 +29,111 @@ const (
 	completeColumn = 8
 )
 
+type styles struct {
+	head        int
+	date        int
+	summary     int
+	summaryDate int
+	percent     int
+}
+
+func newStyles(f *excelize.File) (styles, error) {
+	var s styles
+	var err error
+
+	if s.head, err = f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"F7F8FA"}},
+	}); err != nil {
+		return s, err
+	}
+	if s.date, err = f.NewStyle(&excelize.Style{NumFmt: 22}); err != nil {
+		return s, err
+	}
+	if s.summary, err = f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}}); err != nil {
+		return s, err
+	}
+	if s.summaryDate, err = f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}, NumFmt: 22}); err != nil {
+		return s, err
+	}
+	if s.percent, err = f.NewStyle(&excelize.Style{NumFmt: 9}); err != nil {
+		return s, err
+	}
+
+	return s, nil
+}
+
 func Write(w io.Writer, c *contract.Contract) error {
 	f := excelize.NewFile()
 	defer f.Close()
 
-	index, err := f.NewSheet(sheet)
-	if err != nil {
-		return err
-	}
-	f.SetActiveSheet(index)
-	f.DeleteSheet("Sheet1")
-
-	head, err := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true},
-		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"F7F8FA"}},
-	})
+	s, err := newStyles(f)
 	if err != nil {
 		return err
 	}
 
-	date, err := f.NewStyle(&excelize.Style{NumFmt: 22})
+	if err = addSheet(f, sheet, true); err != nil {
+		return err
+	}
+	if err = writeTasks(f, sheet, c, nil, s); err != nil {
+		return err
+	}
+
+	return f.Write(w)
+}
+
+func addSheet(f *excelize.File, name string, first bool) error {
+	index, err := f.NewSheet(name)
 	if err != nil {
 		return err
 	}
+	if first {
+		f.SetActiveSheet(index)
+		return f.DeleteSheet("Sheet1")
+	}
+	return nil
+}
 
-	summary, err := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}})
-	if err != nil {
+func header(f *excelize.File, name string, columns []string, sizes []float64, s styles) error {
+	if err := f.SetSheetRow(name, "A1", &columns); err != nil {
+		return err
+	}
+	if err := f.SetCellStyle(name, "A1", cell(len(columns), 1), s.head); err != nil {
 		return err
 	}
 
-	if err = f.SetSheetRow(sheet, "A1", &headers); err != nil {
-		return err
-	}
-	if err = f.SetCellStyle(sheet, "A1", cell(len(headers), 1), head); err != nil {
-		return err
-	}
-
-	for i, width := range widths {
-		name, _ := excelize.ColumnNumberToName(i + 1)
-		if err = f.SetColWidth(sheet, name, name, width); err != nil {
+	for i, width := range sizes {
+		col, _ := excelize.ColumnNumberToName(i + 1)
+		if err := f.SetColWidth(name, col, col, width); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func finish(f *excelize.File, name string, columns, rows int) error {
+	if err := f.AutoFilter(name, fmt.Sprintf("A1:%s", cell(columns, rows+1)), nil); err != nil {
+		return err
+	}
+	return f.SetPanes(name, &excelize.Panes{Freeze: true, YSplit: 1, TopLeftCell: "A2", ActivePane: "bottomLeft"})
+}
+
+func writeTasks(f *excelize.File, name string, c *contract.Contract, keep map[int64]bool, s styles) error {
+	if err := header(f, name, headers, widths, s); err != nil {
+		return err
 	}
 
 	names := c.ResourceNames()
 	predecessors := c.PredecessorsOf()
 	rowIDs := c.RowIDs()
 
-	for i, task := range c.Tasks {
-		row := i + 2
+	row := 1
+	for _, task := range c.Tasks {
+		if keep != nil && !keep[task.ID] {
+			continue
+		}
+		row++
 
 		values := []any{
 			rowIDs[task.ID],
@@ -94,57 +150,49 @@ func Write(w io.Writer, c *contract.Contract) error {
 			deref(task.Notes),
 		}
 
-		if err = f.SetSheetRow(sheet, cell(1, row), &values); err != nil {
+		if err := f.SetSheetRow(name, cell(1, row), &values); err != nil {
 			return err
 		}
-
-		if err = setDate(f, cell(startColumn, row), task.Start, date); err != nil {
-			return err
-		}
-		if err = setDate(f, cell(finishColumn, row), task.Finish, date); err != nil {
-			return err
-		}
-
+		dateStyle := s.date
 		if task.IsSummary {
-			if err = f.SetCellStyle(sheet, cell(1, row), cell(len(headers), row), summary); err != nil {
+			dateStyle = s.summaryDate
+			if err := f.SetCellStyle(name, cell(1, row), cell(len(headers), row), s.summary); err != nil {
 				return err
 			}
 		}
+
+		if err := setDate(f, name, cell(startColumn, row), task.Start, dateStyle); err != nil {
+			return err
+		}
+		if err := setDate(f, name, cell(finishColumn, row), task.Finish, dateStyle); err != nil {
+			return err
+		}
 	}
 
-	percent, err := f.NewStyle(&excelize.Style{NumFmt: 9})
-	if err != nil {
-		return err
-	}
-	if err = f.SetCellStyle(sheet, cell(completeColumn, 2), cell(completeColumn, len(c.Tasks)+1), percent); err != nil {
-		return err
+	if row > 1 {
+		if err := f.SetCellStyle(name, cell(completeColumn, 2), cell(completeColumn, row), s.percent); err != nil {
+			return err
+		}
 	}
 
-	if err = f.AutoFilter(sheet, fmt.Sprintf("A1:%s", cell(len(headers), len(c.Tasks)+1)), nil); err != nil {
-		return err
-	}
-	if err = f.SetPanes(sheet, &excelize.Panes{Freeze: true, YSplit: 1, TopLeftCell: "A2", ActivePane: "bottomLeft"}); err != nil {
-		return err
-	}
-
-	return f.Write(w)
+	return finish(f, name, len(headers), row-1)
 }
 
-func setDate(f *excelize.File, axis string, value *string, style int) error {
+func setDate(f *excelize.File, name, axis string, value *string, style int) error {
 	if value == nil {
 		return nil
 	}
 
 	t, err := time.Parse(inputTime, *value)
 	if err != nil {
-		return f.SetCellStr(sheet, axis, *value)
+		return f.SetCellStr(name, axis, *value)
 	}
 
-	if err = f.SetCellValue(sheet, axis, t); err != nil {
+	if err = f.SetCellValue(name, axis, t); err != nil {
 		return err
 	}
 
-	return f.SetCellStyle(sheet, axis, axis, style)
+	return f.SetCellStyle(name, axis, axis, style)
 }
 
 func cell(col, row int) string {

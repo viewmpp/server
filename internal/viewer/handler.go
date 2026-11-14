@@ -149,6 +149,10 @@ func (h *Handler) XMLPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/open-microsoft-project-xml", h.templates.XML)
 }
 
+func (h *Handler) LookaheadPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/lookahead-schedule", h.templates.Lookahead)
+}
+
 func (h *Handler) SharePage(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.Header.Get("Referer"), h.baseURL+"/p/") {
 		h.counts.Count(events.SharePageFromLink)

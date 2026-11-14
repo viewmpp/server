@@ -32,6 +32,7 @@ Events
 | `example_open` | An example plan was opened |
 | `compare_run` | Two versions were compared and the report was sent. A re-run after "Swap versions" is sent with `repeat=1` and not counted. Reports opened from the "What changed" banner of an updated link are counted |
 | `compare_example` | The sample pair on `/schedule-comparison` was opened. Kept out of `compare_run`, which counts only schedules someone brought |
+| `export_lookahead` | A lookahead workbook was sent, from the viewer or from a saved plan's link. Counted instead of `export_xlsx` or `export_saved` |
 | `compare_export` | A Pro user downloaded the change report workbook |
 | `version_uploaded` | An owner uploaded a new version to an existing link. The figure the living link bet is judged by |
 | `upload_for_version` | The file for that new version was uploaded and parsed; it is not counted as an opened plan |
@@ -55,6 +56,7 @@ and is not counted. It sits behind `fromApp` and the read limiter.
 | `export_purpose:<answer>` | It was answered: `share`, `import`, `analyze`, `print` or `other` |
 | `compare_open:<viewer>` | The Compare button was pressed (opening its menu counts, closing it does not) |
 | `compare_from:<source>` | The second version came from a `file` on the computer or a saved `project`, or both came through the two drop zones of `/schedule-comparison` (`page`) |
+| `lookahead_on:<weeks>` | Someone picked a lookahead of `2`, `3` or `6` weeks from the Filter menu. A lookahead switched on by `/lookahead-schedule` or a `?lookahead=` link is not counted here; those arrive as uploads from that page or example opens |
 | `version_changes_open:<viewer>` | "What changed" was pressed on an updated link; `shared` means a recipient, not the owner |
 | `compare_export_locked:<viewer>` | Someone without Pro pressed "Export to Excel" in the report and was shown the Pro dialog |
 

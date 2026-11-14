@@ -1,0 +1,113 @@
+{{define "title"}}3-week lookahead schedule from MS Project or P6 | View MPP{{end}}
+
+{{define "main"}}
+<main class="landing centered" id="landing">
+{{template "crumbs" .}}
+
+  <h1>3-week lookahead schedule from MS Project or P6</h1>
+  <p class="lead">
+    Drop the master schedule - an <code>.mpp</code> or a Primavera <code>.xer</code> - and see only
+    the work running in the next three weeks, counted from the file's data date. Switch to two or six
+    weeks, then take it to the site meeting as an Excel sheet. No P6, no Project, nothing to install.
+  </p>
+
+  <div class="drop" id="drop" data-max-upload="{{.MaxUpload}}" data-lookahead="3" data-open-saved>
+    <input type="file" id="file" accept=".mpp,.xml,.mpx,.mpd,.xer,.gan" hidden>
+    <p class="drop__hint">Drop a schedule here or <label for="file" class="link">pick one from disk</label></p>
+    <p class="drop__promise">Your file is never saved. It is read in memory and gone as soon as the chart is drawn.</p>
+    <ul class="drop__terms">
+      <li>.mpp .xml .mpx .mpd .xer</li>
+      <li>up to {{.MaxUploadLabel}}</li>
+      <li>no signup</li>
+    </ul>
+  </div>
+
+  <p class="drop__error is-hidden" id="error"></p>
+
+  <p class="aside-link">
+    No schedule to hand? <a href="/example/office-fit-out?lookahead=3">See a 3-week lookahead of an example fit-out</a>
+  </p>
+
+  <section class="prose">
+    <h2>What a lookahead is for</h2>
+    <p>
+      A master schedule of several hundred or a few thousand activities is the right tool for the
+      planner and the wrong one for a foreman. On site the question is narrower: what is my crew
+      doing in the next two or three weeks, and what has to be ready before it can start. So the
+      lookahead gets cut out of the master schedule every week, usually by filtering and copying
+      rows into a spreadsheet by hand. Here the file does that itself.
+    </p>
+
+    <h2>Which tasks make it in</h2>
+    <ul>
+      <li>Every unfinished task that runs at any point in the window - already under way, starting inside it, or long enough to span it.</li>
+      <li>Milestones that fall inside the window.</li>
+      <li>The phases above those tasks, so each line still shows which part of the job it belongs to.</li>
+    </ul>
+    <p>
+      Finished tasks are left out, and so is work that should have finished before the window
+      opens: in a schedule that has not been updated for a while that would bury the lookahead.
+      The <strong>Overdue</strong> filter shows that work on its own.
+    </p>
+
+    <h2>Where the window starts</h2>
+    <p>
+      A lookahead is counted from the date the schedule was last updated to, not from the day you
+      happen to open it. If the file carries one, the window starts there: the data date of a P6
+      export, or the status date set in Microsoft Project. Without one it starts today. The filter
+      button shows the exact dates, for example <em>Next 3 weeks · 10 Apr - 30 Apr</em>, and the
+      chart scrolls to the start of the window.
+    </p>
+
+    <h2>Take it to the site meeting</h2>
+    <p>
+      With a lookahead on, <strong>Export to Excel</strong> becomes <strong>Export 3-week
+      lookahead</strong> and the workbook holds only the window:
+    </p>
+    <ul>
+      <li><strong>Lookahead</strong> - the tasks in the order of the schedule, with their phases, dates, durations, progress, resources and predecessors. The ID column is the row number from the full plan, so a line in the sheet can be found in Project or P6 straight away.</li>
+      <li><strong>By resource</strong> - the same tasks listed under each assigned resource, with tasks that have nobody assigned at the end. A subcontractor set up as a resource gets their own block to hand over.</li>
+    </ul>
+    <p>
+      Grouping follows resources assigned in the schedule. Primavera activity codes, which some
+      planners use for the subcontractor instead, are not read yet.
+    </p>
+
+    <h2>Without Primavera P6 or Microsoft Project</h2>
+    <p>
+      In P6 a lookahead is a filter and a layout someone has to build and keep; in Project it is a
+      filter on the status date. Both need the program. Here the file opens in a browser on any
+      computer, Mac included. And when you share the plan by link, whoever opens it can switch the
+      lookahead on for themselves, so the foreman reads the current three weeks rather than last
+      week's printout.
+    </p>
+
+    <h2>Common questions</h2>
+    <dl class="faq">
+      <dt>Two, three or six weeks?</dt>
+      <dd>Three is the usual site rhythm: refreshed every week, so there is always one week of overlap. Two weeks suits a fast-moving fit-out, six weeks a long-lead procurement review. All three are in the <strong>Filter</strong> menu.</dd>
+
+      <dt>Can I start the window on another date?</dt>
+      <dd>Not from the page yet. Set the status date in Project, or reschedule in P6 to the data date you want, and the window follows the file.</dd>
+
+      <dt>Does it change my schedule?</dt>
+      <dd>No. Nothing is recalculated and nothing is written back: the dates come from the file exactly as Project or P6 saved them, and the file itself is never stored.</dd>
+
+      <dt>Is it free?</dt>
+      <dd>Yes - the lookahead and its Excel export cost nothing and need no account.</dd>
+    </dl>
+  </section>
+</main>
+
+{{template "sitefooter" .}}
+
+{{template "viewer" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mapper.js?v={{.Version}}"></script>
+<script src="/static/js/app.js?v={{.Version}}"></script>
+<script src="/static/js/wish.js?v={{.Version}}"></script>
+<script src="/static/js/compare.js?v={{.Version}}"></script>
+<script src="/static/js/save.js?v={{.Version}}"></script>
+{{end}}

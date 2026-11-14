@@ -32,6 +32,10 @@
             <button class="menu__item" type="button" data-filter="overdue">Overdue</button>
             <button class="menu__item" type="button" data-filter="incomplete">Incomplete</button>
             <button class="menu__item" type="button" data-filter="milestones">Milestones</button>
+            <hr class="menu__sep">
+            <button class="menu__item" type="button" data-filter="next2">Next 2 weeks</button>
+            <button class="menu__item" type="button" data-filter="next3">Next 3 weeks</button>
+            <button class="menu__item" type="button" data-filter="next6">Next 6 weeks</button>
           </div>
         </div>
 
@@ -58,7 +62,7 @@
               <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
               <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
             </svg>
-            Export to Excel
+            <span data-export-label>Export to Excel</span>
           </a>
         {{else}}
           <button class="btn btn--sm" id="export-xlsx" type="button">
@@ -66,7 +70,7 @@
               <path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/>
               <path d="M3.5 13.5V15A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
             </svg>
-            Export to Excel
+            <span data-export-label>Export to Excel</span>
           </button>
         {{end}}
 
@@ -261,6 +265,7 @@
   <div class="workspace">
     <div class="chart">
       <div id="gantt-here"></div>
+      <p class="lookahead-empty is-hidden" id="lookahead-empty" role="status"></p>
       <button class="grid-toggle" id="grid-toggle" type="button"
               aria-label="Hide task table" aria-expanded="true" aria-controls="task-grid"
               title="Hide task table"><span aria-hidden="true">&lt;&lt;</span></button>

@@ -28,6 +28,9 @@
     filterToggle: document.getElementById('filter-toggle'),
     filterLabel: document.getElementById('filter-label'),
     filterItems: document.querySelectorAll('[data-filter]'),
+    lookaheadEmpty: document.getElementById('lookahead-empty'),
+    exportLabels: document.querySelectorAll('[data-export-label]'),
+    exportLink: document.querySelector('[data-export-link]'),
     summary: document.getElementById('summary'),
     toggleCritical: document.getElementById('toggle-critical'),
     toggleOverdue: document.getElementById('toggle-overdue'),
@@ -69,8 +72,19 @@
     critical: 'Critical path',
     overdue: 'Overdue',
     incomplete: 'Incomplete',
-    milestones: 'Milestones'
+    milestones: 'Milestones',
+    next2: 'Next 2 weeks',
+    next3: 'Next 3 weeks',
+    next6: 'Next 6 weeks'
   };
+
+  var LOOKAHEAD = { next2: 2, next3: 3, next6: 6 };
+
+  var requestedFilter = (function () {
+    var asked = new URLSearchParams(window.location.search).get('lookahead') ||
+      (ui.drop && ui.drop.dataset.lookahead) || '';
+    return LOOKAHEAD['next' + asked] ? 'next' + asked : '';
+  })();
 
   var LINK_LABEL = {
     FINISH_START: 'FS', START_START: 'SS', FINISH_FINISH: 'FF', START_FINISH: 'SF'
@@ -137,7 +151,7 @@
     onDone: function (contract, file, projectID, refused) {
       if (projectID && ui.drop.hasAttribute('data-open-saved')) {
         opening(file.name);
-        window.location.assign('/p/' + projectID);
+        window.location.assign('/p/' + projectID + (requestedFilter ? '?lookahead=' + LOOKAHEAD[requestedFilter] : ''));
         return;
       }
 
@@ -155,7 +169,8 @@
 
       exportButton.disabled = true;
 
-      window.MppExport.xlsx(loaded, loadedName)
+      var weeks = lookaheadWeeks();
+      window.MppExport.xlsx(loaded, loadedName, weeks ? { from: lookaheadFrom(), weeks: weeks } : null)
         .catch(function (err) { fail(err.message); })
         .then(function () { exportButton.disabled = false; });
     });
@@ -420,6 +435,8 @@
     zoomRendered = '';
     setZoom(0, true);
     describe(contract, fileName);
+
+    if (requestedFilter) { setFilter(requestedFilter); }
 
     document.dispatchEvent(new CustomEvent('mpp:loaded', {
       detail: { contract: contract, fileName: fileName || '', refused: refused || '' }
@@ -993,8 +1010,36 @@
       case 'overdue': return isOverdue(task);
       case 'incomplete': return task.percent_complete < 100;
       case 'milestones': return task.is_milestone;
+      case 'next2': case 'next3': case 'next6': return inLookahead(task);
       default: return true;
     }
+  }
+
+  function lookaheadWeeks() {
+    return LOOKAHEAD[filter] || 0;
+  }
+
+  function lookaheadFrom() {
+    var status = loaded && loaded.project && loaded.project.status_date;
+    return status ? status.slice(0, 10) : todayISO;
+  }
+
+  function addDays(iso, days) {
+    var d = new Date(iso + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function shortDate(iso) {
+    return new Date(iso + 'T00:00:00Z').toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  }
+
+  function inLookahead(task) {
+    if (task.is_summary || task.percent_complete >= 100 || !task.start || !task.finish) { return false; }
+
+    var from = lookaheadFrom();
+    var until = addDays(from, 7 * lookaheadWeeks());
+    return task.start.slice(0, 10) < until && task.finish.slice(0, 10) >= from;
   }
 
   function isVisibleTask(task) {
@@ -1028,8 +1073,33 @@
   }
 
   function syncFilterUI() {
+    var weeks = lookaheadWeeks();
+    var from = weeks ? lookaheadFrom() : '';
+    var last = weeks ? addDays(from, 7 * weeks - 1) : '';
+
     ui.filterToggle.classList.toggle('is-active', filter !== 'all');
-    ui.filterLabel.textContent = FILTER_LABEL[filter];
+    ui.filterLabel.textContent = weeks
+      ? FILTER_LABEL[filter] + ' · ' + shortDate(from) + ' – ' + shortDate(last)
+      : FILTER_LABEL[filter];
+    ui.filterToggle.title = weeks
+      ? (loaded && loaded.project && loaded.project.status_date ? 'Counted from the status date in the file' : 'Counted from today')
+      : '';
+
+    ui.exportLabels.forEach(function (label) {
+      label.textContent = weeks ? 'Export ' + weeks + '-week lookahead' : 'Export to Excel';
+    });
+    if (ui.exportLink) {
+      var base = ui.exportLink.getAttribute('href').split('?')[0];
+      ui.exportLink.setAttribute('href', weeks ? base + '?lookahead_from=' + from + '&lookahead_weeks=' + weeks : base);
+    }
+
+    if (ui.lookaheadEmpty) {
+      var empty = weeks && visibleSet && Object.keys(visibleSet).length === 0;
+      ui.lookaheadEmpty.textContent = empty
+        ? 'Nothing unfinished is scheduled between ' + shortDate(from) + ' and ' + shortDate(last) + '.'
+        : '';
+      ui.lookaheadEmpty.classList.toggle('is-hidden', !empty);
+    }
 
     ui.filterItems.forEach(function (item) {
       item.classList.toggle('is-active', item.dataset.filter === filter);
@@ -1054,6 +1124,10 @@
     updateCount();
     gantt.refreshData();
     focusMatch();
+
+    if (lookaheadWeeks() && !needle) {
+      gantt.showDate(new Date(lookaheadFrom() + 'T00:00:00'));
+    }
   }
 
   function resetFilter() {
@@ -1068,6 +1142,7 @@
       ui.filterToggle.setAttribute('aria-expanded', 'false');
 
       setFilter(item.dataset.filter);
+      if (lookaheadWeeks()) { window.MppSignal('lookahead_on:' + lookaheadWeeks()); }
     });
   });
 

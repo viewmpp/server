@@ -1261,6 +1261,7 @@ input:-webkit-autofill:focus {
 .workspace { position: relative; flex: 1; min-height: 0; display: flex; }
 .chart { position: relative; display: flex; flex: 1; min-width: 0; min-height: 0; }
 #gantt-here { flex: 1; min-width: 0; }
+.lookahead-empty { position: absolute; top: 40%; left: 50%; z-index: 3; max-width: min(28rem, calc(100% - 32px)); margin: 0; padding: calc(var(--unit) * 1.5) calc(var(--unit) * 2); transform: translate(-50%, -50%); color: var(--secondary); font-size: var(--text-sm); line-height: 1.5; text-align: center; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-lg); }
 .grid-toggle {
   position: absolute;
   top: 50%;

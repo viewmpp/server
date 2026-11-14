@@ -31,8 +31,15 @@
   };
 
   window.MppExport = {
-    xlsx: function (contract, fileName) {
-      return fetch('/api/v1/xlsx?name=' + encodeURIComponent(fileName || ''), {
+    xlsx: function (contract, fileName, lookahead) {
+      var base = String(fileName || '').replace(/\.[^.]*$/, '') || 'project';
+      var query = '?name=' + encodeURIComponent(fileName || '');
+      if (lookahead) {
+        base += ' - ' + lookahead.weeks + '-week lookahead';
+        query += '&lookahead_from=' + encodeURIComponent(lookahead.from) + '&lookahead_weeks=' + lookahead.weeks;
+      }
+
+      return fetch('/api/v1/xlsx' + query, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'viewmpp' },
         body: JSON.stringify(contract)
@@ -42,7 +49,7 @@
       }).then(function (blob) {
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = (String(fileName || '').replace(/\.[^.]*$/, '') || 'project') + '.xlsx';
+        a.download = base + '.xlsx';
         a.click();
         URL.revokeObjectURL(a.href);
         document.dispatchEvent(new CustomEvent('mpp:exported'));

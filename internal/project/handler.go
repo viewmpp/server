@@ -12,6 +12,7 @@ import (
 	"server/internal/htmlutil"
 	"server/internal/jsonutil"
 	"server/internal/landing"
+	"server/internal/lookahead"
 	"server/internal/ratelimit"
 	"server/internal/user"
 	"server/internal/xlsx"
@@ -107,18 +108,34 @@ func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	query := r.URL.Query()
+	view := events.ExportSaved
+	name := p.FileName
+
 	var buf bytes.Buffer
-	if err = xlsx.Write(&buf, c); err != nil {
+	if query.Has("lookahead_from") || query.Has("lookahead_weeks") {
+		window, err := lookahead.Parse(query.Get("lookahead_from"), query.Get("lookahead_weeks"))
+		if err != nil {
+			htmlutil.BadRequestPage(w, r, h.logger)
+			return
+		}
+		view = events.ExportLookahead
+		name = window.FileName(name)
+		if err = xlsx.WriteLookahead(&buf, c, window); err != nil {
+			htmlutil.ServerErrorResponse(w, r, err, h.logger)
+			return
+		}
+	} else if err = xlsx.Write(&buf, c); err != nil {
 		htmlutil.ServerErrorResponse(w, r, err, h.logger)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", xlsx.Disposition(p.FileName))
+	w.Header().Set("Content-Disposition", xlsx.Disposition(name))
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
-	h.counts.Count(events.ExportSaved)
+	h.counts.Count(view)
 
 	_, _ = buf.WriteTo(w)
 }

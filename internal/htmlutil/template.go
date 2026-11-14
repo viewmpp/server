@@ -35,6 +35,7 @@ type Pages struct {
 	XER            *template.Template
 	XML            *template.Template
 	Comparison     *template.Template
+	Lookahead      *template.Template
 }
 
 type Emails struct {
@@ -163,6 +164,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	lookahead, err := parsePage("lookahead.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := parsePage("account.tmpl")
 	if err != nil {
 		return nil, err
@@ -198,6 +204,7 @@ func NewPages() (*Pages, error) {
 		XER:            xer,
 		XML:            xml,
 		Comparison:     comparison,
+		Lookahead:      lookahead,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

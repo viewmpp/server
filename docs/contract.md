@@ -325,7 +325,8 @@ Schema
   "project": {
     "name": "Тестовый план - Виадук",
     "start": "2026-01-12T09:00:00",
-    "finish": "2026-02-20T09:00:00"
+    "finish": "2026-02-20T09:00:00",
+    "status_date": null
   },
 
   "calendar": {
@@ -386,6 +387,14 @@ Schema
 
 The Cyrillic sample values are deliberate: encoding is one of the things the
 fixtures exist to protect.
+
+`project.status_date` is `getStatusDate()`: the status date set in Microsoft
+Project, and for a Primavera `.xer` the project's `last_recalc_date` - P6's data
+date. MPXJ reads one into the other (`TableProjectReader.processProjectProperties`),
+checked on `testdata/formats/percent-complete-8.4.xer`, whose data date is
+2015-02-24. It is `null` when the file has none; every fixture has none. The
+lookahead filter counts its window from it, and from today without it. Contracts
+saved before the field existed simply lack it.
 
 ### Task fields
 

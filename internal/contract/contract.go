@@ -24,9 +24,10 @@ type Contract struct {
 }
 
 type Project struct {
-	Name   *string `json:"name"`
-	Start  *string `json:"start"`
-	Finish *string `json:"finish"`
+	Name       *string `json:"name"`
+	Start      *string `json:"start"`
+	Finish     *string `json:"finish"`
+	StatusDate *string `json:"status_date,omitempty"`
 }
 
 type Calendar struct {
@@ -142,6 +143,9 @@ func (c *Contract) validate() error {
 		return err
 	}
 	if err := checkDate("project.finish", c.Project.Finish); err != nil {
+		return err
+	}
+	if err := checkDate("project.status_date", c.Project.StatusDate); err != nil {
 		return err
 	}
 

@@ -83,6 +83,7 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		"reset": pages.Reset, "unlock": pages.Unlock, "mac": pages.Mac,
 		"without-project": pages.WithoutProject,
 		"comparison":      pages.Comparison,
+		"lookahead":       pages.Lookahead,
 	}
 
 	for name, tmpl := range templates {

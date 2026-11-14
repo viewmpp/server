@@ -93,6 +93,7 @@ func publicRoutes(h *Handler) map[string]http.HandlerFunc {
 		"/open-xer-file-without-primavera":  h.XERPage,
 		"/open-microsoft-project-xml":       h.XMLPage,
 		"/schedule-comparison":              h.ComparisonPage,
+		"/lookahead-schedule":               h.LookaheadPage,
 		"/share-a-project-plan":             h.SharePage,
 		"/pricing":                          h.PricingPage,
 		"/cookies":                          h.CookiesPage,

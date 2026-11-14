@@ -213,3 +213,40 @@ func TestRateLimited(t *testing.T) {
 		t.Errorf("third attempt: got %d, want 429", rec.Code)
 	}
 }
+
+func TestALookaheadWorkbookIsCountedApartFromAFullExport(t *testing.T) {
+	counts := tally{}
+	h := newCountingHandler(t, 100, counts)
+
+	rec := post(t, h, fixtures.All()["mpp8.json"], "plan.mpp&lookahead_from=2014-10-27&lookahead_weeks=3")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+
+	f, err := excelize.OpenReader(bytes.NewReader(rec.Body.Bytes()))
+	if err != nil {
+		t.Fatalf("result is not a workbook: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+	if idx, _ := f.GetSheetIndex("Lookahead"); idx == -1 {
+		t.Error("no Lookahead sheet in a lookahead export")
+	}
+
+	if counts[events.ExportLookahead] != 1 || counts[events.ExportXLSX] != 0 {
+		t.Errorf("export_lookahead = %d, export_xlsx = %d: a lookahead is not a full export", counts[events.ExportLookahead], counts[events.ExportXLSX])
+	}
+}
+
+func TestAMalformedLookaheadWindowIsRefused(t *testing.T) {
+	counts := tally{}
+	h := newCountingHandler(t, 100, counts)
+
+	for _, query := range []string{"&lookahead_from=yesterday&lookahead_weeks=3", "&lookahead_from=2014-10-27&lookahead_weeks=52", "&lookahead_weeks=3"} {
+		if rec := post(t, h, fixtures.All()["mpp8.json"], "plan.mpp"+query); rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: got %d, want 400", query, rec.Code)
+		}
+	}
+	if len(counts) != 0 {
+		t.Errorf("refused exports were counted: %v", counts)
+	}
+}
