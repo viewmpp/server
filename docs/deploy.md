@@ -283,6 +283,13 @@ campaign row makes seat claims fail closed.
 Payments
 --------
 
+**Lemon Squeezy is winding down and stopped accepting new stores (their reply
+of 16 November 2026), so the store below was never approved.** The site names
+Paddle as reseller in its terms, privacy policy and refund policy while the
+Paddle application is reviewed. The code below is still the Lemon Squeezy
+integration; it is replaced once a provider approves the store. Until then,
+leave every `LEMONSQUEEZY_` variable out of `.env`.
+
 Pro is sold through Lemon Squeezy. Everything is off until all five
 `LEMONSQUEEZY_` values are in `.env`; with them missing, the site behaves as
 before payments existed.

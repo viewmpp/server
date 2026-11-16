@@ -113,6 +113,12 @@ var pages = []Page{
 		Group:       GroupLegal,
 		Description: "The terms for using View MPP: what the service does, what you may upload, how sharing works and what the limits are.",
 	},
+	{
+		Slug:        "/refunds",
+		Label:       "Refunds",
+		Group:       GroupLegal,
+		Description: "How to cancel a View MPP Pro subscription and get a refund: a full refund within 14 days of the first payment, handled by Paddle, our reseller.",
+	},
 }
 
 func All() []Page {

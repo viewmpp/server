@@ -78,7 +78,7 @@ func TestEveryPageTemplateRenders(t *testing.T) {
 		"projects": pages.Projects, "account": pages.Account, "pricing": pages.Pricing,
 		"share":   pages.Share,
 		"cookies": pages.Cookies,
-		"privacy": pages.Privacy, "terms": pages.Terms, "signin": pages.Signin,
+		"privacy": pages.Privacy, "terms": pages.Terms, "refunds": pages.Refunds, "signin": pages.Signin,
 		"signup": pages.Signup, "verify": pages.Verify, "forgot": pages.Forgot,
 		"reset": pages.Reset, "unlock": pages.Unlock, "mac": pages.Mac,
 		"without-project": pages.WithoutProject,

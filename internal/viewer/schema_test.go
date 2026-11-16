@@ -99,6 +99,7 @@ func publicRoutes(h *Handler) map[string]http.HandlerFunc {
 		"/cookies":                          h.CookiesPage,
 		"/privacy":                          h.PrivacyPage,
 		"/terms":                            h.TermsPage,
+		"/refunds":                          h.RefundsPage,
 	}
 }
 

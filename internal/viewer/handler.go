@@ -133,6 +133,10 @@ func (h *Handler) TermsPage(w http.ResponseWriter, r *http.Request) {
 	htmlutil.WriteHTML(w, r, http.StatusOK, h.templates.Terms, page, h.logger)
 }
 
+func (h *Handler) RefundsPage(w http.ResponseWriter, r *http.Request) {
+	h.landing(w, r, "/refunds", h.templates.Refunds)
+}
+
 func (h *Handler) WithoutProjectPage(w http.ResponseWriter, r *http.Request) {
 	h.landing(w, r, "/open-mpp-file-without-ms-project", h.templates.WithoutProject)
 }

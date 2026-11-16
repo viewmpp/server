@@ -36,6 +36,7 @@ type Pages struct {
 	XML            *template.Template
 	Comparison     *template.Template
 	Lookahead      *template.Template
+	Refunds        *template.Template
 }
 
 type Emails struct {
@@ -169,6 +170,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	refunds, err := parsePage("refunds.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := parsePage("account.tmpl")
 	if err != nil {
 		return nil, err
@@ -205,6 +211,7 @@ func NewPages() (*Pages, error) {
 		XML:            xml,
 		Comparison:     comparison,
 		Lookahead:      lookahead,
+		Refunds:        refunds,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

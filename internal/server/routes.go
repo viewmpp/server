@@ -63,6 +63,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("GET /cookies", s.viewerHandler.CookiesPage)
 	mux.HandleFunc("GET /privacy", s.viewerHandler.PrivacyPage)
 	mux.HandleFunc("GET /terms", s.viewerHandler.TermsPage)
+	mux.HandleFunc("GET /refunds", s.viewerHandler.RefundsPage)
 
 	mux.HandleFunc("GET /projects", s.requireAuthUser(s.projectHandler.List))
 	mux.HandleFunc("GET /p/{id}", s.throttle(s.readLimits, "page-ip:", s.projectHandler.Page))
