@@ -94,23 +94,22 @@ func newScenario(t *testing.T, plan string, until *time.Time) *scenario {
 	return &scenario{
 		t:     t,
 		db:    db,
-		store: NewStore(db),
+		store: NewStore(db, true),
 		user:  billingUser(t, db, plan, until),
-		sub:   "sub-" + randomID(t),
+		sub:   "sub_" + randomID(t),
 		clock: time.Now().UTC().Truncate(time.Second),
 	}
 }
 
-func (s *scenario) event(status string, updatedAgo time.Duration, withUser bool) Event {
+func (s *scenario) event(status string, occurredAgo time.Duration, withUser bool) Event {
 	e := Event{
-		Name:           "subscription_updated",
+		ID:             "evt_" + randomID(s.t),
+		Name:           "subscription.updated",
 		SubscriptionID: s.sub,
-		CustomerID:     "77",
-		StoreID:        "513638",
-		VariantID:      "2370696",
+		CustomerID:     "ctm_01",
+		PriceID:        "pri_monthly",
 		Status:         status,
-		UpdatedAt:      s.clock.Add(-updatedAgo),
-		TestMode:       true,
+		OccurredAt:     s.clock.Add(-occurredAgo),
 	}
 	if withUser {
 		e.UserID = s.user
@@ -145,19 +144,24 @@ func TestAPaymentOpensProAndACancellationKeepsThePaidPeriod(t *testing.T) {
 	s.wantUntil(paid, "a paid subscription opens Pro")
 
 	ends := s.clock.Add(20 * 24 * time.Hour)
-	s.apply(s.event("cancelled", time.Minute, false), ends)
-	s.wantUntil(ends, "a renewal without custom data is found by its subscription")
+	cancelling := s.event("active", time.Minute, false)
+	cancelling.CancelAt = &ends
+	s.apply(cancelling, ends)
+	s.wantUntil(ends, "an event without custom data is found by its subscription")
 
 	sub, err := s.store.Find(context.Background(), s.user)
-	if err != nil || sub == nil || sub.Status != "cancelled" || !sub.Live(s.clock) {
+	if err != nil || sub == nil || sub.Status != StatusCancelled || !sub.Live(s.clock) || sub.CustomerID != "ctm_01" {
 		t.Errorf("find = %+v, %v", sub, err)
+	}
+	if sub != nil && (sub.PeriodEnd == nil || !sub.PeriodEnd.Equal(ends)) {
+		t.Errorf("period end = %v, want the last paid day %v", sub.PeriodEnd, ends)
 	}
 }
 
 func TestALateOrRepeatedEventDoesNotUndoANewerOne(t *testing.T) {
 	s := newScenario(t, "free", nil)
 
-	expired := s.event("expired", 0, true)
+	expired := s.event("canceled", 0, true)
 	s.apply(expired, s.clock)
 
 	late := s.event("active", time.Hour, true)
@@ -178,7 +182,7 @@ func TestEarlyAccessIsNotCutShortByAPaidSubscription(t *testing.T) {
 	s.apply(s.event("active", 2*time.Minute, true), paid)
 	s.wantUntil(early, "the early access that runs longer wins")
 
-	s.apply(s.event("expired", time.Minute, false), s.clock)
+	s.apply(s.event("canceled", time.Minute, false), s.clock)
 	s.wantUntil(early, "ending the paid plan gives back what early access promised")
 }
 
@@ -186,7 +190,7 @@ func TestAnOldSubscriptionCannotOverwriteANewOne(t *testing.T) {
 	s := newScenario(t, "free", nil)
 	old := s.sub
 
-	s.apply(s.event("expired", time.Hour, true), s.clock)
+	s.apply(s.event("canceled", time.Hour, true), s.clock)
 
 	s.sub = "sub-" + randomID(t)
 	renewed := s.clock.Add(30 * 24 * time.Hour)
@@ -195,7 +199,7 @@ func TestAnOldSubscriptionCannotOverwriteANewOne(t *testing.T) {
 	}
 
 	s.sub = old
-	if got := s.apply(s.event("expired", 0, true), s.clock); got != Superseded {
+	if got := s.apply(s.event("canceled", 0, true), s.clock); got != Superseded {
 		t.Errorf("outcome = %s, want superseded", got)
 	}
 	s.wantUntil(renewed, "a late event of the old subscription must not close the new one")
@@ -204,7 +208,7 @@ func TestAnOldSubscriptionCannotOverwriteANewOne(t *testing.T) {
 func TestALifetimeGrantIsLeftAlone(t *testing.T) {
 	s := newScenario(t, "pro", nil)
 
-	s.apply(s.event("expired", 0, true), s.clock)
+	s.apply(s.event("canceled", 0, true), s.clock)
 
 	plan, until := planOf(t, s.db, s.user)
 	if plan != "pro" || until != nil {
@@ -277,11 +281,10 @@ func TestARealPurchaseReplacesALongerTestSubscription(t *testing.T) {
 	testYear := s.clock.Add(365 * 24 * time.Hour)
 	s.apply(s.event("active", time.Hour, true), testYear)
 
-	s.sub = "sub-" + randomID(t)
-	live := s.event("active", 0, true)
-	live.TestMode = false
+	s.sub = "sub_" + randomID(t)
+	s.store = NewStore(s.db, false)
 	month := s.clock.Add(30 * 24 * time.Hour)
-	if got := s.apply(live, month); got != Applied {
+	if got := s.apply(s.event("active", 0, true), month); got != Applied {
 		t.Fatalf("outcome = %s: a paid subscription was ignored because a test one ran longer", got)
 	}
 	s.wantUntil(month, "after launch the real subscription decides")
@@ -297,7 +300,7 @@ func TestTheRenewalDateIsKeptForTheAccountPage(t *testing.T) {
 
 	renews := s.clock.Add(30 * 24 * time.Hour)
 	e := s.event("active", 0, true)
-	e.RenewsAt = &renews
+	e.NextBilledAt = &renews
 	s.apply(e, AccessUntil(e, s.clock))
 
 	sub, err := s.store.Find(context.Background(), s.user)

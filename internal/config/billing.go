@@ -10,40 +10,45 @@ import (
 	"time"
 )
 
+const (
+	PaddleSandbox = "sandbox"
+	PaddleLive    = "live"
+)
+
 type Billing struct {
-	BillingAPIKey         string
-	BillingWebhookSecret  string
-	BillingStoreID        string
-	BillingVariantMonthly string
-	BillingVariantYearly  string
-	BillingTestModeRaw    string
-	BillingTestMode       bool
-	BillingTestUsersRaw   string
-	BillingTestUsers      []int64
-	BillingTrialPeriod    time.Duration
+	BillingEnvRaw        string
+	BillingSandbox       bool
+	BillingAPIKey        string
+	BillingClientToken   string
+	BillingWebhookSecret string
+	BillingPriceMonthly  string
+	BillingPriceYearly   string
+	BillingTestUsersRaw  string
+	BillingTestUsers     []int64
+	BillingTrialPeriod   time.Duration
 
 	billingProblem error
 }
 
 func (cfg *Config) loadBilling() {
-	flag.StringVar(&cfg.BillingAPIKey, "lemonsqueezy-api-key", env.GetString("LEMONSQUEEZY_API_KEY", ""), "lemon squeezy api key")
-	flag.StringVar(&cfg.BillingWebhookSecret, "lemonsqueezy-webhook-secret", env.GetString("LEMONSQUEEZY_WEBHOOK_SECRET", ""),
-		"secret lemon squeezy signs webhooks with")
-	flag.StringVar(&cfg.BillingStoreID, "lemonsqueezy-store-id", env.GetString("LEMONSQUEEZY_STORE_ID", ""), "lemon squeezy store id")
-	flag.StringVar(&cfg.BillingVariantMonthly, "lemonsqueezy-variant-monthly", env.GetString("LEMONSQUEEZY_VARIANT_MONTHLY", ""),
-		"lemon squeezy variant id of the monthly plan")
-	flag.StringVar(&cfg.BillingVariantYearly, "lemonsqueezy-variant-yearly", env.GetString("LEMONSQUEEZY_VARIANT_YEARLY", ""),
-		"lemon squeezy variant id of the yearly plan")
-	flag.StringVar(&cfg.BillingTestModeRaw, "lemonsqueezy-test-mode", env.GetString("LEMONSQUEEZY_TEST_MODE", ""),
-		"true for lemon squeezy test mode, false for live payments")
-	flag.StringVar(&cfg.BillingTestUsersRaw, "lemonsqueezy-test-users", env.GetString("LEMONSQUEEZY_TEST_USERS", ""),
-		"comma separated account ids that see payments while in test mode")
+	flag.StringVar(&cfg.BillingEnvRaw, "paddle-env", env.GetString("PADDLE_ENV", ""), "sandbox or live")
+	flag.StringVar(&cfg.BillingAPIKey, "paddle-api-key", env.GetString("PADDLE_API_KEY", ""), "paddle api key")
+	flag.StringVar(&cfg.BillingClientToken, "paddle-client-token", env.GetString("PADDLE_CLIENT_TOKEN", ""),
+		"paddle client-side token for paddle.js")
+	flag.StringVar(&cfg.BillingWebhookSecret, "paddle-webhook-secret", env.GetString("PADDLE_WEBHOOK_SECRET", ""),
+		"secret paddle signs webhooks with")
+	flag.StringVar(&cfg.BillingPriceMonthly, "paddle-price-monthly", env.GetString("PADDLE_PRICE_MONTHLY", ""),
+		"paddle price id of the monthly plan")
+	flag.StringVar(&cfg.BillingPriceYearly, "paddle-price-yearly", env.GetString("PADDLE_PRICE_YEARLY", ""),
+		"paddle price id of the yearly plan")
+	flag.StringVar(&cfg.BillingTestUsersRaw, "paddle-test-users", env.GetString("PADDLE_TEST_USERS", ""),
+		"comma separated account ids that see payments while in the sandbox")
 	flag.DurationVar(&cfg.BillingTrialPeriod, "trial-period", env.GetDuration("TRIAL_PERIOD", 7*24*time.Hour),
 		"length of the free pro trial once payments are offered")
 }
 
 func (b *Billing) fillBilling() {
-	b.BillingTestMode = b.BillingTestModeRaw == "true"
+	b.BillingSandbox = b.BillingEnvRaw == PaddleSandbox
 	b.BillingTestUsers, b.billingProblem = parseIDs(b.BillingTestUsersRaw)
 }
 
@@ -56,7 +61,7 @@ func parseIDs(raw string) ([]int64, error) {
 		}
 		id, err := strconv.ParseInt(part, 10, 64)
 		if err != nil || id <= 0 {
-			return nil, fmt.Errorf("LEMONSQUEEZY_TEST_USERS holds %q, which is not an account id", part)
+			return nil, fmt.Errorf("PADDLE_TEST_USERS holds %q, which is not an account id", part)
 		}
 		ids = append(ids, id)
 	}
@@ -64,7 +69,7 @@ func parseIDs(raw string) ([]int64, error) {
 }
 
 func (b Billing) fields() []string {
-	return []string{b.BillingAPIKey, b.BillingWebhookSecret, b.BillingStoreID, b.BillingVariantMonthly, b.BillingVariantYearly}
+	return []string{b.BillingAPIKey, b.BillingClientToken, b.BillingWebhookSecret, b.BillingPriceMonthly, b.BillingPriceYearly}
 }
 
 func (b Billing) Enabled() bool {
@@ -84,16 +89,30 @@ func (b Billing) validate() error {
 		}
 	}
 	if set != 0 && set != len(b.fields()) {
-		return errors.New("billing is half configured: set every LEMONSQUEEZY_ variable or none")
+		return errors.New("billing is half configured: set every PADDLE_ variable or none")
 	}
 	if b.billingProblem != nil {
 		return b.billingProblem
 	}
-	if set != 0 && b.BillingTrialPeriod <= 0 {
+	if set == 0 {
+		return nil
+	}
+	if b.BillingTrialPeriod <= 0 {
 		return errors.New("TRIAL_PERIOD must be longer than zero")
 	}
-	if set != 0 && b.BillingTestModeRaw != "true" && b.BillingTestModeRaw != "false" {
-		return errors.New("LEMONSQUEEZY_TEST_MODE must be true or false once billing is set: a forgotten value must not open live payments")
+	if b.BillingEnvRaw != PaddleSandbox && b.BillingEnvRaw != PaddleLive {
+		return errors.New("PADDLE_ENV must be sandbox or live once billing is set: a forgotten value must not open live payments")
+	}
+
+	wantKey, wantToken := "pdl_live_", "live_"
+	if b.BillingSandbox {
+		wantKey, wantToken = "pdl_sdbx_", "test_"
+	}
+	if !strings.HasPrefix(b.BillingAPIKey, wantKey) {
+		return fmt.Errorf("PADDLE_API_KEY is not a %s key: keys only work against their own environment", b.BillingEnvRaw)
+	}
+	if !strings.HasPrefix(b.BillingClientToken, wantToken) {
+		return fmt.Errorf("PADDLE_CLIENT_TOKEN is not a %s token", b.BillingEnvRaw)
 	}
 	return nil
 }

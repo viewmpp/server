@@ -5,147 +5,174 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
 
-const testSecret = "webhook-test-secret"
+const (
+	testSecret  = "pdl_ntfset_test"
+	testMonthly = "pri_monthly"
+	testYearly  = "pri_yearly"
+)
+
+var testNow = time.Date(2026, 11, 18, 12, 0, 0, 0, time.UTC)
+
+func signAt(body string, at time.Time) string {
+	ts := strconv.FormatInt(at.Unix(), 10)
+	mac := hmac.New(sha256.New, []byte(testSecret))
+	mac.Write([]byte(ts + ":" + body))
+	return "ts=" + ts + ";h1=" + hex.EncodeToString(mac.Sum(nil))
+}
 
 func sign(body string) string {
-	mac := hmac.New(sha256.New, []byte(testSecret))
-	mac.Write([]byte(body))
-	return hex.EncodeToString(mac.Sum(nil))
+	return signAt(body, testNow)
 }
 
 func subscriptionBody(event, status string, fields map[string]string) string {
 	values := map[string]string{
-		"user_id":       `"42"`,
-		"store_id":      `513638`,
-		"variant_id":    `2370696`,
-		"renews_at":     `"2026-12-13T10:00:00.000000Z"`,
-		"ends_at":       `null`,
-		"trial_ends_at": `null`,
-		"updated_at":    `"2026-11-13T10:00:00.000000Z"`,
-		"test_mode":     `true`,
+		"event_id":         `"evt_01"`,
+		"occurred_at":      `"2026-11-18T10:00:00.000000Z"`,
+		"user_id":          `"42"`,
+		"site":             `"https://viewmpp.com"`,
+		"price":            `"` + testMonthly + `"`,
+		"next_billed_at":   `"2026-12-18T10:00:00Z"`,
+		"period":           `{"starts_at": "2026-11-18T10:00:00Z", "ends_at": "2026-12-18T10:00:00Z"}`,
+		"scheduled_change": `null`,
 	}
 	for k, v := range fields {
 		values[k] = v
 	}
 
 	return `{
-	  "meta": {"event_name": "` + event + `", "custom_data": {"user_id": ` + values["user_id"] + `}},
+	  "event_id": ` + values["event_id"] + `,
+	  "event_type": "` + event + `",
+	  "occurred_at": ` + values["occurred_at"] + `,
+	  "notification_id": "ntf_01",
 	  "data": {
-	    "type": "subscriptions",
-	    "id": "901",
-	    "attributes": {
-	      "store_id": ` + values["store_id"] + `,
-	      "customer_id": 77,
-	      "order_id": 5,
-	      "product_id": 3,
-	      "variant_id": ` + values["variant_id"] + `,
-	      "user_email": "buyer@example.com",
-	      "status": "` + status + `",
-	      "trial_ends_at": ` + values["trial_ends_at"] + `,
-	      "renews_at": ` + values["renews_at"] + `,
-	      "ends_at": ` + values["ends_at"] + `,
-	      "created_at": "2026-11-13T09:59:00.000000Z",
-	      "updated_at": ` + values["updated_at"] + `,
-	      "test_mode": ` + values["test_mode"] + `,
-	      "urls": {"customer_portal": "https://viewmpp.lemonsqueezy.com/billing?expires=1"}
-	    }
+	    "id": "sub_01",
+	    "status": "` + status + `",
+	    "customer_id": "ctm_01",
+	    "custom_data": {"user_id": ` + values["user_id"] + `, "site": ` + values["site"] + `},
+	    "items": [{"status": "active", "quantity": 1, "price": {"id": ` + values["price"] + `}}],
+	    "next_billed_at": ` + values["next_billed_at"] + `,
+	    "current_billing_period": ` + values["period"] + `,
+	    "scheduled_change": ` + values["scheduled_change"] + `,
+	    "updated_at": "2026-11-18T10:00:00Z"
 	  }
 	}`
 }
 
-func TestOnlyABodySignedWithOurSecretIsAccepted(t *testing.T) {
-	body := subscriptionBody("subscription_created", "active", nil)
+func TestOnlyABodySignedWithOurSecretAndRecentlyIsAccepted(t *testing.T) {
+	body := subscriptionBody("subscription.created", "active", nil)
 
-	if !Signed(testSecret, []byte(body), sign(body)) {
+	if !Signed(testSecret, []byte(body), sign(body), testNow) {
 		t.Fatal("a body signed with our secret was refused")
 	}
 
+	other := hmac.New(sha256.New, []byte("someone else"))
+	other.Write([]byte(strconv.FormatInt(testNow.Unix(), 10) + ":" + body))
+
 	tests := map[string]string{
-		"no signature":              "",
-		"not hex":                   "not-a-signature",
-		"signed by someone else":    hex.EncodeToString(hmac.New(sha256.New, []byte("other")).Sum(nil)),
-		"cut short":                 sign(body)[:20],
-		"signature of another body": sign(strings.Replace(body, `"active"`, `"expired"`, 1)),
+		"no header":               "",
+		"no timestamp":            "h1=" + strings.Split(sign(body), "h1=")[1],
+		"no signature":            "ts=" + strconv.FormatInt(testNow.Unix(), 10),
+		"signed by someone else":  "ts=" + strconv.FormatInt(testNow.Unix(), 10) + ";h1=" + hex.EncodeToString(other.Sum(nil)),
+		"signature of a new body": sign(strings.Replace(body, `"active"`, `"canceled"`, 1)),
+		"replayed an hour later":  signAt(body, testNow.Add(-time.Hour)),
+		"stamped in the future":   signAt(body, testNow.Add(time.Hour)),
+		"not hex":                 "ts=" + strconv.FormatInt(testNow.Unix(), 10) + ";h1=zz",
 	}
-	for name, signature := range tests {
+	for name, header := range tests {
 		t.Run(name, func(t *testing.T) {
-			if Signed(testSecret, []byte(body), signature) {
-				t.Error("an unsigned or forged body was accepted; anyone could grant themselves Pro")
+			if Signed(testSecret, []byte(body), header, testNow) {
+				t.Error("an unsigned, forged or replayed body was accepted")
 			}
 		})
 	}
 }
 
-func TestASubscriptionPayloadIsReadWithNumericIDs(t *testing.T) {
-	e, ok, err := ParseEvent([]byte(subscriptionBody("subscription_created", "active", nil)))
+func TestASecondSignatureDuringSecretRotationIsAccepted(t *testing.T) {
+	body := subscriptionBody("subscription.created", "active", nil)
+	good := strings.Split(sign(body), ";")
+	header := good[0] + ";h1=00ff;" + good[1]
+
+	if !Signed(testSecret, []byte(body), header, testNow) {
+		t.Error("a header with the old and the new signature was refused")
+	}
+}
+
+func TestASubscriptionPayloadIsRead(t *testing.T) {
+	e, ok, err := ParseEvent([]byte(subscriptionBody("subscription.created", "active", nil)))
 	if err != nil || !ok {
 		t.Fatalf("parse = %v, %v", ok, err)
 	}
 
-	want := Event{
-		Name:           "subscription_created",
-		UserID:         42,
-		SubscriptionID: "901",
-		CustomerID:     "77",
-		StoreID:        "513638",
-		VariantID:      "2370696",
-		Status:         "active",
-		UpdatedAt:      time.Date(2026, 11, 13, 10, 0, 0, 0, time.UTC),
-		TestMode:       true,
+	next := time.Date(2026, 12, 18, 10, 0, 0, 0, time.UTC)
+	if e.ID != "evt_01" || e.Name != "subscription.created" || e.UserID != 42 || e.Site != "https://viewmpp.com" ||
+		e.SubscriptionID != "sub_01" || e.CustomerID != "ctm_01" || e.PriceID != testMonthly || e.Status != "active" {
+		t.Errorf("event = %+v", e)
 	}
-	renews := time.Date(2026, 12, 13, 10, 0, 0, 0, time.UTC)
-
-	if e.RenewsAt == nil || !e.RenewsAt.Equal(renews) {
-		t.Errorf("renews_at = %v, want %v", e.RenewsAt, renews)
+	if e.NextBilledAt == nil || !e.NextBilledAt.Equal(next) || e.PeriodEndsAt == nil || !e.PeriodEndsAt.Equal(next) || e.CancelAt != nil {
+		t.Errorf("dates = %v %v %v", e.NextBilledAt, e.PeriodEndsAt, e.CancelAt)
 	}
-	if e.EndsAt != nil || e.TrialEndsAt != nil {
-		t.Errorf("null dates were read as %v and %v", e.EndsAt, e.TrialEndsAt)
-	}
-	e.RenewsAt = nil
-	if e != want {
-		t.Errorf("event = %+v, want %+v", e, want)
+	if !e.OccurredAt.Equal(time.Date(2026, 11, 18, 10, 0, 0, 0, time.UTC)) {
+		t.Errorf("occurred at %v", e.OccurredAt)
 	}
 }
 
-func TestAUserIDSentAsANumberIsReadToo(t *testing.T) {
-	e, _, err := ParseEvent([]byte(subscriptionBody("subscription_created", "active", map[string]string{"user_id": "42"})))
+func TestAScheduledCancellationIsRead(t *testing.T) {
+	e, _, err := ParseEvent([]byte(subscriptionBody("subscription.updated", "active", map[string]string{
+		"next_billed_at":   `null`,
+		"scheduled_change": `{"action": "cancel", "effective_at": "2026-12-18T10:00:00Z", "resume_at": null}`,
+	})))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e.CancelAt == nil || !e.CancelAt.Equal(time.Date(2026, 12, 18, 10, 0, 0, 0, time.UTC)) {
+		t.Errorf("cancel at %v", e.CancelAt)
+	}
+}
+
+func TestAScheduledPauseIsNotACancellation(t *testing.T) {
+	e, _, err := ParseEvent([]byte(subscriptionBody("subscription.updated", "active", map[string]string{
+		"scheduled_change": `{"action": "pause", "effective_at": "2026-12-18T10:00:00Z", "resume_at": null}`,
+	})))
+	if err != nil || e.CancelAt != nil {
+		t.Errorf("cancel at %v, err %v", e.CancelAt, err)
+	}
+}
+
+func TestAUserIDSentAsANumberOrMissingIsRead(t *testing.T) {
+	e, _, err := ParseEvent([]byte(subscriptionBody("subscription.created", "active", map[string]string{"user_id": "42"})))
 	if err != nil || e.UserID != 42 {
-		t.Fatalf("user = %d, err = %v", e.UserID, err)
+		t.Errorf("number: user = %d, err = %v", e.UserID, err)
+	}
+
+	e, _, err = ParseEvent([]byte(subscriptionBody("subscription.updated", "active", map[string]string{"user_id": "null"})))
+	if err != nil || e.UserID != 0 {
+		t.Errorf("missing: user = %d, err = %v", e.UserID, err)
 	}
 }
 
-func TestARenewalWithoutCustomDataHasNoUser(t *testing.T) {
-	e, ok, err := ParseEvent([]byte(subscriptionBody("subscription_updated", "active", map[string]string{"user_id": "null"})))
-	if err != nil || !ok {
-		t.Fatalf("parse = %v, %v", ok, err)
-	}
-	if e.UserID != 0 {
-		t.Errorf("user = %d, want 0 so the store finds it by subscription", e.UserID)
-	}
-}
-
-func TestEventsAboutOtherObjectsAreSkipped(t *testing.T) {
-	body := `{"meta":{"event_name":"subscription_payment_success"},"data":{"type":"subscription-invoices","id":"3","attributes":{"status":"paid"}}}`
+func TestEventsAboutOtherEntitiesAreSkipped(t *testing.T) {
+	body := `{"event_id":"evt_2","event_type":"transaction.completed","occurred_at":"2026-11-18T10:00:00Z","data":{"id":"txn_1","status":"completed"}}`
 
 	_, ok, err := ParseEvent([]byte(body))
 	if err != nil || ok {
-		t.Errorf("an invoice was taken for a subscription: ok=%v err=%v", ok, err)
+		t.Errorf("a transaction was taken for a subscription: ok=%v err=%v", ok, err)
 	}
 }
 
 func TestABrokenPayloadIsReportedNotGuessed(t *testing.T) {
 	tests := map[string]string{
-		"not json":             `{"meta":`,
-		"no updated_at":        subscriptionBody("subscription_updated", "active", map[string]string{"updated_at": "null"}),
-		"a date we can't read": subscriptionBody("subscription_updated", "active", map[string]string{"renews_at": `"next tuesday"`}),
-		"a user id of words":   subscriptionBody("subscription_created", "active", map[string]string{"user_id": `"admin"`}),
-		"a negative user id":   subscriptionBody("subscription_created", "active", map[string]string{"user_id": `"-4"`}),
-		"no status":            subscriptionBody("subscription_created", "", nil),
+		"not json":             `{"event_type":`,
+		"no occurred_at":       subscriptionBody("subscription.updated", "active", map[string]string{"occurred_at": `""`}),
+		"a date we can't read": subscriptionBody("subscription.updated", "active", map[string]string{"next_billed_at": `"next tuesday"`}),
+		"a user id of words":   subscriptionBody("subscription.created", "active", map[string]string{"user_id": `"admin"`}),
+		"a negative user id":   subscriptionBody("subscription.created", "active", map[string]string{"user_id": `"-4"`}),
+		"no status":            subscriptionBody("subscription.created", "", nil),
 	}
 	for name, body := range tests {
 		t.Run(name, func(t *testing.T) {

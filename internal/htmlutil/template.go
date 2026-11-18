@@ -37,6 +37,7 @@ type Pages struct {
 	Comparison     *template.Template
 	Lookahead      *template.Template
 	Refunds        *template.Template
+	Pay            *template.Template
 }
 
 type Emails struct {
@@ -175,6 +176,11 @@ func NewPages() (*Pages, error) {
 		return nil, err
 	}
 
+	pay, err := parsePage("pay.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := parsePage("account.tmpl")
 	if err != nil {
 		return nil, err
@@ -212,6 +218,7 @@ func NewPages() (*Pages, error) {
 		Comparison:     comparison,
 		Lookahead:      lookahead,
 		Refunds:        refunds,
+		Pay:            pay,
 		Account:        account,
 		Pricing:        pricing,
 		Share:          share,

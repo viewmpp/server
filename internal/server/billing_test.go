@@ -14,7 +14,7 @@ func billingServer(t *testing.T) *Server {
 	t.Helper()
 
 	s := originServer(t)
-	s.billingHandler = billing.NewHandler(nil, nil, billing.Settings{Secret: "secret"}, nil,
+	s.billingHandler = billing.NewHandler(nil, nil, billing.Settings{Secret: "pdl_ntfset_test"}, nil, nil,
 		slog.New(slog.NewTextHandler(io.Discard, nil)))
 	return s
 }
@@ -22,8 +22,8 @@ func billingServer(t *testing.T) *Server {
 func TestTheWebhookIsReachedWithoutASessionOrOurOrigin(t *testing.T) {
 	s := billingServer(t)
 
-	r := httptest.NewRequest(http.MethodPost, "/webhooks/lemonsqueezy", strings.NewReader(`{}`))
-	r.Header.Set("Origin", "https://app.lemonsqueezy.com")
+	r := httptest.NewRequest(http.MethodPost, "/webhooks/paddle", strings.NewReader(`{}`))
+	r.Header.Set("Origin", "https://vendors.paddle.com")
 	w := httptest.NewRecorder()
 
 	s.top().ServeHTTP(w, r)
@@ -37,23 +37,42 @@ func TestTheWebhookIsReachedWithoutASessionOrOurOrigin(t *testing.T) {
 }
 
 func TestBillingRoutesExistOnlyWhenBillingIsOn(t *testing.T) {
-	s := originServer(t)
-
-	for _, path := range []string{"/webhooks/lemonsqueezy", "/billing/checkout", "/billing/portal"} {
-		_, pattern := s.top().Handler(httptest.NewRequest(http.MethodPost, path, nil))
-		if pattern != "/" {
-			t.Errorf("%s is routed to %q with billing off", path, pattern)
-		}
+	routes := map[string]string{
+		"POST /webhooks/paddle": "top",
+		"GET /billing/pay":      "mux",
+		"GET /billing/portal":   "mux",
 	}
 
-	on := billingServer(t)
-	if _, pattern := on.top().Handler(httptest.NewRequest(http.MethodPost, "/webhooks/lemonsqueezy", nil)); pattern != "POST /webhooks/lemonsqueezy" {
-		t.Errorf("webhook pattern = %q with billing on", pattern)
+	off, on := originServer(t), billingServer(t)
+	for route, where := range routes {
+		method, path, _ := strings.Cut(route, " ")
+		r := httptest.NewRequest(method, path, nil)
+
+		pattern := func(s *Server) string {
+			if where == "top" {
+				_, p := s.top().Handler(r)
+				return p
+			}
+			_, p := s.mux().Handler(r)
+			return p
+		}
+
+		if p := pattern(off); p == route {
+			t.Errorf("%s is routed with billing off", route)
+		}
+		if p := pattern(on); p != route {
+			t.Errorf("%s is routed to %q with billing on", route, p)
+		}
 	}
 }
 
-func TestTheCheckoutFormMayLeaveForLemonSqueezy(t *testing.T) {
-	if !strings.Contains(policy, "form-action 'self' https://*.lemonsqueezy.com") {
-		t.Errorf("policy = %q: the browser would block the redirect from our checkout form to the payment page", policy)
+func TestOnlyThePayPageMayLoadPaddle(t *testing.T) {
+	if strings.Contains(policy, "paddle") {
+		t.Errorf("policy = %q: every page would let Paddle scripts run", policy)
+	}
+	for _, want := range []string{"script-src 'self' 'unsafe-inline' https://cdn.paddle.com", "frame-src https://*.paddle.com", "frame-ancestors 'none'"} {
+		if !strings.Contains(billing.PayPolicy, want) {
+			t.Errorf("pay policy is missing %q", want)
+		}
 	}
 }

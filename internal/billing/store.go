@@ -22,6 +22,7 @@ var ErrUnknownSubscription = errors.New("subscription is not linked to a user ye
 type Subscription struct {
 	UserID         int64
 	SubscriptionID string
+	CustomerID     string
 	VariantID      string
 	Status         string
 	AccessUntil    time.Time
@@ -42,11 +43,12 @@ func (s *Subscription) Open() bool {
 }
 
 type Store struct {
-	db *sql.DB
+	db      *sql.DB
+	sandbox bool
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{db: db}
+func NewStore(db *sql.DB, sandbox bool) *Store {
+	return &Store{db: db, sandbox: sandbox}
 }
 
 const storeTimeout = 3 * time.Second
@@ -57,9 +59,9 @@ func (s *Store) Find(ctx context.Context, userID int64) (*Subscription, error) {
 
 	sub := &Subscription{UserID: userID}
 	err := s.db.QueryRowContext(ctx, `
-		SELECT subscription_id, variant_id, status, access_until, period_end, test_mode
+		SELECT subscription_id, customer_id, variant_id, status, access_until, period_end, test_mode
 		FROM billing_subscriptions WHERE user_id = $1`, userID).
-		Scan(&sub.SubscriptionID, &sub.VariantID, &sub.Status, &sub.AccessUntil, &sub.PeriodEnd, &sub.TestMode)
+		Scan(&sub.SubscriptionID, &sub.CustomerID, &sub.VariantID, &sub.Status, &sub.AccessUntil, &sub.PeriodEnd, &sub.TestMode)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -133,11 +135,11 @@ func (s *Store) Apply(ctx context.Context, e Event, access time.Time) (Outcome, 
 			prior = until
 		}
 	case existing.subscriptionID == e.SubscriptionID:
-		if !e.UpdatedAt.After(existing.eventAt) {
+		if !e.OccurredAt.After(existing.eventAt) {
 			return Stale, userID, nil
 		}
 		prior = existing.priorUntil
-	case existing.testMode != e.TestMode:
+	case existing.testMode != s.sandbox:
 		prior = existing.priorUntil
 	default:
 		if !access.After(existing.accessUntil) {
@@ -160,7 +162,7 @@ func (s *Store) Apply(ctx context.Context, e Event, access time.Time) (Outcome, 
 		    prior_until     = EXCLUDED.prior_until,
 		    event_at        = EXCLUDED.event_at,
 		    test_mode       = EXCLUDED.test_mode`,
-		userID, e.SubscriptionID, e.CustomerID, e.VariantID, e.Status, access, PeriodEnd(e), prior, e.UpdatedAt, e.TestMode); err != nil {
+		userID, e.SubscriptionID, e.CustomerID, e.PriceID, Status(e), access, PeriodEnd(e), prior, e.OccurredAt, s.sandbox); err != nil {
 		return "", 0, err
 	}
 

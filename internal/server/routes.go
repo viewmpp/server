@@ -19,7 +19,7 @@ func (s *Server) top() *http.ServeMux {
 	top.HandleFunc("GET /llms.txt", s.llms)
 
 	if s.billingHandler != nil {
-		top.HandleFunc("POST /webhooks/lemonsqueezy", s.billingHandler.Webhook)
+		top.HandleFunc("POST /webhooks/paddle", s.billingHandler.Webhook)
 	}
 
 	top.Handle("/", s.noStore(s.sameOrigin(s.clientIP(s.withSession(s.authenticate(s.mux()))))))
@@ -97,7 +97,7 @@ func (s *Server) mux() *http.ServeMux {
 	mux.HandleFunc("POST /subscribe", s.requireAuthUser(s.userHandler.Subscribe))
 
 	if s.billingHandler != nil {
-		mux.HandleFunc("POST /billing/checkout", s.requireAuthUser(s.billingHandler.Checkout))
+		mux.HandleFunc("GET /billing/pay", s.billingHandler.Pay)
 		mux.HandleFunc("GET /billing/portal", s.requireAuthUser(s.billingHandler.Portal))
 	}
 

@@ -172,7 +172,7 @@ func TestEachAccountStateOffersTheRightAction(t *testing.T) {
 
 	const (
 		trial    = `action="/subscribe"`
-		checkout = `action="/billing/checkout"`
+		checkout = `href="/billing/pay?plan=`
 		portal   = `href="/billing/portal"`
 	)
 
@@ -185,7 +185,7 @@ func TestEachAccountStateOffersTheRightAction(t *testing.T) {
 		{"before launch, free", Page{UserEmail: "a@b.c", Verified: true},
 			[]string{trial, "Upgrade to Pro"}, []string{checkout, portal}},
 		{"trial still open", Page{UserEmail: "a@b.c", Verified: true, Billing: true, TrialOpen: true, TrialDays: 7},
-			[]string{trial, "Start a 7-day free trial", checkout, `value="monthly"`, `value="yearly"`}, []string{portal}},
+			[]string{trial, "Start a 7-day free trial", checkout, `plan=monthly`, `plan=yearly`}, []string{portal}},
 		{"trial used up", Page{UserEmail: "a@b.c", Verified: true, Billing: true, TrialDays: 7},
 			[]string{checkout}, []string{trial, portal}},
 		{"on trial", Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true, ProUntil: "20 Nov 2026"},
@@ -220,7 +220,7 @@ func TestThePricingPageSellsOnlyOncePaymentsAreOffered(t *testing.T) {
 	assert.NilError(t, err)
 
 	before := renderState(t, pages.Pricing, Page{UserEmail: "a@b.c", Verified: true})
-	if strings.Contains(before, `action="/billing/checkout"`) || strings.Contains(before, "free trial") {
+	if strings.Contains(before, `href="/billing/pay?plan=`) || strings.Contains(before, "free trial") {
 		t.Error("the pricing page sells Pro before payments are offered")
 	}
 	if strings.Contains(before, "plans__was") {
@@ -233,7 +233,7 @@ func TestThePricingPageSellsOnlyOncePaymentsAreOffered(t *testing.T) {
 	}
 
 	pro := renderState(t, pages.Pricing, Page{UserEmail: "a@b.c", Verified: true, Pro: true, Billing: true})
-	if strings.Contains(pro, `action="/billing/checkout"`) {
+	if strings.Contains(pro, `href="/billing/pay?plan=`) {
 		t.Error("a Pro user is offered a second purchase on the pricing page")
 	}
 }

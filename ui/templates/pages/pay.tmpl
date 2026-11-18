@@ -1,0 +1,31 @@
+{{define "title"}}Checkout - View MPP{{end}}
+
+{{define "main"}}
+<main class="page page--text centered">
+  <div id="pay"
+       data-token="{{.Form.ClientToken}}"
+       data-sandbox="{{.Form.Sandbox}}"
+       data-price="{{.Form.PriceID}}"
+       data-email="{{.Form.Email}}"
+       data-user="{{.Form.UserID}}"
+       data-site="{{.Form.Site}}"
+       data-success="{{.Form.SuccessURL}}"
+       data-back="{{.Form.BackURL}}"
+       data-transaction="{{.Form.Transaction}}">
+    <header class="page__head">
+      <h1>Opening the checkout</h1>
+    </header>
+    <p class="lead" id="pay-status">
+      The payment form comes from Paddle, our reseller, and opens over this page. If nothing
+      appears, <a href="{{.Form.BackURL}}">go back to pricing</a> and try again.
+    </p>
+  </div>
+</main>
+
+{{template "sitefooter" .}}
+{{end}}
+
+{{define "scripts"}}
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script src="/static/js/pay.js?v={{.Version}}"></script>
+{{end}}

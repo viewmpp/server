@@ -7,13 +7,13 @@ import (
 
 func fullBilling() Billing {
 	b := Billing{
-		BillingAPIKey:         "key",
-		BillingWebhookSecret:  "secret",
-		BillingStoreID:        "1",
-		BillingVariantMonthly: "2370696",
-		BillingVariantYearly:  "2370717",
-		BillingTestModeRaw:    "true",
-		BillingTrialPeriod:    7 * 24 * time.Hour,
+		BillingEnvRaw:        PaddleSandbox,
+		BillingAPIKey:        "pdl_sdbx_apikey_example",
+		BillingClientToken:   "test_example",
+		BillingWebhookSecret: "pdl_ntfset_example",
+		BillingPriceMonthly:  "pri_monthly",
+		BillingPriceYearly:   "pri_yearly",
+		BillingTrialPeriod:   7 * 24 * time.Hour,
 	}
 	b.fillBilling()
 	return b
@@ -28,9 +28,9 @@ func TestBillingIsOffUntilEveryVariableIsSet(t *testing.T) {
 	}
 
 	partial := fullBilling()
-	partial.BillingWebhookSecret = ""
+	partial.BillingClientToken = ""
 	if partial.Enabled() {
-		t.Error("billing without a webhook secret reports itself enabled")
+		t.Error("billing without a client token reports itself enabled")
 	}
 }
 
@@ -62,24 +62,39 @@ func TestProductionStartsWithBillingOffOrFullyOn(t *testing.T) {
 	}
 }
 
-func TestAForgottenTestModeDoesNotOpenLivePayments(t *testing.T) {
-	for _, raw := range []string{"", "yes", "TRUE", "1"} {
+func TestAForgottenEnvironmentDoesNotOpenLivePayments(t *testing.T) {
+	for _, raw := range []string{"", "Sandbox", "production", "test"} {
 		cfg := validProd()
 		cfg.Billing = fullBilling()
-		cfg.BillingTestModeRaw = raw
+		cfg.BillingEnvRaw = raw
 		cfg.fillBilling()
 
 		if err := cfg.Validate(); err == nil {
-			t.Errorf("LEMONSQUEEZY_TEST_MODE=%q was accepted", raw)
+			t.Errorf("PADDLE_ENV=%q was accepted", raw)
 		}
 	}
+}
 
+func TestKeysMustMatchTheEnvironment(t *testing.T) {
 	live := validProd()
 	live.Billing = fullBilling()
-	live.BillingTestModeRaw = "false"
+	live.BillingEnvRaw = PaddleLive
 	live.fillBilling()
-	if err := live.Validate(); err != nil || live.BillingTestMode {
-		t.Errorf("an explicit false was refused or read as test mode: %v", err)
+	if err := live.Validate(); err == nil {
+		t.Error("sandbox keys were accepted for live payments")
+	}
+
+	live.BillingAPIKey = "pdl_live_apikey_example"
+	live.BillingClientToken = "live_example"
+	if err := live.Validate(); err != nil || live.BillingSandbox {
+		t.Errorf("live keys for live payments were refused or read as sandbox: %v", err)
+	}
+
+	sandbox := validProd()
+	sandbox.Billing = fullBilling()
+	sandbox.BillingClientToken = "live_example"
+	if err := sandbox.Validate(); err == nil {
+		t.Error("a live client token was accepted in the sandbox")
 	}
 }
 
@@ -95,7 +110,7 @@ func TestTestUsersAreReadAsAccountIDs(t *testing.T) {
 		b.BillingTestUsersRaw = raw
 		b.fillBilling()
 		if b.validate() == nil {
-			t.Errorf("LEMONSQUEEZY_TEST_USERS=%q was accepted", raw)
+			t.Errorf("PADDLE_TEST_USERS=%q was accepted", raw)
 		}
 	}
 }

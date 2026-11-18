@@ -181,7 +181,7 @@ var policy = strings.Join([]string{
 	"base-uri 'none'",
 	"object-src 'none'",
 	"frame-ancestors 'none'",
-	"form-action 'self' https://*.lemonsqueezy.com",
+	"form-action 'self'",
 	"connect-src 'self'",
 	"img-src 'self' data:",
 	"font-src 'self' data:",

@@ -245,12 +245,12 @@ untrusted binary input, so it is the one that gets nothing worth stealing.
 | `RESEND_SENDER` | `noreply@viewmpp.com` | The domain must be verified in Resend first |
 | `SECRET_KEY` | 32+ random characters | Signs every csrf token. The process refuses to start in prod without it |
 | `EARLY_ACCESS_SEATS` | `100` | `0` closes early access |
-| `LEMONSQUEEZY_API_KEY` | | Test or live key; it must match `LEMONSQUEEZY_TEST_MODE`. Billing is on only with all five `LEMONSQUEEZY_` values set; a partial set stops the process at start |
-| `LEMONSQUEEZY_WEBHOOK_SECRET` | | The signing secret of the webhook pointed at `https://viewmpp.com/webhooks/lemonsqueezy` |
-| `LEMONSQUEEZY_STORE_ID` | | Events from any other store are acknowledged and ignored |
-| `LEMONSQUEEZY_VARIANT_MONTHLY` / `_YEARLY` | `2370696` / `2370717` | Events for any other variant are acknowledged and ignored |
-| `LEMONSQUEEZY_TEST_MODE` | `true` until launch | `true` creates test checkouts and accepts only test events; `false` the reverse |
-| `LEMONSQUEEZY_TEST_USERS` | your test account ids, comma separated | Only these accounts see the trial and the payment buttons while `LEMONSQUEEZY_TEST_MODE=true`; everyone else keeps early access. Ignored once live |
+| `PADDLE_ENV` | `sandbox` until launch, then `live` | Anything else stops the process at start. Billing is on only with this and all five values below set; a partial set stops the process at start |
+| `PADDLE_API_KEY` | | `pdl_sdbx_apikey_...` in the sandbox, `pdl_live_apikey_...` live. Never pasted anywhere but `.env` |
+| `PADDLE_CLIENT_TOKEN` | | `test_...` in the sandbox, `live_...` live. Public: it ends up in the pay page |
+| `PADDLE_WEBHOOK_SECRET` | | The secret key of the notification destination pointed at `https://viewmpp.com/webhooks/paddle` |
+| `PADDLE_PRICE_MONTHLY` / `_YEARLY` | `pri_...` | Events for any other price are acknowledged and ignored |
+| `PADDLE_TEST_USERS` | your test account ids, comma separated | Only these accounts see the trial and the payment buttons in the sandbox; everyone else keeps early access. Ignored once live |
 | `TRIAL_PERIOD` | unset | Defaults to `168h`. The length of the free trial once payments are offered |
 | `DIAGNOSTIC_SERVER_ADDRESS` | unset | Defaults to `127.0.0.1:6060`. Must stay on loopback in prod, and off 4000, 5432 and 8080 |
 | `LOG_LEVEL` | unset | Defaults to `info`. `debug` adds a line per request |
@@ -283,39 +283,49 @@ campaign row makes seat claims fail closed.
 Payments
 --------
 
-**Lemon Squeezy is winding down and stopped accepting new stores (their reply
-of 16 November 2026), so the store below was never approved.** The site names
-Paddle as reseller in its terms, privacy policy and refund policy while the
-Paddle application is reviewed. The code below is still the Lemon Squeezy
-integration; it is replaced once a provider approves the store. Until then,
-leave every `LEMONSQUEEZY_` variable out of `.env`.
+Pro is sold through Paddle Billing; Paddle is the merchant of record. Everything
+is off until all five `PADDLE_` keys and ids plus `PADDLE_ENV` are in `.env`;
+with them missing, the site behaves as before payments existed.
 
-Pro is sold through Lemon Squeezy. Everything is off until all five
-`LEMONSQUEEZY_` values are in `.env`; with them missing, the site behaves as
-before payments existed.
+Lemon Squeezy is winding down and stopped accepting new stores (their reply of
+16 November 2026). Its integration was replaced by this one. Remove every
+`LEMONSQUEEZY_` line from `.env` before deploying it, and clear what its test
+purchases left behind, once:
 
-### Test phase
+```sql
+UPDATE users u SET subscription_until = COALESCE(b.prior_until, now())
+FROM billing_subscriptions b WHERE b.user_id = u.id;
+DELETE FROM billing_subscriptions;
+```
 
-1. In Lemon Squeezy test mode, create an API key and a webhook pointed at
-   `https://viewmpp.com/webhooks/lemonsqueezy` with every `subscription_*`
-   event. Its signing secret is `LEMONSQUEEZY_WEBHOOK_SECRET`.
-2. Put the test key, the secret, the store id, both variant ids,
-   `LEMONSQUEEZY_TEST_MODE=true` and your own account ids (`SELECT id FROM users WHERE email = ...`) in
-   `LEMONSQUEEZY_TEST_USERS` into `.env`, then `up -d`. The log says
-   `billing on test_mode=true`.
-3. Only the listed accounts see the trial and the payment buttons. Pay with the
-   test card `4242 4242 4242 4242`, any future date, any CVC. An account that
+### Sandbox
+
+1. In the sandbox dashboard (sandbox-vendors.paddle.com): a product with a
+   monthly and a yearly price, an API key with read and write on customers,
+   customer portal sessions and subscriptions, a client-side token, and a
+   notification destination pointed at `https://viewmpp.com/webhooks/paddle`
+   with every `subscription.*` event. Its secret key is `PADDLE_WEBHOOK_SECRET`.
+2. Under Checkout settings, set the default payment link to
+   `https://viewmpp.com/billing/pay`.
+3. Put `PADDLE_ENV=sandbox`, the key, the token, the secret, both price ids and
+   your own account ids (`SELECT id FROM users WHERE email = ...`) in
+   `PADDLE_TEST_USERS` into `.env`, then `up -d`. The log says
+   `billing on sandbox=true`.
+4. Only the listed accounts see the trial and the payment buttons. Pay with the
+   test card `4242 4242 4242 4242` (or another from the test cards in
+   Paddle's developer docs) and any future date. An account that
    already had early access has used its trial: test the trial on a new one.
-4. Check after each step: the account page, `billing:` counts in `/events`, and
+5. Check after each step: the account page, `billing:` counts in `/events`, and
    `billing webhook` lines in `docker compose logs server`.
 
 ### Going live
 
-1. Create the live API key and a live webhook (same URL, same events). Test and
-   live webhooks have different secrets.
-2. Remove what the test purchases left behind. Test subscriptions are already
-   ignored once live, but the Pro they granted to the test accounts stays until
-   its date:
+1. In the live dashboard, create the same product and prices, an API key, a
+   client-side token and a notification destination with the same URL and
+   events. Every id, key and secret differs from the sandbox. Set the default
+   payment link there too, and make sure the domain is approved.
+2. Remove what the sandbox purchases left behind. Sandbox subscriptions are
+   already ignored once live, but the Pro they granted stays until its date:
 
    ```sql
    UPDATE users SET subscription_until = now()
@@ -323,26 +333,30 @@ before payments existed.
    DELETE FROM billing_subscriptions WHERE test_mode;
    ```
 
-3. Put the live key and secret in `.env`, set `LEMONSQUEEZY_TEST_MODE=false`,
-   then `up -d`. The log says `billing on test_mode=false`. From now on every
-   visitor sees the trial and the payment buttons, and early access stops.
-4. Open Manage subscription on a paying account. Lemon Squeezy refuses the
-   customer portal with "This store has not been activated" until the store is
-   approved, so it cannot be checked in the test phase; cancel a test
-   subscription from Store, Subscriptions in the dashboard instead.
+3. Put `PADDLE_ENV=live` and the live values in `.env`, then `up -d`. The log
+   says `billing on sandbox=false`. From now on every visitor sees the trial
+   and the payment buttons, and early access stops.
 
 ### What the code relies on
 
 - The webhook is the only thing that changes a paid plan. It is checked by its
-  `X-Signature`; an event for another store, another variant or the other mode
-  is answered 200 and ignored. A failure is answered with an error so Lemon
-  Squeezy retries it.
+  `Paddle-Signature` and refused when older than five minutes. An event for
+  another price or another entity is answered 200 and ignored. A failure is
+  answered with an error so Paddle retries it. Events can arrive out of order;
+  the one with the older `occurred_at` is dropped.
+- The checkout opens on `/billing/pay` with Paddle.js. Only that page lets
+  Paddle scripts and frames load; every other page keeps the strict policy.
 - Every checkout carries the site it was made on (`BASE_URL`), and the webhook
-  ignores a checkout made elsewhere. There is one webhook and it points at
-  production, so a test purchase from a laptop arrives there with a local
+  ignores a checkout made elsewhere. There is one destination and it points at
+  production, so a sandbox purchase from a laptop arrives there with a local
   account id that belongs to someone else in production.
-- Deleting an account cancels its subscription first. If Lemon Squeezy cannot
-  be reached, the account is not deleted and the user is asked to try again.
+- `PADDLE_ENV` and the key prefixes must agree (`pdl_sdbx_`/`test_` in the
+  sandbox, `pdl_live_`/`live_` live), or the process refuses to start.
+- A scheduled cancellation keeps Pro until its date; a paused subscription
+  closes Pro until it is resumed.
+- Deleting an account cancels its subscription first, at the end of the period
+  (a paused one at once). If Paddle cannot be reached, the account is not
+  deleted and the user is asked to try again.
 - The trial reminder runs hourly and claims a row before sending, so a failure
   loses that one email rather than sending it twice.
 

@@ -9,137 +9,69 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
 const (
-	APIURL     = "https://api.lemonsqueezy.com/v1"
-	apiType    = "application/vnd.api+json"
-	apiTimeout = 10 * time.Second
-	maxReply   = 1 << 20
+	LiveAPI     = "https://api.paddle.com"
+	SandboxAPI  = "https://sandbox-api.paddle.com"
+	apiVersion  = "1"
+	apiTimeout  = 10 * time.Second
+	maxReply    = 1 << 20
+	maxExcerpt  = 300
+	immediately = "immediately"
+	periodEnd   = "next_billing_period"
 )
 
 type Client struct {
-	URL      string
-	Key      string
-	StoreID  string
-	TestMode bool
-	HTTP     *http.Client
+	URL  string
+	Key  string
+	HTTP *http.Client
 }
 
-func NewClient(key, storeID string, testMode bool) *Client {
-	return &Client{
-		URL:      APIURL,
-		Key:      key,
-		StoreID:  storeID,
-		TestMode: testMode,
-		HTTP:     &http.Client{Timeout: apiTimeout},
+func NewClient(key string, sandbox bool) *Client {
+	base := LiveAPI
+	if sandbox {
+		base = SandboxAPI
 	}
+	return &Client{URL: base, Key: key, HTTP: &http.Client{Timeout: apiTimeout}}
 }
 
-type Checkout struct {
-	VariantID  string
-	UserID     int64
-	Email      string
-	Site       string
-	RedirectTo string
-}
-
-type relation struct {
-	Data struct {
-		Type string `json:"type"`
-		ID   string `json:"id"`
-	} `json:"data"`
-}
-
-func related(kind, id string) relation {
-	var r relation
-	r.Data.Type = kind
-	r.Data.ID = id
-	return r
-}
-
-type checkoutRequest struct {
-	Data struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			CheckoutData struct {
-				Email  string            `json:"email,omitempty"`
-				Custom map[string]string `json:"custom"`
-			} `json:"checkout_data"`
-			ProductOptions struct {
-				RedirectURL     string   `json:"redirect_url,omitempty"`
-				EnabledVariants []string `json:"enabled_variants"`
-			} `json:"product_options"`
-			TestMode bool `json:"test_mode"`
-		} `json:"attributes"`
-		Relationships struct {
-			Store   relation `json:"store"`
-			Variant relation `json:"variant"`
-		} `json:"relationships"`
-	} `json:"data"`
-}
-
-func (c *Client) CreateCheckout(ctx context.Context, ch Checkout) (string, error) {
-	var req checkoutRequest
-	req.Data.Type = "checkouts"
-	req.Data.Attributes.CheckoutData.Email = ch.Email
-	req.Data.Attributes.CheckoutData.Custom = map[string]string{"user_id": strconv.FormatInt(ch.UserID, 10)}
-	if ch.Site != "" {
-		req.Data.Attributes.CheckoutData.Custom["site"] = ch.Site
-	}
-	req.Data.Attributes.ProductOptions.RedirectURL = ch.RedirectTo
-	req.Data.Attributes.ProductOptions.EnabledVariants = []string{ch.VariantID}
-	req.Data.Attributes.TestMode = c.TestMode
-	req.Data.Relationships.Store = related("stores", c.StoreID)
-	req.Data.Relationships.Variant = related("variants", ch.VariantID)
-
-	body, err := json.Marshal(req)
+func (c *Client) PortalURL(ctx context.Context, customerID, subscriptionID string) (string, error) {
+	body, err := json.Marshal(map[string][]string{"subscription_ids": {subscriptionID}})
 	if err != nil {
 		return "", err
 	}
 
 	var reply struct {
 		Data struct {
-			Attributes struct {
-				URL string `json:"url"`
-			} `json:"attributes"`
+			URLs struct {
+				General struct {
+					Overview string `json:"overview"`
+				} `json:"general"`
+			} `json:"urls"`
 		} `json:"data"`
 	}
-	if err = c.call(ctx, http.MethodPost, "/checkouts", body, &reply); err != nil {
-		return "", fmt.Errorf("create checkout: %w", err)
+	path := "/customers/" + url.PathEscape(customerID) + "/portal-sessions"
+	if err = c.call(ctx, http.MethodPost, path, body, &reply); err != nil {
+		return "", fmt.Errorf("create portal session: %w", err)
 	}
 
-	return checkedURL(reply.Data.Attributes.URL)
+	return checkedURL(reply.Data.URLs.General.Overview)
 }
 
-func (c *Client) PortalURL(ctx context.Context, subscriptionID string) (string, error) {
-	var reply struct {
-		Data struct {
-			Attributes struct {
-				URLs struct {
-					CustomerPortal string `json:"customer_portal"`
-				} `json:"urls"`
-			} `json:"attributes"`
-		} `json:"data"`
+func (c *Client) Cancel(ctx context.Context, subscriptionID string, now bool) error {
+	when := periodEnd
+	if now {
+		when = immediately
 	}
-	if err := c.call(ctx, http.MethodGet, "/subscriptions/"+url.PathEscape(subscriptionID), nil, &reply); err != nil {
-		return "", fmt.Errorf("read subscription: %w", err)
+	body, err := json.Marshal(map[string]string{"effective_from": when})
+	if err != nil {
+		return err
 	}
 
-	return checkedURL(reply.Data.Attributes.URLs.CustomerPortal)
-}
-
-func (c *Client) Cancel(ctx context.Context, subscriptionID string) error {
-	var reply struct {
-		Data struct {
-			Attributes struct {
-				Status string `json:"status"`
-			} `json:"attributes"`
-		} `json:"data"`
-	}
-	err := c.call(ctx, http.MethodDelete, "/subscriptions/"+url.PathEscape(subscriptionID), nil, &reply)
+	var reply json.RawMessage
+	err = c.call(ctx, http.MethodPost, "/subscriptions/"+url.PathEscape(subscriptionID)+"/cancel", body, &reply)
 
 	var status *StatusError
 	if errors.As(err, &status) && status.Status == http.StatusNotFound {
@@ -148,7 +80,6 @@ func (c *Client) Cancel(ctx context.Context, subscriptionID string) error {
 	if err != nil {
 		return fmt.Errorf("cancel subscription: %w", err)
 	}
-
 	return nil
 }
 
@@ -181,10 +112,11 @@ func (c *Client) call(ctx context.Context, method, path string, body []byte, int
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Accept", apiType)
 	req.Header.Set("Authorization", "Bearer "+c.Key)
+	req.Header.Set("Paddle-Version", apiVersion)
+	req.Header.Set("Accept", "application/json")
 	if body != nil {
-		req.Header.Set("Content-Type", apiType)
+		req.Header.Set("Content-Type", "application/json")
 	}
 
 	resp, err := c.HTTP.Do(req)
@@ -200,8 +132,8 @@ func (c *Client) call(ctx context.Context, method, path string, body []byte, int
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		excerpt := raw
-		if len(excerpt) > 300 {
-			excerpt = excerpt[:300]
+		if len(excerpt) > maxExcerpt {
+			excerpt = excerpt[:maxExcerpt]
 		}
 		return &StatusError{Status: resp.StatusCode, Body: string(excerpt)}
 	}

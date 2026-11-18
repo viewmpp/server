@@ -119,30 +119,30 @@ func run() error {
 	var accounts user.Billing
 	if cfg.Billing.Enabled() {
 		billingHandler = billing.NewHandler(
-			billing.NewStore(pg.DB),
-			billing.NewClient(cfg.BillingAPIKey, cfg.BillingStoreID, cfg.BillingTestMode),
+			billing.NewStore(pg.DB, cfg.BillingSandbox),
+			billing.NewClient(cfg.BillingAPIKey, cfg.BillingSandbox),
 			billing.Settings{
-				Secret:    cfg.BillingWebhookSecret,
-				StoreID:   cfg.BillingStoreID,
-				Monthly:   cfg.BillingVariantMonthly,
-				Yearly:    cfg.BillingVariantYearly,
-				TestMode:  cfg.BillingTestMode,
-				TestUsers: cfg.BillingTestUsers,
-				BaseURL:   cfg.AppBaseURL,
+				Secret:      cfg.BillingWebhookSecret,
+				ClientToken: cfg.BillingClientToken,
+				Monthly:     cfg.BillingPriceMonthly,
+				Yearly:      cfg.BillingPriceYearly,
+				Sandbox:     cfg.BillingSandbox,
+				TestUsers:   cfg.BillingTestUsers,
+				BaseURL:     cfg.AppBaseURL,
 			},
-			counts, logger)
+			templates, counts, logger)
 		accounts = billingHandler
 
 		user.OfferBilling(billingHandler.Offered, cfg.BillingTrialPeriod)
 
 		only := []int64(nil)
-		if cfg.BillingTestMode {
+		if cfg.BillingSandbox {
 			only = append([]int64{}, cfg.BillingTestUsers...)
 		}
 		reminders := user.NewReminders(str.Users, mail, only, counts, logger)
 		background.Sweep(stop, logger, "trial reminders", time.Hour, cfg.BGSweepTimeout, reminders.Send)
 
-		logger.Info("billing on", "test_mode", cfg.BillingTestMode, "test_users", len(cfg.BillingTestUsers))
+		logger.Info("billing on", "sandbox", cfg.BillingSandbox, "test_users", len(cfg.BillingTestUsers))
 	}
 
 	viewerHandler := viewer.NewHandler(templates, cfg.AppBaseURL, str.Users, counts, logger)

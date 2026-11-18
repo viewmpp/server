@@ -12,16 +12,8 @@
         <button class="btn btn--sm btn--primary btn--inline" type="submit">Start a {{.TrialDays}}-day free trial</button>
       </form>
     {{end}}
-    <form action="/billing/checkout" method="POST">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <input type="hidden" name="plan" value="monthly">
-      <button class="btn btn--sm btn--inline{{if not .TrialOpen}} btn--primary{{end}}" type="submit">$6.99 / month</button>
-    </form>
-    <form action="/billing/checkout" method="POST">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <input type="hidden" name="plan" value="yearly">
-      <button class="btn btn--sm btn--inline" type="submit">$59 / year</button>
-    </form>
+    <a class="btn btn--sm btn--inline{{if not .TrialOpen}} btn--primary{{end}}" href="/billing/pay?plan=monthly">$6.99 / month</a>
+    <a class="btn btn--sm btn--inline" href="/billing/pay?plan=yearly">$59 / year</a>
     {{if .TrialOpen}}<span class="buy__note">The trial needs no card and ends by itself.</span>{{end}}
   {{end}}
 </div>

@@ -1,7 +1,6 @@
 package billing
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -9,84 +8,97 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
-const subscriptionType = "subscriptions"
+const (
+	subscriptionEvents = "subscription."
+	SignatureTolerance = 5 * time.Minute
+)
 
 type Event struct {
+	ID             string
 	Name           string
 	UserID         int64
 	Site           string
 	SubscriptionID string
 	CustomerID     string
-	StoreID        string
-	VariantID      string
+	PriceID        string
 	Status         string
-	RenewsAt       *time.Time
-	EndsAt         *time.Time
-	TrialEndsAt    *time.Time
-	UpdatedAt      time.Time
-	TestMode       bool
+	NextBilledAt   *time.Time
+	PeriodEndsAt   *time.Time
+	CancelAt       *time.Time
+	OccurredAt     time.Time
 }
 
-func Signed(secret string, body []byte, signature string) bool {
-	got, err := hex.DecodeString(signature)
-	if err != nil || len(got) == 0 {
+func Signed(secret string, body []byte, header string, now time.Time) bool {
+	var ts string
+	var signatures []string
+	for _, part := range strings.Split(header, ";") {
+		key, value, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if !ok {
+			continue
+		}
+		switch key {
+		case "ts":
+			ts = value
+		case "h1":
+			signatures = append(signatures, value)
+		}
+	}
+	if ts == "" || len(signatures) == 0 {
+		return false
+	}
+
+	seconds, err := strconv.ParseInt(ts, 10, 64)
+	if err != nil {
+		return false
+	}
+	age := now.Sub(time.Unix(seconds, 0))
+	if age > SignatureTolerance || age < -SignatureTolerance {
 		return false
 	}
 
 	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(ts + ":"))
 	mac.Write(body)
+	want := mac.Sum(nil)
 
-	return hmac.Equal(mac.Sum(nil), got)
-}
-
-type id string
-
-func (v *id) UnmarshalJSON(raw []byte) error {
-	raw = bytes.TrimSpace(raw)
-	if bytes.Equal(raw, []byte("null")) {
-		*v = ""
-		return nil
+	for _, signature := range signatures {
+		got, err := hex.DecodeString(signature)
+		if err == nil && hmac.Equal(want, got) {
+			return true
+		}
 	}
-
-	var s string
-	if err := json.Unmarshal(raw, &s); err == nil {
-		*v = id(s)
-		return nil
-	}
-
-	var n json.Number
-	if err := json.Unmarshal(raw, &n); err != nil {
-		return fmt.Errorf("an id is neither a string nor a number: %s", raw)
-	}
-	*v = id(n.String())
-	return nil
+	return false
 }
 
 type payload struct {
-	Meta struct {
-		EventName  string `json:"event_name"`
+	EventID    string `json:"event_id"`
+	EventType  string `json:"event_type"`
+	OccurredAt string `json:"occurred_at"`
+	Data       struct {
+		ID         string `json:"id"`
+		Status     string `json:"status"`
+		CustomerID string `json:"customer_id"`
 		CustomData struct {
-			UserID id     `json:"user_id"`
-			Site   string `json:"site"`
+			UserID json.RawMessage `json:"user_id"`
+			Site   string          `json:"site"`
 		} `json:"custom_data"`
-	} `json:"meta"`
-	Data struct {
-		Type       string `json:"type"`
-		ID         id     `json:"id"`
-		Attributes struct {
-			StoreID     id      `json:"store_id"`
-			CustomerID  id      `json:"customer_id"`
-			VariantID   id      `json:"variant_id"`
-			Status      string  `json:"status"`
-			RenewsAt    *string `json:"renews_at"`
-			EndsAt      *string `json:"ends_at"`
-			TrialEndsAt *string `json:"trial_ends_at"`
-			UpdatedAt   string  `json:"updated_at"`
-			TestMode    bool    `json:"test_mode"`
-		} `json:"attributes"`
+		Items []struct {
+			Price struct {
+				ID string `json:"id"`
+			} `json:"price"`
+		} `json:"items"`
+		NextBilledAt         *string `json:"next_billed_at"`
+		CurrentBillingPeriod *struct {
+			EndsAt string `json:"ends_at"`
+		} `json:"current_billing_period"`
+		ScheduledChange *struct {
+			Action      string `json:"action"`
+			EffectiveAt string `json:"effective_at"`
+		} `json:"scheduled_change"`
 	} `json:"data"`
 }
 
@@ -98,52 +110,64 @@ func ParseEvent(body []byte) (Event, bool, error) {
 		return Event{}, false, fmt.Errorf("%w: %v", ErrMalformed, err)
 	}
 
-	if p.Data.Type != subscriptionType {
+	if !strings.HasPrefix(p.EventType, subscriptionEvents) {
 		return Event{}, false, nil
 	}
 
-	a := p.Data.Attributes
-	e := Event{
-		Name:           p.Meta.EventName,
-		Site:           p.Meta.CustomData.Site,
-		SubscriptionID: string(p.Data.ID),
-		CustomerID:     string(a.CustomerID),
-		StoreID:        string(a.StoreID),
-		VariantID:      string(a.VariantID),
-		Status:         a.Status,
-		TestMode:       a.TestMode,
-	}
-
-	if e.SubscriptionID == "" || e.Status == "" {
+	d := p.Data
+	if d.ID == "" || d.Status == "" {
 		return Event{}, false, fmt.Errorf("%w: a subscription without an id or a status", ErrMalformed)
 	}
 
-	if raw := string(p.Meta.CustomData.UserID); raw != "" {
-		userID, err := strconv.ParseInt(raw, 10, 64)
-		if err != nil || userID <= 0 {
-			return Event{}, false, fmt.Errorf("%w: custom user_id %q", ErrMalformed, raw)
-		}
-		e.UserID = userID
+	occurred, err := parseTime(&p.OccurredAt)
+	if err != nil || occurred == nil {
+		return Event{}, false, fmt.Errorf("%w: occurred_at %q", ErrMalformed, p.OccurredAt)
 	}
 
-	updated, err := parseTime(&a.UpdatedAt)
-	if err != nil || updated == nil {
-		return Event{}, false, fmt.Errorf("%w: updated_at %q", ErrMalformed, a.UpdatedAt)
+	e := Event{
+		ID:             p.EventID,
+		Name:           p.EventType,
+		Site:           d.CustomData.Site,
+		SubscriptionID: d.ID,
+		CustomerID:     d.CustomerID,
+		Status:         d.Status,
+		OccurredAt:     *occurred,
 	}
-	e.UpdatedAt = *updated
+	if len(d.Items) > 0 {
+		e.PriceID = d.Items[0].Price.ID
+	}
 
-	for _, field := range []struct {
-		raw *string
-		to  **time.Time
-	}{{a.RenewsAt, &e.RenewsAt}, {a.EndsAt, &e.EndsAt}, {a.TrialEndsAt, &e.TrialEndsAt}} {
-		t, err := parseTime(field.raw)
-		if err != nil {
+	if e.UserID, err = userID(d.CustomData.UserID); err != nil {
+		return Event{}, false, err
+	}
+
+	if e.NextBilledAt, err = parseTime(d.NextBilledAt); err != nil {
+		return Event{}, false, fmt.Errorf("%w: %v", ErrMalformed, err)
+	}
+	if d.CurrentBillingPeriod != nil {
+		if e.PeriodEndsAt, err = parseTime(&d.CurrentBillingPeriod.EndsAt); err != nil {
 			return Event{}, false, fmt.Errorf("%w: %v", ErrMalformed, err)
 		}
-		*field.to = t
+	}
+	if d.ScheduledChange != nil && d.ScheduledChange.Action == "cancel" {
+		if e.CancelAt, err = parseTime(&d.ScheduledChange.EffectiveAt); err != nil {
+			return Event{}, false, fmt.Errorf("%w: %v", ErrMalformed, err)
+		}
 	}
 
 	return e, true, nil
+}
+
+func userID(raw json.RawMessage) (int64, error) {
+	text := strings.Trim(strings.TrimSpace(string(raw)), `"`)
+	if text == "" || text == "null" {
+		return 0, nil
+	}
+	id, err := strconv.ParseInt(text, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, fmt.Errorf("%w: custom user_id %s", ErrMalformed, raw)
+	}
+	return id, nil
 }
 
 func parseTime(raw *string) (*time.Time, error) {
