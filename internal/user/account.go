@@ -9,6 +9,7 @@ import (
 	"server/internal/session"
 	"server/internal/validator"
 	"strconv"
+	"time"
 )
 
 type AccountForm struct {
@@ -208,6 +209,13 @@ func (h *Handler) describePlan(r *http.Request, u *User, page *htmlutil.Page) er
 			page.PaidDate = plan.PeriodEnd.Format("2 Jan 2006")
 		}
 		return nil
+	}
+
+	if !u.CanBuy(time.Now()) {
+		page.BuyClosed = true
+		if u.SubscriptionUntil != nil {
+			page.BuyFrom = u.SubscriptionUntil.Add(-BuyWindow).Format("2 Jan 2006")
+		}
 	}
 
 	if page.Pro {

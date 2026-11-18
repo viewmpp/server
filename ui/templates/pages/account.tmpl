@@ -59,7 +59,15 @@
         {{if .PaidStatus}}
           <a class="btn btn--sm btn--inline" href="/billing/portal">Manage subscription</a>
         {{else if .Billing}}
-          {{template "buy" .}}
+          {{if .BuyClosed}}
+            {{with .BuyFrom}}
+              <div class="buy">
+                <span class="buy__note">Paid plans open on {{.}}, a week before the free Pro ends.</span>
+              </div>
+            {{end}}
+          {{else}}
+            {{template "buy" .}}
+          {{end}}
         {{else if not .Pro}}
           <form action="/subscribe" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">

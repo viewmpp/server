@@ -225,6 +225,12 @@ func (h *Handler) Pay(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if !u.CanBuy(h.now()) {
+			session.FromContext(r).Put("flash", user.MsgBuyLater)
+			http.Redirect(w, r, "/account", http.StatusSeeOther)
+			return
+		}
+
 		h.counts.Count(events.CheckoutStart(plan))
 
 		form.PriceID = price

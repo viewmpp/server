@@ -42,6 +42,8 @@ type Page struct {
 	Billing           bool
 	TrialOpen         bool
 	TrialDays         int
+	BuyClosed         bool
+	BuyFrom           string
 	PaidStatus        string
 	PaidYearly        bool
 	PaidDate          string

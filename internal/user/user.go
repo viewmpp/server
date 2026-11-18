@@ -85,6 +85,18 @@ func (u *User) CanSave(saved int) bool {
 
 const proWarningWindow = 7 * 24 * time.Hour
 
+const BuyWindow = proWarningWindow
+
+func (u *User) CanBuy(now time.Time) bool {
+	if !u.hasSubscriptionAt(now) {
+		return true
+	}
+	if u.SubscriptionUntil == nil {
+		return false
+	}
+	return u.SubscriptionUntil.Sub(now) <= BuyWindow
+}
+
 func proWarning(u *User, now time.Time) string {
 	if !u.hasSubscriptionAt(now) || u.SubscriptionUntil == nil || u.Renews {
 		return ""

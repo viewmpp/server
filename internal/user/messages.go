@@ -40,6 +40,7 @@ func MsgEarlyAccessGranted(seat int, until time.Time) string {
 }
 
 const (
+	MsgBuyLater     = "Your free Pro is still running, so there is nothing to pay for yet. Paid plans open a week before it ends."
 	MsgTrialUsed    = "You have already used your free trial. Choose a plan below to keep Pro."
 	MsgCancelFailed = "Your subscription could not be cancelled with our payment provider, so the account was not deleted. Try again in a few minutes"
 )

@@ -40,6 +40,38 @@ func TestProWarning(t *testing.T) {
 	}
 }
 
+func TestFreeProIsNotSoldUntilItsLastWeek(t *testing.T) {
+	now := time.Date(2026, 11, 18, 9, 0, 0, 0, time.UTC)
+
+	at := func(d time.Duration) *User {
+		until := now.Add(d)
+		return &User{Verified: true, Subscription: SubscriptionPro, SubscriptionUntil: &until}
+	}
+
+	cases := []struct {
+		name string
+		user *User
+		want bool
+	}{
+		{"free account", &User{Verified: true, Subscription: SubscriptionFree}, true},
+		{"early access for three months", at(90 * 24 * time.Hour), false},
+		{"eight days left", at(8 * 24 * time.Hour), false},
+		{"a week left", at(7 * 24 * time.Hour), true},
+		{"a trial just started", at(7*24*time.Hour - time.Second), true},
+		{"two days left", at(2 * 24 * time.Hour), true},
+		{"lapsed", at(-time.Hour), true},
+		{"a lifetime grant", &User{Verified: true, Subscription: SubscriptionPro}, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := tc.user.CanBuy(now); got != tc.want {
+				t.Errorf("CanBuy() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestASubscriptionThatRenewsIsNotWarnedAbout(t *testing.T) {
 	now := time.Date(2026, 3, 14, 9, 0, 0, 0, time.UTC)
 	until := now.Add(3 * 24 * time.Hour)

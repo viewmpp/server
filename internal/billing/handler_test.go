@@ -313,6 +313,48 @@ func TestThePayPageRefusesWhatItShouldNotSell(t *testing.T) {
 	})
 }
 
+func TestFreeProIsNotChargedForWhileItHasMoreThanAWeekLeft(t *testing.T) {
+	until := func(d time.Duration) *time.Time {
+		at := testNow.Add(d)
+		return &at
+	}
+
+	t.Run("early access for three months", func(t *testing.T) {
+		counts := &fakeCounts{}
+		h := testHandler(t, &fakeStore{}, &fakeAPI{}, counts)
+		u := verified()
+		u.Subscription, u.SubscriptionUntil = user.SubscriptionPro, until(90*24*time.Hour)
+
+		w, sess := pay(t, h, "/billing/pay?plan=monthly", u)
+		if w.Header().Get("Location") != "/account" || sess.Data["flash"] != user.MsgBuyLater {
+			t.Errorf("location = %q, flash = %q: a buyer was charged for months Pro is already free", w.Header().Get("Location"), sess.Data["flash"])
+		}
+		if len(counts.names) != 0 {
+			t.Errorf("counted %v", counts.names)
+		}
+	})
+
+	t.Run("a lifetime grant", func(t *testing.T) {
+		h := testHandler(t, &fakeStore{}, &fakeAPI{}, &fakeCounts{})
+		u := verified()
+		u.Subscription = user.SubscriptionPro
+
+		if w, _ := pay(t, h, "/billing/pay?plan=monthly", u); w.Header().Get("Location") != "/account" {
+			t.Errorf("location = %q", w.Header().Get("Location"))
+		}
+	})
+
+	t.Run("the last days of a trial", func(t *testing.T) {
+		h := testHandler(t, &fakeStore{}, &fakeAPI{}, &fakeCounts{})
+		u := verified()
+		u.Subscription, u.SubscriptionUntil = user.SubscriptionPro, until(3*24*time.Hour)
+
+		if w, _ := pay(t, h, "/billing/pay?plan=monthly", u); w.Code != http.StatusOK {
+			t.Errorf("status = %d, location = %q: a trial user could not subscribe", w.Code, w.Header().Get("Location"))
+		}
+	})
+}
+
 func TestAPaddleLinkWithATransactionOpensWithoutSigningIn(t *testing.T) {
 	counts := &fakeCounts{}
 	h := testHandler(t, &fakeStore{}, &fakeAPI{}, counts)
